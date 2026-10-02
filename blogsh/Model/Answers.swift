@@ -11,17 +11,34 @@ import Foundation
 
 /// What the engine says when it will not do something: a code a program
 /// can switch on, and a sentence a person can read.
-struct Refusal: Decodable, Error, Equatable {
+nonisolated struct Refusal: Decodable, Error, Equatable, Sendable {
+    let ok: Bool
     let error: String
     let message: String
 }
 
-enum PostState: String, Decodable {
+/// `version --json`: the identity block the terminal shows above every
+/// screen -- which engine, which site, where it is.
+nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
+    let ok: Bool
+    let engine: String
+    let site: Site
+
+    struct Site: Decodable, Equatable, Sendable {
+        let name: String
+        let claim: String
+        let url: String
+        let lang: String
+        let locales: [String]
+    }
+}
+
+nonisolated enum PostState: String, Decodable, Sendable {
     case draft, published
 }
 
 /// One row of `list --json`.
-struct PostRow: Decodable, Identifiable, Equatable {
+nonisolated struct PostRow: Decodable, Identifiable, Equatable, Sendable {
     let slug: String
     let year: String
     let date: String?
@@ -47,7 +64,7 @@ struct PostRow: Decodable, Identifiable, Equatable {
 }
 
 /// `list --json`.
-struct ListAnswer: Decodable {
+nonisolated struct ListAnswer: Decodable, Sendable {
     let ok: Bool
     let posts: [PostRow]
     let count: Int
@@ -55,7 +72,7 @@ struct ListAnswer: Decodable {
 }
 
 /// `props <slug> --json`.
-struct PropsAnswer: Decodable {
+nonisolated struct PropsAnswer: Decodable, Sendable {
     let ok: Bool
     let slug: String
     let year: String
@@ -78,19 +95,19 @@ struct PropsAnswer: Decodable {
     let addresses: [OldAddress]
     let actions: [PostAction]
 
-    struct Languages: Decodable, Equatable {
+    struct Languages: Decodable, Equatable, Sendable {
         let own: String
         let others: [String: String]
     }
 
-    struct OldAddress: Decodable, Equatable {
+    struct OldAddress: Decodable, Equatable, Sendable {
         let kind: String
         let value: String
     }
 
     /// Which of the six cases the announcement is in -- the ladder the
     /// properties screen climbs, as a word.
-    enum Announces: String, Decodable {
+    enum Announces: String, Decodable, Sendable {
         case announced, onPublish = "on_publish", nowhere
         case neverUnlisted = "never_unlisted", noSecret = "no_secret", notAnnounced = "not_announced"
     }
@@ -104,18 +121,18 @@ struct PropsAnswer: Decodable {
 
 /// The keys the properties screen would offer a post, by name. The
 /// engine decides which apply; the app only draws the ones it is handed.
-enum PostAction: String, Decodable, CaseIterable {
+nonisolated enum PostAction: String, Decodable, CaseIterable, Sendable {
     case publish, schedule, unschedule, unpublish, announce, pin
     case properties, rename, addresses, versions, delete
 }
 
 /// `queue --json`.
-struct QueueAnswer: Decodable {
+nonisolated struct QueueAnswer: Decodable, Sendable {
     let ok: Bool
     let queue: [QueueRow]
 }
 
-struct QueueRow: Decodable, Identifiable, Equatable {
+nonisolated struct QueueRow: Decodable, Identifiable, Equatable, Sendable {
     let position: Int
     let date: String
     let slug: String
@@ -126,18 +143,19 @@ struct QueueRow: Decodable, Identifiable, Equatable {
     var id: String { "\(year)/\(slug)" }
 }
 
-extension ISO8601DateFormatter {
+nonisolated extension ISO8601DateFormatter {
     /// The engine writes `2026-05-01T10:00:00+02:00`: no fractional
     /// seconds, an offset rather than Z.
-    static let engine: ISO8601DateFormatter = {
+    // Read-only after it is made; the formatter is not Sendable by type.
+    nonisolated(unsafe) static let engine: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime]
         return f
     }()
 }
 
-extension PostRow {
-    /// Rows for the screens to show before a connection exists.
+nonisolated extension PostRow {
+    /// Rows for the previews, and for a screen before a connection exists.
     static let sample: [PostRow] = [
         PostRow(slug: "planovany", year: "2026", date: "2099-01-01T09:00:00+01:00", title: "Plánovaný",
                 type: "text", tags: [], state: .draft, scheduled: true, series: nil, pinned: false),

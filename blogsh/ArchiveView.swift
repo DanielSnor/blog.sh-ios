@@ -1,16 +1,53 @@
 import SwiftUI
 
-/// The archive as `list --json` hands it out, newest first. For now it
-/// draws a sample of the answer, so the row's shape can be judged before
-/// the connection that fetches the real one exists.
+/// The archive as `list --json` hands it out, newest first -- what the
+/// terminal's `browse` walks. Filters and search come with it; for now the
+/// list, loaded from the server, with the draft filter the command has.
 struct ArchiveView: View {
-    private let posts = PostRow.sample
+    @State private var posts: [PostRow] = []
+    @State private var draftsOnly = false
+    @State private var problem: String?
+    @State private var loading = false
 
     var body: some View {
-        List(posts) { post in
-            PostRowView(post: post)
+        List {
+            if let problem {
+                Text(problem).foregroundStyle(.secondary)
+            }
+            ForEach(posts) { post in
+                PostRowView(post: post)
+            }
         }
-        .navigationTitle("Archive")
+        .overlay {
+            if loading && posts.isEmpty {
+                ProgressView()
+            } else if !loading && posts.isEmpty && problem == nil {
+                ContentUnavailableView("No posts", systemImage: "tray")
+            }
+        }
+        .navigationTitle("The archive")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Toggle("Drafts", systemImage: "pencil", isOn: $draftsOnly)
+                    .toggleStyle(.button)
+            }
+        }
+        .task(id: draftsOnly) { await load() }
+        .refreshable { await load() }
+    }
+
+    private func load() async {
+        loading = true
+        defer { loading = false }
+        var args = ["list"]
+        if draftsOnly { args.append("--drafts") }
+        do {
+            let answer: ListAnswer = try await Engine.shared.call(args)
+            posts = answer.posts
+            problem = nil
+        } catch {
+            problem = error.localizedDescription
+        }
     }
 }
 
@@ -74,5 +111,5 @@ private extension Text {
 }
 
 #Preview {
-    NavigationStack { ArchiveView() }
+    NavigationStack { List(PostRow.sample) { PostRowView(post: $0) } }
 }

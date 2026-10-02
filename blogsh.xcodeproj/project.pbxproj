@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B10C5A0100000000000000D1 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = B10C5A0100000000000000D2 /* Citadel */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		B10C5A0100000000000000A1 /* blogsh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = blogsh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B10C5A0100000000000000D1 /* Citadel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = blogsh;
 			packageProductDependencies = (
+				B10C5A0100000000000000D2 /* Citadel */,
 			);
 			productName = blogsh;
 			productReference = B10C5A0100000000000000A1 /* blogsh.app */;
@@ -95,6 +101,9 @@
 			);
 			mainGroup = B10C5A0100000000000000A4;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B10C5A0100000000000000D3 /* XCRemoteSwiftPackageReference "Citadel" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B10C5A0100000000000000A5 /* Products */;
 			projectDirPath = "";
@@ -270,6 +279,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B10C5A0100000000000000D3 /* XCRemoteSwiftPackageReference "Citadel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.12.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B10C5A0100000000000000D2 /* Citadel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B10C5A0100000000000000D3 /* XCRemoteSwiftPackageReference "Citadel" */;
+			productName = Citadel;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B10C5A0100000000000000B0 /* Project object */;
 }
