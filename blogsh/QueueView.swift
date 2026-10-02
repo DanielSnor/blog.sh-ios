@@ -102,7 +102,7 @@ struct QueueView: View {
         .alert("Carry to which position?", isPresented: Binding(get: { carrying != nil }, set: { if !$0 { carrying = nil } })) {
             TextField("Position, 1 to \(rows.count)", value: $carryTo, format: .number)
                 .keyboardType(.numberPad)
-            Button("Carry") { Task { await carry() } }
+            Button("Carry") { if let row = carrying { Task { await carry(row, to: carryTo) } } }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("The posts in between step back one slot each; the same times stay occupied.")
@@ -149,12 +149,11 @@ struct QueueView: View {
         }
     }
 
-    private func carry() async {
-        guard let row = carrying else { return }
+    private func carry(_ row: QueueRow, to position: Int) async {
         busy = true
         defer { busy = false }
         do {
-            let answer: QueueAnswer = try await Engine.shared.call(["queue", "--move", "\(row.year)/\(row.slug)", "--to", "\(carryTo)"])
+            let answer: QueueAnswer = try await Engine.shared.call(["queue", "--move", "\(row.year)/\(row.slug)", "--to", "\(position)"])
             rows = answer.queue
             dirty = true
         } catch {

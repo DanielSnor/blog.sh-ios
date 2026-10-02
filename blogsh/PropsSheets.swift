@@ -185,12 +185,13 @@ struct AddressesSheet: View {
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         .confirmationDialog("Drop \(dropping?.value ?? "")? It no longer redirects anywhere.",
                             isPresented: Binding(get: { dropping != nil }, set: { if !$0 { dropping = nil } }), titleVisibility: .visible) {
-            Button("Drop", role: .destructive) { Task { await drop() } }
+            if let address = dropping {
+                Button("Drop", role: .destructive) { Task { await drop(address) } }
+            }
         }
     }
 
-    private func drop() async {
-        guard let address = dropping else { return }
+    private func drop(_ address: PropsAnswer.OldAddress) async {
         do {
             let answer: PropsAnswer = try await Engine.shared.call(["props", props.slug, "--drop-address", address.value])
             addresses = answer.addresses
@@ -236,7 +237,9 @@ struct VersionsSheet: View {
         .task { await load() }
         .confirmationDialog("Restore this version? The current text is kept as a version first.",
                             isPresented: Binding(get: { restoring != nil }, set: { if !$0 { restoring = nil } }), titleVisibility: .visible) {
-            Button("Restore") { Task { await restore() } }
+            if let version = restoring {
+                Button("Restore") { Task { await restore(version) } }
+            }
         }
     }
 
@@ -250,8 +253,7 @@ struct VersionsSheet: View {
         }
     }
 
-    private func restore() async {
-        guard let version = restoring else { return }
+    private func restore(_ version: VersionsAnswer.Version) async {
         do {
             let _: PropsAnswer = try await Engine.shared.call(["props", slug, "--restore-version", version.name, "--yes"])
             await done()

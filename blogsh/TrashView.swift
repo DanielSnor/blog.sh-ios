@@ -1,12 +1,18 @@
 import SwiftUI
 
 /// What the trash holds, as `restore --json` lists it -- the rows the
-/// terminal offers when `restore` is run with no slug. Restoring one is
-/// the action, and comes with the rest of the actions.
+/// terminal offers when `restore` is run with no slug -- and the one
+/// action the screen has: a row restores its post. A draft comes back
+/// with its preview rebuilt, as the terminal rebuilds it; a published
+/// post is asked about, as the terminal asks.
 struct TrashView: View {
     @State private var rows: [TrashRow] = []
     @State private var problem: String?
     @State private var loading = false
+    @State private var busy = false
+    @State private var restoring: TrashRow?
+    @State private var askingRebuild = false
+    @State private var notice: String?
 
     var body: some View {
         List {
@@ -14,7 +20,14 @@ struct TrashView: View {
                 Text(problem).foregroundStyle(.secondary)
             }
             ForEach(rows) { row in
-                TrashRowView(row: row)
+                Button { restoring = row } label: {
+                    TrashRowView(row: row)
+                }
+                .foregroundStyle(.primary)
+                .swipeActions(edge: .trailing) {
+                    Button { restoring = row } label: { Label("Restore", systemImage: "arrow.uturn.backward") }
+                        .tint(.accentColor)
+                }
             }
         }
         .overlay {
@@ -24,9 +37,60 @@ struct TrashView: View {
                 ContentUnavailableView("Trash is empty", systemImage: "trash")
             }
         }
+        .disabled(busy)
         .navigationTitle("Trash")
         .task { await load() }
         .refreshable { await load() }
+        .confirmationDialog("Restore '\(restoring?.slug ?? "")'?",
+                            isPresented: Binding(get: { restoring != nil }, set: { if !$0 { restoring = nil } }), titleVisibility: .visible) {
+            if let row = restoring {
+                Button("Restore") { Task { await restore(row) } }
+            }
+        } message: {
+            Text(restoring?.mediaOnly == true
+                 ? "Only media are in the trash for this post; the terminal restores those."
+                 : "The post, its media and its history come back where they were.")
+        }
+        .alert("Rebuild and deploy the site now?", isPresented: $askingRebuild) {
+            Button("Rebuild") { Task { await rebuild() } }
+            Button("Not now", role: .cancel) {}
+        }
+        .alert("", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
+            Button("OK") {}
+        } message: {
+            Text(notice ?? "")
+        }
+    }
+
+    // The row as a value: the dialog's binding has cleared the state by the
+    // time this runs.
+    private func restore(_ row: TrashRow) async {
+        busy = true
+        defer { busy = false }
+        do {
+            // A draft's preview is rebuilt without asking, the way the terminal
+            // does it; a published post's page is asked about.
+            let args = ["restore", row.slug] + (row.state == "draft" ? ["--rebuild"] : [])
+            let answer: ActionAnswer = try await Engine.shared.call(args)
+            // The engine's own lines say it; the address only when it said nothing.
+            let said = answer.warnings ?? []
+            notice = said.isEmpty ? "Restored: \(answer.url ?? row.slug)" : said.joined(separator: "\n")
+            await load()
+            if answer.state == .published { askingRebuild = true }
+        } catch {
+            notice = error.localizedDescription
+        }
+    }
+
+    private func rebuild() async {
+        busy = true
+        defer { busy = false }
+        do {
+            let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
+            notice = answer.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run."
+        } catch {
+            notice = error.localizedDescription
+        }
     }
 
     private func load() async {
