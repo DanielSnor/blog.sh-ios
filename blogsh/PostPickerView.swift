@@ -4,6 +4,8 @@ import SwiftUI
 /// (pick_slug_interactively, RECENT_LIST_COUNT), then the crossroads the
 /// wizard puts after it -- the text, or the properties and the actions.
 struct PostPickerView: View {
+    /// The languages the site publishes beyond its own, for the crossroads.
+    var languages: [String] = []
     @State private var posts: [PostRow] = []
     @State private var problem: String?
     @State private var loading = false
@@ -22,7 +24,7 @@ struct PostPickerView: View {
             }
         }
         .navigationDestination(for: PostRow.self) { post in
-            PostCrossroadsView(post: post)
+            PostCrossroadsView(post: post, languages: languages)
         }
         .overlay {
             if loading && posts.isEmpty {
@@ -54,6 +56,7 @@ struct PostPickerView: View {
 /// properties are here.
 struct PostCrossroadsView: View {
     let post: PostRow
+    var languages: [String] = []
 
     var body: some View {
         List {
@@ -71,6 +74,15 @@ struct PostCrossroadsView: View {
                     TextEditView(slug: post.slug)
                 } label: {
                     Label("the text", systemImage: "text.alignleft")
+                }
+                // [l]: only on a site that publishes more than one language,
+                // the way the prompt only mentions it there.
+                ForEach(languages, id: \.self) { lang in
+                    NavigationLink {
+                        TranslateView(slug: post.slug, lang: lang)
+                    } label: {
+                        Label("language: \(Locale.current.localizedString(forLanguageCode: lang) ?? lang)", systemImage: "character.bubble")
+                    }
                 }
                 NavigationLink {
                     PropsView(slug: post.slug)

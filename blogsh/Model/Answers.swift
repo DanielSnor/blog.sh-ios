@@ -207,6 +207,29 @@ nonisolated struct EditEntry: Decodable, Sendable {
     let base: String
 }
 
+/// `translate <slug> --lang <code> --json`: one language of a post, with
+/// the original beside it, to be written elsewhere.
+nonisolated struct TranslationAnswer: Decodable, Sendable {
+    let ok: Bool
+    let post: TranslationEntry
+}
+
+nonisolated struct TranslationEntry: Decodable, Sendable {
+    let slug: String
+    let lang: String
+    let title: String
+    /// Whether the language has words yet.
+    let written: Bool
+    /// The translation as the editor opens it: a header of its title and
+    /// its address, then its words -- empty when there are none yet.
+    let text: String
+    /// The post's own text, pictures by bare name, to translate from.
+    let original: String
+    let media: [String]
+    let preview: String
+    let base: String
+}
+
 /// `restore --json`: what the trash holds.
 nonisolated struct TrashAnswer: Decodable, Sendable {
     let ok: Bool

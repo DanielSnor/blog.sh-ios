@@ -77,7 +77,7 @@ struct ContentView: View {
             NavigationStack {
                 switch selection {
                 case .add: ComposeView(maxMb: identity?.maxMb ?? 24)
-                case .post: PostPickerView()
+                case .post: PostPickerView(languages: otherLanguages)
                 case .queue: QueueView()
                 case .browse: ArchiveView()
                 case .restore: TrashView()
@@ -87,6 +87,12 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    /// The languages the site publishes beyond its own.
+    private var otherLanguages: [String] {
+        guard let identity else { return [] }
+        return identity.site.locales.filter { $0 != identity.site.lang }
     }
 
     /// The identity block, from the server: `version --json`. Without a
