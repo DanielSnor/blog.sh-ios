@@ -84,6 +84,11 @@ nonisolated struct PropsAnswer: Decodable, Sendable {
     let url: String
     let address: String
     let type: String
+    /// The type the post says for itself; nil when the content decides.
+    let typeSet: String?
+    /// The two three-state flags, in the words --set takes: yes, no, default.
+    let hero: String
+    let toc: String
     let tags: [String]
     let series: String?
     let seriesPart: String?
@@ -92,8 +97,15 @@ nonisolated struct PropsAnswer: Decodable, Sendable {
     let languages: Languages
     let announced: String?
     let announces: Announces
+    /// Which network [t] announces on: "mastodon", "bluesky", or none.
+    let network: String?
+    /// The time the schedule dialog would offer a plain draft, or none.
+    let slot: String?
     let addresses: [OldAddress]
     let actions: [PostAction]
+    /// Present on the answer to a write (`--set`, `--rename`...), absent on a read.
+    let deploy: String?
+    let warnings: [String]?
 
     struct Languages: Decodable, Equatable, Sendable {
         let own: String
@@ -113,9 +125,10 @@ nonisolated struct PropsAnswer: Decodable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case ok, slug, year, path, title, state, scheduled, date, url, address, type, tags, series
+        case ok, slug, year, path, title, state, scheduled, date, url, address, type, tags, series, hero, toc
+        case typeSet = "type_set"
         case seriesPart = "series_part"
-        case pinned, unlisted, languages, announced, announces, addresses, actions
+        case pinned, unlisted, languages, announced, announces, network, slot, addresses, actions, deploy, warnings
     }
 }
 
@@ -124,6 +137,42 @@ nonisolated struct PropsAnswer: Decodable, Sendable {
 nonisolated enum PostAction: String, Decodable, CaseIterable, Sendable {
     case publish, schedule, unschedule, unpublish, announce, pin
     case properties, rename, addresses, versions, delete
+}
+
+/// What an action says about the post it acted on: the keys `add --json`
+/// and `publish --json` answer with, and the ones `delete` adds. All but
+/// the slug are optional here because the shapes differ by action.
+nonisolated struct ActionAnswer: Decodable, Sendable {
+    let ok: Bool?
+    let slug: String
+    let state: PostState?
+    let url: String?
+    let deploy: String?
+    let warnings: [String]?
+    let compacted: Int?
+    let trash: String?
+}
+
+/// `props <slug> --versions --json`.
+nonisolated struct VersionsAnswer: Decodable, Sendable {
+    let ok: Bool
+    let slug: String
+    let versions: [Version]
+
+    struct Version: Decodable, Identifiable, Sendable {
+        let name: String
+        let date: String?
+        let label: String
+
+        var id: String { name }
+    }
+}
+
+/// `rebuild --json`.
+nonisolated struct RebuildAnswer: Decodable, Sendable {
+    let ok: Bool
+    let deploy: String
+    let warnings: [String]
 }
 
 /// `restore --json`: what the trash holds.
