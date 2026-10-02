@@ -169,9 +169,10 @@ struct QueueView: View {
         if compact { args.append("--compact") }
         do {
             let answer: ActionAnswer = try await Engine.shared.call(args)
+            // The engine says what it did in its own words (the warnings carry
+            // the screen's lines); the app adds only the address a publish gave.
             var said: [String] = []
             if leaving.publish { said.append("Published: \(answer.url ?? leaving.row.slug)") }
-            if let moved = answer.compacted, moved > 0 { said.append("Queue shifted: \(moved) post(s) took over the earlier slot.") }
             if let warnings = answer.warnings, !warnings.isEmpty { said.append(contentsOf: warnings) }
             if !said.isEmpty { notice = said.joined(separator: "\n") }
             // Publishing rebuilds by itself; a plan cancelled leaves the preview behind.
