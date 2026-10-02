@@ -182,6 +182,31 @@ nonisolated struct RebuildAnswer: Decodable, Sendable {
     let warnings: [String]
 }
 
+/// `edit <slug> --json`: one post with what it takes to edit its text
+/// elsewhere -- the same entry `drafts --json` hands out for a draft.
+nonisolated struct EditAnswer: Decodable, Sendable {
+    let ok: Bool
+    let post: EditEntry
+}
+
+nonisolated struct EditEntry: Decodable, Sendable {
+    let slug: String
+    let title: String
+    let date: String
+    let scheduled: Bool
+    /// False when the text holds something markdown cannot carry; the
+    /// engine names the reason, and the save would lose it.
+    let editable: Bool
+    let problem: String?
+    /// The text as the editor opens it, pictures by bare name.
+    let text: String?
+    /// The pictures the post has, by name.
+    let media: [String]
+    let preview: String
+    /// The digest the save hands back as `base:`.
+    let base: String
+}
+
 /// `restore --json`: what the trash holds.
 nonisolated struct TrashAnswer: Decodable, Sendable {
     let ok: Bool

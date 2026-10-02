@@ -67,8 +67,11 @@ struct PostCrossroadsView: View {
             // The prompt's words: "Edit what? [Enter] the text  [v] properties and
             // actions". The text is the editor's and comes with it.
             Section("Edit what?") {
-                Label("the text", systemImage: "text.alignleft")
-                    .foregroundStyle(.secondary)
+                NavigationLink {
+                    TextEditView(slug: post.slug)
+                } label: {
+                    Label("the text", systemImage: "text.alignleft")
+                }
                 NavigationLink {
                     PropsView(slug: post.slug)
                 } label: {
