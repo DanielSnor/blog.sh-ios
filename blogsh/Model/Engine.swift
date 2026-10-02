@@ -11,6 +11,8 @@ nonisolated enum EngineError: Error, LocalizedError {
     case hostKeyChanged(String)
     case refused(Refusal)
     case unreadable(String)
+    /// Where on the way to the engine it broke, for the message that says so.
+    case stage(String, Error)
 
     var errorDescription: String? {
         switch self {
@@ -20,6 +22,7 @@ nonisolated enum EngineError: Error, LocalizedError {
             String(localized: "The server's key changed (\(fingerprint)). If the server was reinstalled, forget the old key in Settings.")
         case .refused(let refusal): refusal.message
         case .unreadable(let text): String(localized: "The engine did not answer as data: \(text)")
+        case .stage(let stage, let error): "\(stage): \(error)"
         }
     }
 }
@@ -59,13 +62,20 @@ actor Engine {
         } catch {
             throw EngineError.noKey
         }
-        let client = try await SSHClient.connect(
-            host: settings.host,
-            port: settings.port,
-            authenticationMethod: .ed25519(username: settings.user, privateKey: key),
-            hostKeyValidator: .custom(TrustOnFirstUse(host: settings.host, port: settings.port)),
-            reconnect: .never
-        )
+        let client: SSHClient
+        do {
+            client = try await SSHClient.connect(
+                host: settings.host,
+                port: settings.port,
+                authenticationMethod: .ed25519(username: settings.user, privateKey: key),
+                hostKeyValidator: .custom(TrustOnFirstUse(host: settings.host, port: settings.port)),
+                reconnect: .never
+            )
+        } catch let error as EngineError {
+            throw error
+        } catch {
+            throw EngineError.stage("connect", error)
+        }
         // Closed on both ways out, in line rather than from a detached task:
         // a task spawned here would carry the client across the actor's
         // boundary, and the compiler is right to refuse that.
@@ -83,13 +93,23 @@ actor Engine {
         var request = try JSONSerialization.data(withJSONObject: ["args": args])
         request.append(0x0a)
         var answer = Data()
-        try await client.withExec("run") { inbound, outbound in
-            try await outbound.write(ByteBuffer(bytes: request))
-            for try await chunk in inbound {
-                if case .stdout(let buffer) = chunk {
-                    answer.append(contentsOf: buffer.readableBytesView)
+        var stage = "exec"
+        do {
+            try await client.withExec("run") { inbound, outbound in
+                stage = "write"
+                try await outbound.write(ByteBuffer(bytes: request))
+                stage = "read"
+                for try await chunk in inbound {
+                    if case .stdout(let buffer) = chunk {
+                        answer.append(contentsOf: buffer.readableBytesView)
+                    }
                 }
+                stage = "close"
             }
+        } catch {
+            // The answer may be whole even when the close after it complains.
+            if stage == "close", !answer.isEmpty { return answer }
+            throw EngineError.stage("\(stage) (\(answer.count) bytes so far)", error)
         }
         return answer
     }

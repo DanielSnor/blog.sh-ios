@@ -99,8 +99,14 @@ struct SettingsView: View {
         }
     }
 
+    /// The forced command runs through the account's shell, so a path with
+    /// a space in it (an iCloud folder on a Mac) is single-quoted inside the
+    /// double quotes sshd takes; a plain path stays plain.
     private func authorizedKeysLine(_ publicKey: String) -> String {
-        "restrict,command=\"\(installPath)/scripts/remote.sh\" \(publicKey)"
+        let path = "\(installPath)/scripts/remote.sh"
+        let safe = path.unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) || "/._-+@:".unicodeScalars.contains($0) }
+        let quoted = safe ? path : "'" + path.replacingOccurrences(of: "'", with: "'\''") + "'"
+        return "restrict,command=\"\(quoted)\" \(publicKey)"
     }
 
     private func makeKey() {
