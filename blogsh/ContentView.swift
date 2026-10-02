@@ -79,7 +79,7 @@ struct ContentView: View {
                 case .add: ComposeView(maxMb: identity?.maxMb ?? 24)
                 case .post: PostPickerView(languages: otherLanguages)
                 case .queue: QueueView()
-                case .browse: ArchiveView()
+                case .browse: ArchiveView(languages: otherLanguages, baseURL: identity?.site.url ?? "")
                 case .restore: TrashView()
                 case .rebuild: SiteView()
                 case .some(let entry): PlaceholderView(entry: entry)
