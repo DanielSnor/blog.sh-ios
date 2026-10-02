@@ -71,10 +71,18 @@ struct ContentView: View {
             .task { await loadIdentity() }
             .refreshable { await loadIdentity() }
         } detail: {
-            switch selection {
-            case .browse: ArchiveView()
-            case .some(let entry): PlaceholderView(entry: entry)
-            case nil: ContentUnavailableView("What do you want to do?", systemImage: "terminal")
+            // A stack of its own: the screens push further screens (a post,
+            // then its properties), and the split view's detail column does
+            // not push by itself.
+            NavigationStack {
+                switch selection {
+                case .post: PostPickerView()
+                case .queue: QueueView()
+                case .browse: ArchiveView()
+                case .restore: TrashView()
+                case .some(let entry): PlaceholderView(entry: entry)
+                case nil: ContentUnavailableView("What do you want to do?", systemImage: "terminal")
+                }
             }
         }
     }

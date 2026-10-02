@@ -126,6 +126,30 @@ nonisolated enum PostAction: String, Decodable, CaseIterable, Sendable {
     case properties, rename, addresses, versions, delete
 }
 
+/// `restore --json`: what the trash holds.
+nonisolated struct TrashAnswer: Decodable, Sendable {
+    let ok: Bool
+    let trash: [TrashRow]
+}
+
+nonisolated struct TrashRow: Decodable, Identifiable, Equatable, Sendable {
+    let slug: String
+    let year: String?
+    let date: String?
+    let title: String?
+    let type: String?
+    let tags: [String]
+    let state: String?
+    let mediaOnly: Bool
+
+    var id: String { "\(year ?? "-")/\(slug)" }
+
+    enum CodingKeys: String, CodingKey {
+        case slug, year, date, title, type, tags, state
+        case mediaOnly = "media_only"
+    }
+}
+
 /// `queue --json`.
 nonisolated struct QueueAnswer: Decodable, Sendable {
     let ok: Bool
