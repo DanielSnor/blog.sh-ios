@@ -80,6 +80,7 @@ struct ContentView: View {
                 case .queue: QueueView()
                 case .browse: ArchiveView()
                 case .restore: TrashView()
+                case .rebuild: SiteView()
                 case .some(let entry): PlaceholderView(entry: entry)
                 case nil: ContentUnavailableView("What do you want to do?", systemImage: "terminal")
                 }
