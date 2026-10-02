@@ -76,6 +76,7 @@ struct ContentView: View {
             // not push by itself.
             NavigationStack {
                 switch selection {
+                case .add: ComposeView(maxMb: identity?.maxMb ?? 24)
                 case .post: PostPickerView()
                 case .queue: QueueView()
                 case .browse: ArchiveView()

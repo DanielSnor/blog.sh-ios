@@ -22,7 +22,14 @@ nonisolated struct Refusal: Decodable, Error, Equatable, Sendable {
 nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
     let ok: Bool
     let engine: String
+    /// The receiver's ceiling on a delivery, measured on the encoded stream.
+    let maxMb: Int
     let site: Site
+
+    enum CodingKeys: String, CodingKey {
+        case ok, engine, site
+        case maxMb = "max_mb"
+    }
 
     struct Site: Decodable, Equatable, Sendable {
         let name: String
