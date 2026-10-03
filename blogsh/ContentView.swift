@@ -57,10 +57,18 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("blog.sh")
-            // The header below is the title, the way it is in the terminal.
+            // The terminal's first line is the title: the command and the
+            // engine's version, in the type the terminal sets them in.
+            .navigationTitle(Text(verbatim: "./blog.sh"))
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 6) {
+                        Text(verbatim: "./blog.sh").bold()
+                        Text(identity?.engine ?? "").foregroundStyle(.secondary)
+                    }
+                    .font(.callout.monospaced())
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
                 }
@@ -119,10 +127,6 @@ struct IdentityHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Text("./blog.sh").bold()
-                Text(identity?.engine ?? "").foregroundStyle(.secondary)
-            }
             if let identity {
                 // One run of text, so it wraps the way the terminal wraps it.
                 (Text(identity.site.name).bold() + Text(identity.site.claim.isEmpty ? "" : " — \(identity.site.claim)"))
