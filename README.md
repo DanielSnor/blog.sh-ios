@@ -61,9 +61,10 @@ its rows.
 
 Three voices of type: a display serif in lower case for what a screen
 is, a sans for what it holds, a typewriter face for what the engine says.
-The first two are Forum and Work Sans when their font files are in
-`blogsh/Fonts/` (any `.ttf` there is bundled and registered at launch);
-without them the system's serif and sans stand in.
+The first two are Forum and Work Sans, bundled from `blogsh/Fonts/` with
+their licences (SIL Open Font License 1.1) and registered at launch --
+any `.ttf` put there is. Take them out and the system's serif and sans
+stand in.
 
 ## Building
 
@@ -73,4 +74,6 @@ SSH, is fetched by Xcode.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). The two typefaces in `blogsh/Fonts/` are
+their authors', under the SIL Open Font License 1.1; each licence sits
+beside its font.
