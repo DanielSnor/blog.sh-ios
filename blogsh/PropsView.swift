@@ -30,14 +30,43 @@ struct PropsView: View {
     }
 
     var body: some View {
-        List {
+        PaperScreen {
             if let problem {
-                Text(problem).foregroundStyle(.secondary)
+                ProblemLine(text: problem)
             }
             if let props {
-                headerSection(props)
-                rowsSection(props)
-                actionsSection(props)
+                PostHeading(title: props.title,
+                            detail: props.state == .draft ? String(localized: "draft -- not on the site, preview only")
+                                                          : String(props.address.trimmingPrefix("/")))
+                rows(props).padding(.top, 16)
+                if !props.url.isEmpty, let url = URL(string: props.url) {
+                    Plate {
+                        Link(destination: url) {
+                            CommandRow(props.state == .draft ? "Show the preview on the web" : "Show on the web", symbol: "safari")
+                        }
+                        .buttonStyle(PressStyle())
+                    }
+                    .padding(.top, 10)
+                }
+                SectionLabel("Actions")
+                Plate {
+                    ForEach(keys(props).filter { $0 != .delete }, id: \.self) { action in
+                        Command(text: Text(verbatim: actionLabel(action, props)), symbol: actionSymbol(action),
+                                leads: Self.opensAScreen.contains(action)) {
+                            tapped(action)
+                        }
+                    }
+                }
+                // What cannot be taken back sits apart, and last -- as [x] is the
+                // last key of the row.
+                if props.actions.contains(.delete) {
+                    Plate {
+                        Command(text: Text(verbatim: actionLabel(.delete, props)), symbol: actionSymbol(.delete), danger: true) {
+                            tapped(.delete)
+                        }
+                    }
+                    .padding(.top, 10)
+                }
             }
         }
         .overlay {
@@ -102,57 +131,37 @@ struct PropsView: View {
 
     // MARK: - The screen
 
-    @ViewBuilder
-    private func headerSection(_ props: PropsAnswer) -> some View {
-        Section {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(props.title).font(.headline)
-                Text(props.state == .draft ? "draft -- not on the site, preview only" : String(props.address.trimmingPrefix("/")))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .listRowBackground(Color.clear)
-        }
+    /// The keys that open a screen of their own rather than ask and act.
+    private static let opensAScreen: Set<PostAction> = [.schedule, .properties, .addresses, .versions]
+
+    /// The keys the screen offers this post, in the order the terminal's keys
+    /// row has them: [p] [s] [n] [u] [t] [c] [e] [r] [a] [v] [x].
+    private static let keyOrder: [PostAction] = [.publish, .schedule, .unschedule, .unpublish, .announce, .pin,
+                                                  .properties, .rename, .addresses, .versions, .delete]
+
+    private func keys(_ props: PropsAnswer) -> [PostAction] {
+        Self.keyOrder.filter(props.actions.contains)
     }
 
-    @ViewBuilder
-    private func rowsSection(_ props: PropsAnswer) -> some View {
-        Section {
+    /// The rows of the terminal's frame, under the labels it uses.
+    private func rows(_ props: PropsAnswer) -> some View {
+        Plate {
             if props.state == .draft {
-                PropsRow(label: "preview", value: props.url)
+                InfoRow(label: "preview", value: props.url, mono: true)
                 if props.scheduled, let date = props.date {
-                    PropsRow(label: "scheduled", value: humanDate(date))
+                    InfoRow(label: "scheduled", value: humanDate(date))
                 }
             } else if let date = props.date {
-                PropsRow(label: "state", value: "published, \(humanDate(date))")
+                InfoRow(label: "state", value: String(localized: "published, \(humanDate(date))"))
             }
-            PropsRow(label: "type", value: props.type)
-            PropsRow(label: "tags", value: props.tags.joined(separator: ", "))
-            PropsRow(label: "series", value: seriesLabel(props))
-            PropsRow(label: "pinned", value: props.pinned ? "yes -- held at the top of the front page" : nil)
-            PropsRow(label: "unlisted", value: props.unlisted ? "yes -- reachable by its address, in no listing, feed, sitemap or search" : nil)
-            PropsRow(label: "languages", value: languagesLabel(props))
-            PropsRow(label: "announced", value: announcedLabel(props))
-            PropsRow(label: "old links", value: props.addresses.isEmpty ? nil : "\(props.addresses.count) address(es) still redirect here")
-            if !props.url.isEmpty, let url = URL(string: props.url) {
-                Link(destination: url) {
-                    Label(props.state == .draft ? "Show the preview on the web" : "Show on the web", systemImage: "safari")
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func actionsSection(_ props: PropsAnswer) -> some View {
-        Section("Actions") {
-            ForEach(props.actions, id: \.self) { action in
-                Button {
-                    tapped(action)
-                } label: {
-                    Label(actionLabel(action, props), systemImage: actionSymbol(action))
-                }
-                .foregroundStyle(action == .delete ? Color.red : Color.accentColor)
-            }
+            InfoRow(label: "type", value: props.type)
+            InfoRow(label: "tags", value: props.tags.joined(separator: ", "))
+            InfoRow(label: "series", value: seriesLabel(props))
+            InfoRow(label: "pinned", value: props.pinned ? String(localized: "yes -- held at the top of the front page") : nil)
+            InfoRow(label: "unlisted", value: props.unlisted ? String(localized: "yes -- reachable by its address, in no listing, feed, sitemap or search") : nil)
+            InfoRow(label: "languages", value: languagesLabel(props))
+            InfoRow(label: "announced", value: announcedLabel(props))
+            InfoRow(label: "old links", value: props.addresses.isEmpty ? nil : String(localized: "\(props.addresses.count) address(es) still redirect here"))
         }
     }
 
@@ -181,11 +190,11 @@ struct PropsView: View {
     private var confirmTitle: String {
         guard let action = confirming else { return "" }
         switch action {
-        case .publish: return "Publish '\(slug)'?"
-        case .unschedule: return "Cancel the schedule of '\(slug)'?"
-        case .unpublish: return "Really move '\(slug)' back to draft?"
-        case .announce: return "Announce '\(slug)'?"
-        case .delete: return "Really delete '\(slug)'?"
+        case .publish: return String(localized: "Publish '\(slug)'?")
+        case .unschedule: return String(localized: "Cancel the schedule of '\(slug)'?")
+        case .unpublish: return String(localized: "Really move '\(slug)' back to draft?")
+        case .announce: return String(localized: "Announce '\(slug)'?")
+        case .delete: return String(localized: "Really delete '\(slug)'?")
         default: return ""
         }
     }
@@ -194,15 +203,15 @@ struct PropsView: View {
         guard let action = confirming, let props else { return nil }
         switch action {
         case .publish where props.network != nil && !props.unlisted:
-            return "With a network configured it announces too, which nothing takes back."
+            return String(localized: "With a network configured it announces too, which nothing takes back.")
         case .unpublish:
-            return "Its announcement is deleted too; the post keeps its text as a draft."
+            return String(localized: "Its announcement is deleted too; the post keeps its text as a draft.")
         case .delete:
             return props.announced != nil
-                ? "The post goes to the trash and can be restored; its announcement goes with it and cannot."
-                : "The post goes to the trash and can be restored."
+                ? String(localized: "The post goes to the trash and can be restored; its announcement goes with it and cannot.")
+                : String(localized: "The post goes to the trash and can be restored.")
         case .unschedule:
-            return "The post stays a draft, with the date it had before the plan."
+            return String(localized: "The post stays a draft, with the date it had before the plan.")
         default:
             return nil
         }
@@ -210,12 +219,12 @@ struct PropsView: View {
 
     private func confirmButton(_ action: PostAction) -> String {
         switch action {
-        case .publish: "Publish"
-        case .unschedule: "Cancel the schedule"
-        case .unpublish: "Unpublish"
-        case .announce: "Announce"
-        case .delete: "Delete"
-        default: "OK"
+        case .publish: String(localized: "Publish")
+        case .unschedule: String(localized: "Cancel the schedule")
+        case .unpublish: String(localized: "Unpublish")
+        case .announce: String(localized: "Announce")
+        case .delete: String(localized: "Delete")
+        default: String(localized: "OK")
         }
     }
 
@@ -231,7 +240,7 @@ struct PropsView: View {
             await announce(force: false)
         case .delete:
             if let answer = await run(["delete", slug, "--yes"]) {
-                notice = Notice(text: "Deleted (in trash, restore from Trash): \(answer.trash ?? "")")
+                notice = Notice(text: String(localized: "Deleted (in trash, restore from Trash): \(answer.trash ?? "")"))
                 askingRebuild = true
             }
         default:
@@ -247,7 +256,7 @@ struct PropsView: View {
             busy = true
             defer { busy = false }
             let answer: ActionAnswer = try await Engine.shared.call(args)
-            notice = Notice(text: "Announced: \(answer.url ?? "")")
+            notice = Notice(text: String(localized: "Announced: \(answer.url ?? "")"))
             await load()
         } catch EngineError.refused(let refusal) where refusal.error == "outside_window" {
             announceAnyway = true
@@ -278,7 +287,7 @@ struct PropsView: View {
         defer { busy = false }
         do {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            notice = Notice(text: answer.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run.")
+            notice = Notice(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."))
         } catch {
             notice = Notice(text: error.localizedDescription)
         }
@@ -347,7 +356,7 @@ struct PropsView: View {
     private func seriesLabel(_ props: PropsAnswer) -> String? {
         guard let series = props.series else { return nil }
         guard let part = props.seriesPart else { return series }
-        return "\(series), part \(part)"
+        return String(localized: "\(series), part \(part)")
     }
 
     private func languagesLabel(_ props: PropsAnswer) -> String? {
@@ -362,27 +371,27 @@ struct PropsView: View {
         if let url = props.announced { return url }
         switch props.announces {
         case .announced: return props.announced ?? ""
-        case .onPublish: return "not yet -- goes out when the post publishes"
-        case .nowhere: return "never -- this site announces nowhere"
-        case .neverUnlisted: return "never -- an unlisted post is not announced"
-        case .noSecret: return "never, as things stand -- the network's token is empty"
-        case .notAnnounced: return "not announced"
+        case .onPublish: return String(localized: "not yet -- goes out when the post publishes")
+        case .nowhere: return String(localized: "never -- this site announces nowhere")
+        case .neverUnlisted: return String(localized: "never -- an unlisted post is not announced")
+        case .noSecret: return String(localized: "never, as things stand -- the network's token is empty")
+        case .notAnnounced: return String(localized: "not announced")
         }
     }
 
     private func actionLabel(_ action: PostAction, _ props: PropsAnswer) -> String {
         switch action {
-        case .publish: props.scheduled ? "publish now" : "publish"
-        case .schedule: props.scheduled ? "reschedule" : "schedule"
-        case .unschedule: "cancel the schedule"
-        case .unpublish: "unpublish"
-        case .announce: "announce (\(props.network == "bluesky" ? "Bluesky" : "Mastodon"))"
-        case .pin: props.pinned ? "unpin" : "pin"
-        case .properties: "properties"
-        case .rename: "rename slug"
-        case .addresses: "old links"
-        case .versions: "earlier versions"
-        case .delete: "delete"
+        case .publish: props.scheduled ? String(localized: "publish now") : String(localized: "publish")
+        case .schedule: props.scheduled ? String(localized: "reschedule") : String(localized: "schedule")
+        case .unschedule: String(localized: "cancel the schedule")
+        case .unpublish: String(localized: "unpublish")
+        case .announce: String(localized: "announce (\(props.network == "bluesky" ? "Bluesky" : "Mastodon"))")
+        case .pin: props.pinned ? String(localized: "unpin") : String(localized: "pin")
+        case .properties: String(localized: "properties")
+        case .rename: String(localized: "rename slug")
+        case .addresses: String(localized: "old links")
+        case .versions: String(localized: "earlier versions")
+        case .delete: String(localized: "delete")
         }
     }
 
@@ -399,25 +408,6 @@ struct PropsView: View {
         case .addresses: "link"
         case .versions: "clock.arrow.circlepath"
         case .delete: "trash"
-        }
-    }
-}
-
-/// A row of the frame: the label in the left column, the value beside
-/// it; a row with nothing to say is not drawn, as on the terminal.
-struct PropsRow: View {
-    let label: LocalizedStringKey
-    let value: String?
-
-    var body: some View {
-        if let value, !value.isEmpty {
-            LabeledContent {
-                Text(value)
-                    .multilineTextAlignment(.trailing)
-                    .textSelection(.enabled)
-            } label: {
-                Text(label)
-            }
         }
     }
 }

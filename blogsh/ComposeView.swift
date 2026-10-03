@@ -20,22 +20,25 @@ struct ComposeView: View {
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
-        Form {
-            Section {
-                TextField("Title", text: $title)
-                TextEditor(text: $text)
-                    .frame(minHeight: 180)
+        PaperScreen {
+            ScreenHeader(title: String(localized: "New post"))
+            Plate {
+                TextField("", text: $title, prompt: Text("Title").foregroundStyle(Theme.muted))
+                    .font(.ui(18, weight: .semibold))
+                    .foregroundStyle(Theme.ink)
+                PaperEditor(text: $text, minHeight: 200)
                     .focused($bodyFocused)
-                TextField("Tags, separated by commas", text: $tags)
+                FieldRow(label: "tags", text: $tags, prompt: String(localized: "separated by commas"))
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .task { await TagStore.shared.loadIfNeeded() }
                 TagSuggestions(text: $tags)
-            } footer: {
-                Text("Markdown. A picture goes in as a paragraph of its own: insert it from its card below.")
             }
+            .padding(.top, 14)
+            Hint("Markdown. A picture goes in as a paragraph of its own: insert it from its card below.")
 
-            Section {
+            SectionLabel("Pictures")
+            Plate {
                 ForEach($shots) { $shot in
                     ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
                         insert(shot)
@@ -44,42 +47,40 @@ struct ComposeView: View {
                     }
                 }
                 PhotosPicker(selection: $picked, matching: .images) {
-                    Label(importing ? "Reading…" : "Add pictures", systemImage: "photo.on.rectangle")
+                    CommandRow(importing ? "Reading…" : "Add pictures", symbol: "photo.on.rectangle", busy: importing)
                 }
+                .buttonStyle(PressStyle())
                 .disabled(importing)
-            } header: {
-                Text("Pictures")
-            } footer: {
-                Text(weight)
             }
+            Hint(verbatim: weight)
 
-            Section {
-                Button {
-                    Task { await send() }
-                } label: {
-                    if sending {
-                        HStack { ProgressView(); Text("Sending…") }
-                    } else {
-                        Label("Send to the blog as a draft", systemImage: "paperplane")
-                    }
-                }
-                .disabled(sending || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
-            } footer: {
-                if let problem {
-                    Text(problem).foregroundStyle(.red)
-                }
+            Button {
+                Task { await send() }
+            } label: {
+                PrimaryLabel(label: sending ? "Sending…" : "Send to the blog as a draft", busy: sending)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(sending || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
+            .padding(.top, 22)
+            if let problem {
+                ProblemLine(text: problem)
             }
 
             if let made {
-                Section("Done") {
-                    Text("Draft written: \(made.slug)")
+                SectionLabel("Done")
+                Plate {
+                    Text("Draft written: \(made.slug)").font(.ui(15)).foregroundStyle(Theme.ink)
+                    if let warnings = made.warnings {
+                        ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
+                    }
                     if let url = made.url, !url.isEmpty, let link = URL(string: url) {
-                        Link("Open the preview", destination: link)
+                        Link(destination: link) { CommandRow("Open the preview", symbol: "safari") }
+                            .buttonStyle(PressStyle())
                     }
-                    if let warnings = made.warnings, !warnings.isEmpty {
-                        ForEach(warnings, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+                    NavigationLink { PropsView(slug: made.slug) } label: {
+                        CommandRow("Its properties and the actions on it", symbol: "slider.horizontal.3", leads: true)
                     }
-                    NavigationLink("Its properties and the actions on it") { PropsView(slug: made.slug) }
+                    .buttonStyle(PressStyle())
                 }
             }
         }
@@ -169,7 +170,8 @@ struct ComposeView: View {
     }
 }
 
-/// One picture's card: a thumbnail, its description, and the way into the text.
+/// One picture's card: a thumbnail, its name as the text names it, its
+/// description, and the way into the text.
 struct ShotCard: View {
     @Binding var shot: Shot
     let inText: Bool
@@ -182,23 +184,27 @@ struct ShotCard: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 72, height: 72)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text(shot.name).font(.caption.monospaced()).foregroundStyle(.secondary)
-                TextField("Description", text: $shot.alt)
+                Text(verbatim: shot.name).font(.mono(12, bold: false)).foregroundStyle(Theme.muted)
+                TextField("", text: $shot.alt, prompt: Text("Description").foregroundStyle(Theme.muted))
+                    .font(.ui(15))
+                    .foregroundStyle(Theme.ink)
                 HStack {
-                    Button(inText ? "In the text" : "Insert into the text", action: insert)
-                        .disabled(inText)
+                    Button(action: insert) {
+                        Text(inText ? "In the text" : "Insert into the text").engineLabel(11)
+                    }
+                    .foregroundStyle(inText ? AnyShapeStyle(Theme.muted) : AnyShapeStyle(.tint))
+                    .disabled(inText)
                     Spacer()
-                    Button("Remove", role: .destructive, action: remove)
+                    Button(action: remove) { Text("Remove").engineLabel(11) }
+                        .foregroundStyle(Theme.danger)
                 }
-                .font(.subheadline)
-                .buttonStyle(.borderless)
+                .buttonStyle(PressStyle())
             }
         }
-        .padding(.vertical, 4)
     }
 }
 

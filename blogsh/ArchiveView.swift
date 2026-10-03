@@ -123,7 +123,7 @@ struct ArchiveView: View {
             if loading && posts.isEmpty {
                 ProgressView()
             } else if !loading && shown.isEmpty && problem == nil && searchingFor == nil {
-                ContentUnavailableView(posts.isEmpty ? "No posts" : "Nothing matches", systemImage: "tray")
+                EmptyNote(symbol: "tray", title: posts.isEmpty ? "No posts" : "Nothing matches")
             }
         }
         .navigationTitle("The archive")

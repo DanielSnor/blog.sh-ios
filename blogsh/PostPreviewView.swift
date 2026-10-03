@@ -15,46 +15,39 @@ struct PostPreviewView: View {
     @State private var problem: String?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(post.title ?? post.slug)
-                    .font(.title3.bold())
-                HStack(spacing: 8) {
-                    StateBadge(post: post)
-                    if let day = post.day {
-                        Text(day, format: .dateTime.year().month().day())
-                    }
-                    Text(verbatim: "[\(post.type)]")
-                    Text(verbatim: post.slug).lineLimit(1)
+        PaperScreen {
+            PostHeading(title: post.title ?? post.slug, detail: post.slug)
+            HStack(spacing: 8) {
+                if let day = post.day {
+                    Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
+                        .font(.mono(12, bold: post.scheduled))
+                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
                 }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                if !post.tags.isEmpty {
-                    Text("tags: \(post.tags.joined(separator: ", "))")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Divider()
-                if let entry {
-                    let text = words(of: entry)
-                    if text.isEmpty {
-                        Text("(the post has no text)").foregroundStyle(.secondary)
-                    } else {
-                        Text(verbatim: text)
-                            .font(.callout.monospaced())
-                            .textSelection(.enabled)
-                    }
-                } else if let problem {
-                    Text(problem).foregroundStyle(.secondary)
-                } else {
-                    ProgressView().frame(maxWidth: .infinity)
-                }
+                StateBadge(post: post)
+                Text(verbatim: post.tags.isEmpty ? post.type : post.tags.joined(separator: ", "))
+                    .font(.ui(13))
+                    .foregroundStyle(Theme.muted)
+                    .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
+            .padding(.top, 10)
+            Rectangle().fill(Theme.line).frame(height: 1).padding(.vertical, 14)
+            if let entry {
+                let text = words(of: entry)
+                if text.isEmpty {
+                    Text("(the post has no text)").font(.ui(15)).foregroundStyle(Theme.muted)
+                } else {
+                    Text(verbatim: text)
+                        .font(.mono(15, bold: false))
+                        .foregroundStyle(Theme.ink)
+                        .textSelection(.enabled)
+                }
+            } else if let problem {
+                ProblemLine(text: problem)
+            } else {
+                ProgressView().frame(maxWidth: .infinity)
+            }
         }
         .navigationTitle("Preview")
-        .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Done") { dismiss() }
@@ -67,6 +60,7 @@ struct PostPreviewView: View {
         }
         .task { await load() }
     }
+
 
     /// The text without the header the editor puts above it: the title and
     /// the tags are already on the screen.

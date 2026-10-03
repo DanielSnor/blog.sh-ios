@@ -21,64 +21,74 @@ struct TranslateView: View {
     private var languageName: String { Locale.current.localizedString(forLanguageCode: lang) ?? lang }
 
     var body: some View {
-        Form {
+        PaperScreen {
             if let entry {
-                Section {
-                    DisclosureGroup("The original", isExpanded: $showingOriginal) {
-                        Text(entry.original)
-                            .font(.callout.monospaced())
+                PostHeading(title: entry.title, detail: "\(entry.slug) · \(lang)")
+                SectionLabel("The original")
+                Plate {
+                    Button {
+                        showingOriginal.toggle()
+                    } label: {
+                        CommandRow(showingOriginal ? "Hide the original" : "Show the original",
+                                   symbol: showingOriginal ? "chevron.up" : "chevron.down")
+                    }
+                    .buttonStyle(PressStyle())
+                    if showingOriginal {
+                        Text(verbatim: entry.original)
+                            .font(.mono(14, bold: false))
+                            .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
                     }
-                } footer: {
-                    Text("Only the words are translated. The date, the tags, the series and the state belong to the post itself and hold in every language.")
                 }
-                Section("In \(languageName)") {
-                    TextEditor(text: $text)
-                        .font(.body.monospaced())
-                        .frame(minHeight: 280)
+                Hint("Only the words are translated. The date, the tags, the series and the state belong to the post itself and hold in every language.")
+
+                SectionLabel("In \(languageName)")
+                Plate {
+                    PaperEditor(text: $text, minHeight: 280)
                 }
-                Section {
-                    Button {
-                        Task { await save(text) }
-                    } label: {
-                        if saving {
-                            HStack { ProgressView(); Text("Saving…") }
-                        } else {
-                            Label("Save the \(languageName) text", systemImage: "square.and.arrow.down")
-                        }
-                    }
-                    .disabled(saving || text == entry.text)
-                    if entry.written {
-                        Button("Take this language off the post", role: .destructive) { confirmingRemoval = true }
+
+                Button {
+                    Task { await save(text) }
+                } label: {
+                    PrimaryLabel(label: saving ? "Saving…" : "Save the \(languageName) text", busy: saving)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(saving || text == entry.text)
+                .padding(.top, 22)
+                if let problem {
+                    ProblemLine(text: problem)
+                }
+                if entry.written {
+                    Plate {
+                        Command("Take this language off the post", symbol: "minus.circle", danger: true) { confirmingRemoval = true }
                             .disabled(saving)
                     }
-                } footer: {
-                    if let problem {
-                        Text(problem).foregroundStyle(.red)
-                    }
+                    .padding(.top, 14)
                 }
+
                 if let saved {
-                    Section("Saved") {
-                        Text("\(saved.slug): the \(languageName) text")
-                        if let warnings = saved.warnings, !warnings.isEmpty {
-                            ForEach(warnings, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+                    SectionLabel("Saved")
+                    Plate {
+                        Text("\(saved.slug): the \(languageName) text").font(.ui(15)).foregroundStyle(Theme.ink)
+                        if let warnings = saved.warnings {
+                            ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
                         }
-                        Button("Back to the post") { dismiss() }
+                        Command("Back to the post", symbol: "arrow.left") { dismiss() }
                     }
                 }
             } else if let problem {
-                Text(problem).foregroundStyle(.secondary)
+                ProblemLine(text: problem)
             }
         }
         .overlay { if entry == nil && problem == nil { ProgressView() } }
         .navigationTitle(entry?.title ?? slug)
-        .toolbarTitleDisplayMode(.inline)
         .task { await load() }
         .confirmationDialog("Take the \(languageName) text off '\(slug)'? The post then looks exactly as it did before the translation existed.",
                             isPresented: $confirmingRemoval, titleVisibility: .visible) {
             Button("Take it off", role: .destructive) { Task { await save("---\ntitle:\n---\n\n") } }
         }
     }
+
 
     private func load() async {
         do {

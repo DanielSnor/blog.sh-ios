@@ -20,71 +20,93 @@ struct SettingsView: View {
         case failed(String)
     }
 
+    private var portText: Binding<String> {
+        Binding(get: { String(port) }, set: { port = Int($0.filter(\.isNumber)) ?? port })
+    }
+
     var body: some View {
-        Form {
-            Section("Server") {
-                TextField("Host", text: $host)
+        PaperScreen {
+            ScreenHeader(title: String(localized: "Settings"))
+
+            SectionLabel("Server")
+            Plate {
+                FieldRow(label: "Host", text: $host, mono: true)
                     .textContentType(.URL)
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                TextField("User", text: $user)
+                FieldRow(label: "User", text: $user, mono: true)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                TextField("Port", value: $port, format: .number)
+                FieldRow(label: "Port", text: portText, mono: true)
                     .keyboardType(.numberPad)
             }
 
-            Section {
-                if let publicKey {
-                    Text(publicKey)
-                        .font(.caption.monospaced())
+            SectionLabel("Key")
+            if let publicKey {
+                Plate {
+                    Text(verbatim: publicKey)
+                        .font(.mono(12, bold: false))
+                        .foregroundStyle(Theme.ink)
                         .textSelection(.enabled)
-                    TextField("Path to the blog on the server", text: $installPath)
+                    FieldRow(label: "path", text: $installPath, prompt: String(localized: "Path to the blog on the server"), mono: true)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                        .font(.body.monospaced())
-                    Text(authorizedKeysLine(publicKey))
-                        .font(.caption.monospaced())
+                    Text(verbatim: authorizedKeysLine(publicKey))
+                        .font(.mono(12, bold: false))
+                        .foregroundStyle(Theme.ink)
                         .textSelection(.enabled)
-                    Button("Copy the authorized_keys line") {
+                    Command("Copy the authorized_keys line", symbol: "doc.on.doc") {
                         UIPasteboard.general.string = authorizedKeysLine(publicKey)
                     }
-                    Button("Make a new key", role: .destructive) { confirmingNewKey = true }
-                } else {
-                    Button("Make the app's key") { makeKey() }
+                    Command("Make a new key", symbol: "key", danger: true) { confirmingNewKey = true }
                 }
-            } header: {
-                Text("Key")
-            } footer: {
-                Text("The key is made on this device and never leaves it. Put the line above into the server's ~/.ssh/authorized_keys; the forced command in front of it is what the key may run, and nothing else.")
+            } else {
+                Plate {
+                    Command("Make the app's key", symbol: "key") { makeKey() }
+                }
             }
+            Hint("The key is made on this device and never leaves it. Put the line above into the server's ~/.ssh/authorized_keys; the forced command in front of it is what the key may run, and nothing else.")
 
-            Section("Connection") {
-                Button("Test the connection") { Task { await test() } }
-                    .disabled(host.isEmpty || user.isEmpty || publicKey == nil || probe == .running)
-                switch probe {
-                case .idle:
-                    EmptyView()
-                case .running:
-                    ProgressView()
-                case .answered(let answer):
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("./blog.sh \(answer.engine)")
-                        Text("\(answer.site.name) — \(answer.site.claim)")
-                        Text(answer.site.url).foregroundStyle(.secondary)
+            SectionLabel("Connection")
+            Button {
+                Task { await test() }
+            } label: {
+                PrimaryLabel(label: "Test the connection", busy: probe == .running)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(host.isEmpty || user.isEmpty || publicKey == nil || probe == .running)
+            switch probe {
+            case .idle, .running:
+                EmptyView()
+            case .answered(let answer):
+                Plate {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(verbatim: "./blog.sh \(answer.engine)").font(.mono(13))
+                        Text(verbatim: answer.site.claim.isEmpty ? answer.site.name : "\(answer.site.name) — \(answer.site.claim)")
+                            .font(.ui(15))
+                        Text(verbatim: answer.site.url).font(.mono(12, bold: false)).foregroundStyle(Theme.muted)
                     }
-                    .font(.callout.monospaced())
-                case .failed(let reason):
-                    Text(reason).foregroundStyle(.red)
+                    .foregroundStyle(Theme.ink)
                 }
-                if let known = TrustOnFirstUse.known(host: host, port: port) {
-                    LabeledContent("Server key", value: known)
-                        .font(.caption.monospaced())
-                    Button("Forget the server's key", role: .destructive) {
+                .padding(.top, 12)
+            case .failed(let reason):
+                ProblemLine(text: reason)
+            }
+            if let known = TrustOnFirstUse.known(host: host, port: port) {
+                Plate {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Server key").engineLabel().foregroundStyle(Theme.muted)
+                        Text(verbatim: known)
+                            .font(.mono(12, bold: false))
+                            .foregroundStyle(Theme.ink)
+                            .textSelection(.enabled)
+                    }
+                    Command("Forget the server's key", symbol: "xmark.circle", danger: true) {
                         TrustOnFirstUse.forget(host: host, port: port)
                     }
                 }
+                .padding(.top, 12)
             }
         }
         .navigationTitle("Settings")

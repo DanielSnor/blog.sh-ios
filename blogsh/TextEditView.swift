@@ -21,40 +21,39 @@ struct TextEditView: View {
     @State private var confirmingLoss = false
 
     var body: some View {
-        Form {
+        PaperScreen {
             if let entry {
+                PostHeading(title: entry.title, detail: entry.slug)
                 if !entry.editable {
-                    Section {
-                        Text(entry.problem.map { "This post cannot be edited here: \($0). At the desk, edit asks before losing it; here nobody could answer." }
-                             ?? "This post cannot be edited here.")
-                            .foregroundStyle(.secondary)
-                    }
+                    Hint(verbatim: entry.problem.map { String(localized: "This post cannot be edited here: \($0). At the desk, edit asks before losing it; here nobody could answer.") }
+                         ?? String(localized: "This post cannot be edited here."))
                 }
-                Section {
-                    TextEditor(text: $text)
-                        .font(.body.monospaced())
-                        .frame(minHeight: 320)
+                Plate {
+                    PaperEditor(text: $text, minHeight: 320)
                         .disabled(!entry.editable)
-                } footer: {
-                    Text("The header and the text, as the editor opens them. A picture is named by its file name.")
                 }
+                .padding(.top, 14)
+                Hint("The header and the text, as the editor opens them. A picture is named by its file name.")
+
                 if !entry.media.isEmpty {
-                    Section("Pictures on the blog") {
+                    SectionLabel("Pictures on the blog")
+                    Plate {
                         ForEach(entry.media, id: \.self) { name in
-                            HStack {
-                                Text(name).font(.body.monospaced())
-                                Spacer()
+                            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                Text(verbatim: name).font(.mono(13, bold: false)).foregroundStyle(Theme.ink)
+                                Spacer(minLength: 8)
                                 if text.contains("(\(name))") {
-                                    Text("in the text").foregroundStyle(.secondary)
+                                    Text("in the text").font(.ui(13)).foregroundStyle(Theme.muted)
                                 } else {
-                                    Text("not named — deleted on save").foregroundStyle(.red)
+                                    Text("not named — deleted on save").font(.ui(13)).foregroundStyle(Theme.danger)
                                 }
                             }
-                            .font(.subheadline)
                         }
                     }
                 }
-                Section {
+
+                SectionLabel("New pictures")
+                Plate {
                     ForEach($shots) { $shot in
                         ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
                             insert(shot)
@@ -63,47 +62,47 @@ struct TextEditView: View {
                         }
                     }
                     PhotosPicker(selection: $picked, matching: .images) {
-                        Label(importing ? "Reading…" : "Add pictures", systemImage: "photo.on.rectangle")
+                        CommandRow(importing ? "Reading…" : "Add pictures", symbol: "photo.on.rectangle", busy: importing)
                     }
+                    .buttonStyle(PressStyle())
                     .disabled(importing || !entry.editable)
-                } header: {
-                    Text("New pictures")
                 }
-                Section {
-                    Button {
-                        if dropped.isEmpty { Task { await save() } } else { confirmingLoss = true }
-                    } label: {
-                        if saving {
-                            HStack { ProgressView(); Text("Saving…") }
-                        } else {
-                            Label(entry.scheduled || isDraft ? "Save the draft" : "Save and publish the change", systemImage: "square.and.arrow.down")
-                        }
-                    }
-                    .disabled(saving || importing || !entry.editable || text == entry.text)
-                } footer: {
-                    if let problem {
-                        Text(problem).foregroundStyle(.red)
-                    } else if !isDraft {
-                        Text("The post is live: saving rebuilds and deploys the site.")
-                    }
+
+                Button {
+                    if dropped.isEmpty { Task { await save() } } else { confirmingLoss = true }
+                } label: {
+                    PrimaryLabel(label: saving ? "Saving…" : (entry.scheduled || isDraft ? "Save the draft" : "Save and publish the change"),
+                                 busy: saving)
                 }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(saving || importing || !entry.editable || text == entry.text)
+                .padding(.top, 22)
+                if let problem {
+                    ProblemLine(text: problem)
+                } else if !isDraft {
+                    Hint("The post is live: saving rebuilds and deploys the site.")
+                }
+
                 if let saved {
-                    Section("Saved") {
-                        Text("\(saved.slug): \(saved.state == .published ? "published" : "draft")")
-                        if let warnings = saved.warnings, !warnings.isEmpty {
-                            ForEach(warnings, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+                    SectionLabel("Saved")
+                    Plate {
+                        Text(verbatim: "\(saved.slug): " + (saved.state == .published
+                            ? String(localized: "saved.published", defaultValue: "published")
+                            : String(localized: "saved.draft", defaultValue: "draft")))
+                            .font(.ui(15)).foregroundStyle(Theme.ink)
+                        if let warnings = saved.warnings {
+                            ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
                         }
                         // The editor closes on a save; here the way back is a key.
-                        Button("Back to the post") { dismiss() }
+                        Command("Back to the post", symbol: "arrow.left") { dismiss() }
                     }
                 }
             } else if let problem {
-                Text(problem).foregroundStyle(.secondary)
+                ProblemLine(text: problem)
             }
         }
         .overlay { if entry == nil && problem == nil { ProgressView() } }
         .navigationTitle(entry?.title ?? slug)
-        .toolbarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
         .confirmationDialog("Pictures the text no longer names are deleted from the blog: \(dropped.joined(separator: ", ")). Save anyway?",
@@ -111,6 +110,7 @@ struct TextEditView: View {
             Button("Save and delete them", role: .destructive) { Task { await save() } }
         }
     }
+
 
     private var isDraft: Bool {
         guard let entry else { return true }

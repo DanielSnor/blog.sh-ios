@@ -99,7 +99,7 @@ struct ContentView: View {
                 case .restore: TrashView()
                 case .rebuild: SiteView()
                 case nil:
-                    ContentUnavailableView("What do you want to do?", systemImage: "terminal")
+                    EmptyNote(symbol: "terminal", title: "What do you want to do?")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Theme.paper.ignoresSafeArea())
                 }
@@ -252,12 +252,7 @@ struct HomeView: View {
         }
         .background(Theme.paper.ignoresSafeArea())
         .navigationTitle(Text(verbatim: "./blog.sh"))
-        .toolbarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
-            }
-        }
+        .namedByItsHeader()
     }
 
     /// The next post to go out, and how many wait in all.

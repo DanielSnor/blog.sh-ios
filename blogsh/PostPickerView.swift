@@ -37,7 +37,7 @@ struct PostPickerView: View {
             if loading && posts.isEmpty {
                 ProgressView()
             } else if !loading && posts.isEmpty && problem == nil {
-                ContentUnavailableView("No posts to choose from.", systemImage: "tray")
+                EmptyNote(symbol: "tray", title: "No posts to choose from.")
             }
         }
         .navigationTitle("A post")
@@ -69,21 +69,16 @@ struct PostCrossroadsView: View {
     @State private var problem: String?
 
     var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(post.title ?? post.slug).font(.headline)
-                    Text(post.slug).font(.subheadline.monospaced()).foregroundStyle(.secondary)
-                }
-                .listRowBackground(Color.clear)
-            }
+        PaperScreen {
+            PostHeading(title: post.title ?? post.slug, detail: post.slug)
             // The prompt's words: "Edit what? [Enter] the text  [v] properties and
             // actions". The text is the editor's and comes with it.
-            Section("Edit what?") {
+            SectionLabel("Edit what?")
+            Plate {
                 NavigationLink {
                     TextEditView(slug: post.slug)
                 } label: {
-                    Label("the text", systemImage: "text.alignleft")
+                    CommandRow("the text", symbol: "text.alignleft", leads: true)
                 }
                 // [l]: only on a site that publishes more than one language,
                 // the way the prompt only mentions it there.
@@ -91,34 +86,35 @@ struct PostCrossroadsView: View {
                     NavigationLink {
                         TranslateView(slug: post.slug, lang: lang)
                     } label: {
-                        Label("language: \(Locale.current.localizedString(forLanguageCode: lang) ?? lang)", systemImage: "character.bubble")
+                        CommandRow("language: \(Locale.current.localizedString(forLanguageCode: lang) ?? lang)",
+                                   symbol: "character.bubble", leads: true)
                     }
                 }
                 NavigationLink {
                     PropsView(slug: post.slug)
                 } label: {
-                    Label("properties and actions", systemImage: "slider.horizontal.3")
+                    CommandRow("properties and actions", symbol: "slider.horizontal.3", leads: true)
                 }
             }
+            .buttonStyle(PressStyle())
             // Not a key of the prompt: at the desk the browser is one window
             // away, on a phone the page is only this far. A published post
             // opens at its address, a draft at the hidden page the build keeps.
-            Section {
-                Button {
+            Plate {
+                Command(post.state == .published ? "Show on the web" : "Show the preview on the web",
+                        symbol: "safari", busy: looking) {
                     Task { await show() }
-                } label: {
-                    Label(post.state == .published ? "Show on the web" : "Show the preview on the web", systemImage: "safari")
                 }
                 .disabled(looking)
-            } footer: {
-                if let problem {
-                    Text(problem).foregroundStyle(.red)
-                }
+            }
+            .padding(.top, 10)
+            if let problem {
+                ProblemLine(text: problem)
             }
         }
         .navigationTitle(post.title ?? post.slug)
-        .toolbarTitleDisplayMode(.inline)
     }
+
 
     /// The address is the engine's to say: a post can carry one of its own.
     private func show() async {

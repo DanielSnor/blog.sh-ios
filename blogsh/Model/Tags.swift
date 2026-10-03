@@ -68,7 +68,8 @@ final class TagStore {
         let byName: (TagUse, TagUse) -> Bool = { $0.name.lowercased() < $1.name.lowercased() }
         let byUse: (TagUse, TagUse) -> Bool = { $0.count != $1.count ? $0.count > $1.count : byName($0, $1) }
         let byRecent: (TagUse, TagUse) -> Bool = { $0.recent != $1.recent ? $0.recent > $1.recent : byUse($0, $1) }
-        let free = tags.filter { !have.contains($0.name.lowercased()) }
+        // Nor the one that is already typed out in full: there is nothing left to offer.
+        let free = tags.filter { !have.contains($0.name.lowercased()) && $0.name.lowercased() != query }
         if query.isEmpty {
             return Array(free.filter { $0.recent > 0 }.sorted(by: byRecent).prefix(limit))
         }
@@ -99,18 +100,19 @@ struct TagSuggestions: View {
                     Button {
                         text = (parts.done + [tag.name]).joined(separator: ", ") + ", "
                     } label: {
-                        HStack(spacing: 4) {
-                            Text(verbatim: tag.name)
-                            Text(verbatim: "\(tag.count)").foregroundStyle(.secondary)
+                        HStack(spacing: 5) {
+                            Text(verbatim: tag.name).foregroundStyle(Theme.ink)
+                            Text(verbatim: "\(tag.count)").foregroundStyle(Theme.muted)
                         }
-                        .font(.footnote)
+                        .font(.mono(11, bold: false))
+                        .tracking(0.4)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(.quaternary, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
+                        .contentShape(Capsule())
                     }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.primary)
-                }
+                    .buttonStyle(PressStyle())
+                                }
             }
         }
     }

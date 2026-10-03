@@ -2,7 +2,6 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
-    " — %@": {},
     "%.1f MB of %lld MB the blog takes in one delivery.": {
       "localizations": {
         "cs": {
@@ -23,6 +22,16 @@
         }
       }
     },
+    "%@ (from the content)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (podle obsahu)"
+          }
+        }
+      }
+    },
     "%@ and shift the rest (%lld) a slot earlier": {
       "localizations": {
         "cs": {
@@ -33,7 +42,16 @@
         }
       }
     },
-    "%@ — %@": {},
+    "%@, part %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, díl %2$@"
+          }
+        }
+      }
+    },
     "%@: %@": {},
     "%@: the %@ text": {
       "localizations": {
@@ -45,7 +63,16 @@
         }
       }
     },
-    "%lld": {},
+    "%lld address(es) still redirect here": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "adres, které sem pořád přesměrovávají: %lld"
+          }
+        }
+      }
+    },
     "%lld of %lld": {
       "localizations": {
         "cs": {
@@ -56,13 +83,22 @@
         }
       }
     },
-    "%lld.": {},
     "(the post has no text)": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "(příspěvek nemá text)"
+          }
+        }
+      }
+    },
+    "(the site's own)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(jak to má web)"
           }
         }
       }
@@ -77,8 +113,6 @@
         }
       }
     },
-    "./blog.sh": {},
-    "./blog.sh %@": {},
     "A draft has no public address yet; only its preview address changes.": {
       "localizations": {
         "cs": {
@@ -139,12 +173,32 @@
         }
       }
     },
+    "Announce '%@'?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oznámit „%@“?"
+          }
+        }
+      }
+    },
     "Announce anyway": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Přesto oznámit"
+          }
+        }
+      }
+    },
+    "Announced: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oznámeno: %@"
           }
         }
       }
@@ -189,6 +243,26 @@
         }
       }
     },
+    "Cancel the schedule": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit plán"
+          }
+        }
+      }
+    },
+    "Cancel the schedule of '%@'?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit plán příspěvku „%@“?"
+          }
+        }
+      }
+    },
     "Carry": {
       "localizations": {
         "cs": {
@@ -219,16 +293,6 @@
         }
       }
     },
-    "Clear the filters": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zrušit filtry"
-          }
-        }
-      }
-    },
     "Connection": {
       "localizations": {
         "cs": {
@@ -245,6 +309,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zkopírovat řádek pro authorized_keys"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat"
+          }
+        }
+      }
+    },
+    "Deleted (in trash, restore from Trash): %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazáno (je v koši, obnovíš ho z Koše): %@"
           }
         }
       }
@@ -359,32 +443,22 @@
         }
       }
     },
-    "Filter": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filtr"
-          }
-        }
-      }
-    },
-    "Filter: %@ — %lld of %lld": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filtr: %1$@ — %2$lld z %3$lld"
-          }
-        }
-      }
-    },
     "Forget the server's key": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Zapomenout klíč serveru"
+          }
+        }
+      }
+    },
+    "Hide the original": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrýt originál"
           }
         }
       }
@@ -425,6 +499,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vložit do textu"
+          }
+        }
+      }
+    },
+    "Its announcement is deleted too; the post keeps its text as a draft.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smaže se i jeho oznámení; příspěvek si text nechá jako koncept."
           }
         }
       }
@@ -779,6 +863,26 @@
         }
       }
     },
+    "Publish": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikovat"
+          }
+        }
+      }
+    },
+    "Publish '%@'?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikovat „%@“ teď?"
+          }
+        }
+      }
+    },
     "Publish now": {
       "localizations": {
         "cs": {
@@ -805,6 +909,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Načítám…"
+          }
+        }
+      }
+    },
+    "Really delete '%@'?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opravdu smazat „%@“?"
+          }
+        }
+      }
+    },
+    "Really move '%@' back to draft?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opravdu vrátit „%@“ zpátky do konceptu?"
           }
         }
       }
@@ -1119,22 +1243,22 @@
         }
       }
     },
+    "Show the original": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit originál"
+          }
+        }
+      }
+    },
     "Show the preview on the web": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit náhled na webu"
-          }
-        }
-      }
-    },
-    "Tags, separated by commas": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Štítky, oddělené čárkami"
           }
         }
       }
@@ -1249,6 +1373,26 @@
         }
       }
     },
+    "The post goes to the trash and can be restored.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek jde do koše a dá se obnovit."
+          }
+        }
+      }
+    },
+    "The post goes to the trash and can be restored; its announcement goes with it and cannot.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek jde do koše a dá se obnovit; jeho oznámení zmizí s ním a obnovit nejde."
+          }
+        }
+      }
+    },
     "The post is live: saving rebuilds and deploys the site.": {
       "localizations": {
         "cs": {
@@ -1265,6 +1409,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příspěvek si nechá text a přijde jen o plán."
+          }
+        }
+      }
+    },
+    "The post stays a draft, with the date it had before the plan.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek zůstane konceptem, s datem, které měl před naplánováním."
           }
         }
       }
@@ -1295,16 +1449,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Náhled zaostává za frontou — sestavit a nasadit teď"
-          }
-        }
-      }
-    },
-    "The queue (%lld scheduled):": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fronta (naplánovaných: %lld):"
           }
         }
       }
@@ -1469,6 +1613,16 @@
         }
       }
     },
+    "Unpublish": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stáhnout z webu"
+          }
+        }
+      }
+    },
     "Up": {
       "localizations": {
         "cs": {
@@ -1509,6 +1663,16 @@
         }
       }
     },
+    "With a network configured it announces too, which nothing takes back.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zároveň se oznámí na síti — a oznámení nejde vzít zpět."
+          }
+        }
+      }
+    },
     "Without the first, only the pages that changed are built; the second uploads everything, which the deploy's own guard asks for when it refuses.": {
       "localizations": {
         "cs": {
@@ -1539,22 +1703,22 @@
         }
       }
     },
+    "announce (%@)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "oznámit (%@)"
+          }
+        }
+      }
+    },
     "announced": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "oznámení"
-          }
-        }
-      }
-    },
-    "any state": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "jakýkoli stav"
           }
         }
       }
@@ -1579,7 +1743,6 @@
         }
       }
     },
-    "blog.sh": {},
     "browse.state.draft": {
       "localizations": {
         "cs": {
@@ -1630,6 +1793,16 @@
         }
       }
     },
+    "cancel the schedule": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zrušit plán"
+          }
+        }
+      }
+    },
     "chapter list": {
       "localizations": {
         "cs": {
@@ -1640,22 +1813,52 @@
         }
       }
     },
-    "edit the text, its properties and the actions on it": {
+    "delete": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "upravit text, jeho vlastnosti a akce s ním"
+            "value": "smazat"
           }
         }
       }
     },
-    "filters, search, preview": {
+    "draft -- not on the site, preview only": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "filtry, hledání, náhled"
+            "value": "koncept — není na webu, jen náhled"
+          }
+        }
+      }
+    },
+    "earlier versions": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "starší verze"
+          }
+        }
+      }
+    },
+    "flag.no": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ne"
+          }
+        }
+      }
+    },
+    "flag.yes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ano"
           }
         }
       }
@@ -1710,12 +1913,62 @@
         }
       }
     },
+    "never -- an unlisted post is not announced": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neodejde — nezalistovaný příspěvek se neoznamuje"
+          }
+        }
+      }
+    },
+    "never -- this site announces nowhere": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nikdy — tenhle web neoznamuje nikam"
+          }
+        }
+      }
+    },
+    "never, as things stand -- the network's token is empty": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zatím nikdy — token sítě je prázdný, takže publikace nic neoznámí"
+          }
+        }
+      }
+    },
+    "not announced": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bez oznámení"
+          }
+        }
+      }
+    },
     "not named — deleted on save": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "nejmenována — při uložení se smaže"
+          }
+        }
+      }
+    },
+    "not yet -- goes out when the post publishes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zatím ne — odejde s publikací"
           }
         }
       }
@@ -1740,6 +1993,26 @@
         }
       }
     },
+    "path": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cesta"
+          }
+        }
+      }
+    },
+    "pin": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "připnout"
+          }
+        }
+      }
+    },
     "pinned": {
       "localizations": {
         "cs": {
@@ -1760,6 +2033,16 @@
         }
       }
     },
+    "properties": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vlastnosti"
+          }
+        }
+      }
+    },
     "properties and actions": {
       "localizations": {
         "cs": {
@@ -1770,12 +2053,32 @@
         }
       }
     },
-    "rebuild and deploy after a settings change": {
+    "publish": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "znovu sestavit a nasadit po změně nastavení"
+            "value": "publikovat"
+          }
+        }
+      }
+    },
+    "publish now": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "publikovat hned"
+          }
+        }
+      }
+    },
+    "published, %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "publikováno, %@"
           }
         }
       }
@@ -1790,22 +2093,52 @@
         }
       }
     },
-    "reorder, publish now, remove": {
+    "rename slug": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "pořadí, publikovat hned, vyřadit"
+            "value": "přejmenovat slug"
           }
         }
       }
     },
-    "restore a deleted post": {
+    "reschedule": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "obnovit smazané příspěvky"
+            "value": "přeplánovat"
+          }
+        }
+      }
+    },
+    "saved.draft": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "koncept"
+          }
+        }
+      }
+    },
+    "saved.published": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "publikováno"
+          }
+        }
+      }
+    },
+    "schedule": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "naplánovat"
           }
         }
       }
@@ -1820,12 +2153,12 @@
         }
       }
     },
-    "search “%@”": {
+    "separated by commas": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "hledání „%@“"
+            "value": "oddělené čárkami"
           }
         }
       }
@@ -1846,16 +2179,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "stav"
-          }
-        }
-      }
-    },
-    "state=%@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "stav=%@"
           }
         }
       }
@@ -1886,16 +2209,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "štítky"
-          }
-        }
-      }
-    },
-    "tags: %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "štítky: %@"
           }
         }
       }
@@ -1996,6 +2309,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "nezalistován"
+          }
+        }
+      }
+    },
+    "unpin": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "odepnout"
+          }
+        }
+      }
+    },
+    "unpublish": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stáhnout z webu"
+          }
+        }
+      }
+    },
+    "yes -- held at the top of the front page": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ano — drží se nahoře na úvodní stránce"
+          }
+        }
+      }
+    },
+    "yes -- reachable by its address, in no listing, feed, sitemap or search": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ano — dostupný na své adrese, ale v žádném výpisu, feedu, sitemapě ani hledání"
           }
         }
       }

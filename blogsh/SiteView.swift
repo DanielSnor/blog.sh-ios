@@ -11,35 +11,34 @@ struct SiteView: View {
     @State private var problem: String?
 
     var body: some View {
-        Form {
-            Section {
-                Toggle("Build every page again", isOn: $full)
-                Toggle("Let the deploy past its guards", isOn: $force)
-            } footer: {
-                Text("Without the first, only the pages that changed are built; the second uploads everything, which the deploy's own guard asks for when it refuses.")
+        PaperScreen {
+            ScreenHeader(title: MenuEntry.rebuild.short)
+            Plate {
+                SwitchRow(label: "Build every page again", isOn: $full)
+                SwitchRow(label: "Let the deploy past its guards", isOn: $force)
             }
-            Section {
-                Button {
-                    Task { await rebuild() }
-                } label: {
-                    if running {
-                        HStack { ProgressView(); Text("Rebuilding…") }
-                    } else {
-                        Label("Rebuild and deploy", systemImage: "hammer")
-                    }
-                }
-                .disabled(running)
+            .padding(.top, 14)
+            Hint("Without the first, only the pages that changed are built; the second uploads everything, which the deploy's own guard asks for when it refuses.")
+            Button {
+                Task { await rebuild() }
+            } label: {
+                PrimaryLabel(label: running ? "Rebuilding…" : "Rebuild and deploy", busy: running)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(running)
+            .padding(.top, 22)
+            if let problem {
+                ProblemLine(text: problem)
             }
             if let result {
-                Section("Result") {
+                SectionLabel("Result")
+                Plate {
                     Text(result.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run.")
+                        .font(.ui(15)).foregroundStyle(Theme.ink)
                     ForEach(result.warnings, id: \.self) { line in
-                        Text(line).font(.caption).foregroundStyle(.secondary)
+                        Text(verbatim: line).font(.ui(13)).foregroundStyle(Theme.muted)
                     }
                 }
-            }
-            if let problem {
-                Section { Text(problem).foregroundStyle(.red) }
             }
         }
         .navigationTitle("The site")

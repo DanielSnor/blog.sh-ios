@@ -57,7 +57,10 @@ own, which the engine says with its identity (`version --json`), the way
 `/write/` wears it. The first screen is the blog at one glance -- what
 waits in the queue, how many drafts are in progress -- over the six
 entries of the menu; a list is a name, a count, its filters as pills and
-its rows.
+its rows; every other screen is plates on paper -- rows that belong
+together on one card, a hairline between them -- with one filled button
+for the one thing the screen is for, and what cannot be taken back set
+apart in a colour of its own.
 
 Three voices of type: a display serif in lower case for what a screen
 is, a sans for what it holds, a typewriter face for what the engine says.

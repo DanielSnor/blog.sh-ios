@@ -13,24 +13,33 @@ struct ScheduleSheet: View {
     @State private var busy = false
 
     var body: some View {
-        Form {
-            Section {
-                DatePicker("Publish when?", selection: $date, in: Date()..., displayedComponents: [.date, .hourAndMinute])
-            } footer: {
-                if offered != nil {
-                    Text("The time offered is the next free publishing slot.")
+        PaperScreen {
+            ScreenHeader(title: scheduled ? String(localized: "Reschedule") : String(localized: "Schedule"))
+            Plate {
+                DatePicker(selection: $date, in: Date()..., displayedComponents: [.date, .hourAndMinute]) {
+                    Text("Publish when?").engineLabel().foregroundStyle(Theme.muted)
                 }
+                .padding(.vertical, -4)
             }
+            .padding(.top, 14)
+            if offered != nil {
+                Hint("The time offered is the next free publishing slot.")
+            }
+            Button {
+                Task { await schedule() }
+            } label: {
+                PrimaryLabel(label: scheduled ? "Reschedule" : "Schedule", busy: busy)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(busy)
+            .padding(.top, 22)
             if let problem {
-                Section { Text(problem).foregroundStyle(.red) }
+                ProblemLine(text: problem)
             }
         }
         .navigationTitle(scheduled ? "Reschedule" : "Schedule")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-            ToolbarItem(placement: .confirmationAction) {
-                Button(scheduled ? "Reschedule" : "Schedule") { Task { await schedule() } }.disabled(busy)
-            }
         }
         .onAppear {
             if let offered, let slot = ISO8601DateFormatter.engine.date(from: offered), slot > Date() {
@@ -84,38 +93,61 @@ struct PropertiesForm: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                TextField("series", text: $series)
-                TextField("part of series", text: $seriesPart).keyboardType(.numberPad)
-                TextField("tags", text: $tags)
+        PaperScreen {
+            ScreenHeader(title: String(localized: "Properties"))
+            Plate {
+                FieldRow(label: "series", text: $series, labelWidth: 84)
+                FieldRow(label: "part of series", text: $seriesPart, labelWidth: 84).keyboardType(.numberPad)
+                FieldRow(label: "tags", text: $tags, labelWidth: 84)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .task { await TagStore.shared.loadIfNeeded() }
                 TagSuggestions(text: $tags)
-                Picker("type", selection: $type) {
-                    ForEach(Self.types, id: \.self) { Text($0 == "-" ? "\(props.type) (from the content)" : $0).tag($0) }
+                ChoiceRow(label: "type", chosen: typeWord(type), selection: $type) {
+                    ForEach(Self.types, id: \.self) { Text(verbatim: typeWord($0)).tag($0) }
                 }
             }
-            Section {
-                Toggle("unlisted", isOn: $unlisted)
-                Picker("lead image", selection: $hero) {
-                    ForEach(Self.threeStates, id: \.self) { Text($0 == "default" ? "(the site's own)" : $0).tag($0) }
+            .padding(.top, 14)
+            Plate {
+                SwitchRow(label: "unlisted", isOn: $unlisted, property: true)
+                ChoiceRow(label: "lead image", chosen: flagWord(hero), selection: $hero) {
+                    ForEach(Self.threeStates, id: \.self) { Text(verbatim: flagWord($0)).tag($0) }
                 }
-                Picker("chapter list", selection: $toc) {
-                    ForEach(Self.threeStates, id: \.self) { Text($0 == "default" ? "(the site's own)" : $0).tag($0) }
+                ChoiceRow(label: "chapter list", chosen: flagWord(toc), selection: $toc) {
+                    ForEach(Self.threeStates, id: \.self) { Text(verbatim: flagWord($0)).tag($0) }
                 }
-            } footer: {
-                Text("Properties are what the post IS, not what it says. The flags have a third state: whatever the site does.")
             }
+            .padding(.top, 10)
+            Hint("Properties are what the post IS, not what it says. The flags have a third state: whatever the site does.")
+            Button {
+                Task { await save() }
+            } label: {
+                PrimaryLabel(label: "Save", busy: busy)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(busy || sets.isEmpty)
+            .padding(.top, 22)
             if let problem {
-                Section { Text(problem).foregroundStyle(.red) }
+                ProblemLine(text: problem)
             }
         }
         .navigationTitle("Properties")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-            ToolbarItem(placement: .confirmationAction) { Button("Save") { Task { await save() } }.disabled(busy || sets.isEmpty) }
+        }
+    }
+
+    /// A type as the menu says it: `-` is "let the content decide".
+    private func typeWord(_ value: String) -> String {
+        value == "-" ? String(localized: "\(props.type) (from the content)") : value
+    }
+
+    /// A flag as the menu says it: yes, no, or whatever the site does.
+    private func flagWord(_ value: String) -> String {
+        switch value {
+        case "yes": String(localized: "flag.yes", defaultValue: "yes")
+        case "no": String(localized: "flag.no", defaultValue: "no")
+        default: String(localized: "(the site's own)")
         }
     }
 
@@ -168,22 +200,29 @@ struct AddressesSheet: View {
 
     var body: some View {
         List {
+            ScreenHeader(title: String(localized: "Old links"), count: addresses.isEmpty ? nil : addresses.count.formatted())
+                .padding(.top, 2)
+                .padding(.bottom, 6)
+                .paperRow()
             if let problem {
-                Text(problem).foregroundStyle(.red)
+                ProblemLine(text: problem).padding(.bottom, 10).paperRow()
             }
             ForEach(addresses, id: \.value) { address in
-                VStack(alignment: .leading) {
-                    Text(address.value).font(.body.monospaced())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(verbatim: address.value).font(.mono(14, bold: false)).foregroundStyle(Theme.ink)
                     Text(address.kind == "former_slugs" ? "a former slug, redirects here" : "redirects here")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.ui(13)).foregroundStyle(Theme.muted)
                 }
+                .padding(.vertical, 11)
+                .paperRow()
                 .swipeActions {
                     Button("Drop", role: .destructive) { dropping = address }
                 }
             }
         }
+        .paperList()
         .overlay {
-            if addresses.isEmpty { ContentUnavailableView("This post has no old addresses.", systemImage: "link") }
+            if addresses.isEmpty { EmptyNote(symbol: "link", title: "This post has no old addresses.") }
         }
         .navigationTitle("Old links")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
@@ -220,21 +259,37 @@ struct VersionsSheet: View {
 
     var body: some View {
         List {
+            ScreenHeader(title: String(localized: "Earlier versions"), count: versions.isEmpty ? nil : versions.count.formatted())
+                .padding(.top, 2)
+                .padding(.bottom, 6)
+                .paperRow()
             if let problem {
-                Text(problem).foregroundStyle(.red)
+                ProblemLine(text: problem).padding(.bottom, 10).paperRow()
             }
-            Section {
-                ForEach(versions) { version in
-                    Button { restoring = version } label: {
-                        Text(version.label)
+            ForEach(versions) { version in
+                Button { restoring = version } label: {
+                    HStack(spacing: 10) {
+                        Text(verbatim: version.label).font(.ui(15)).foregroundStyle(Theme.ink)
+                        Spacer(minLength: 8)
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.tint)
                     }
+                    .padding(.vertical, 12)
+                    .contentShape(Rectangle())
                 }
-            } footer: {
-                Text("Pictures are not versioned; only the text, the title, the tags and the type come back.")
+                .buttonStyle(PressStyle())
+                .paperRow()
+            }
+            if !versions.isEmpty {
+                Hint("Pictures are not versioned; only the text, the title, the tags and the type come back.")
+                    .padding(.bottom, 10)
+                    .paperRow(rule: false)
             }
         }
+        .paperList()
         .overlay {
-            if loaded && versions.isEmpty { ContentUnavailableView("No earlier versions yet", systemImage: "clock.arrow.circlepath") }
+            if loaded && versions.isEmpty { EmptyNote(symbol: "clock.arrow.circlepath", title: "No earlier versions yet") }
         }
         .navigationTitle("Earlier versions")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }

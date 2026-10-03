@@ -40,7 +40,7 @@ struct TrashView: View {
             if loading && rows.isEmpty {
                 ProgressView()
             } else if !loading && rows.isEmpty && problem == nil {
-                ContentUnavailableView("Trash is empty", systemImage: "trash")
+                EmptyNote(symbol: "trash", title: "Trash is empty")
             }
         }
         .paperList()

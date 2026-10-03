@@ -20,6 +20,9 @@ nonisolated enum Theme {
     static let card = dynamic(light: 0x1E1D1C, dark: 0xEAE9E3, lightAlpha: 0.03, darkAlpha: 0.05)
     /// Text on a pill filled with ink.
     static let onInk = dynamic(light: 0xEAE9E3, dark: 0x14110F)
+    /// What cannot be taken back: a delete, a refusal. The one colour
+    /// beside the accent, and never a fill.
+    static let danger = dynamic(light: 0xA81800, dark: 0xFF7A5C)
     /// The accent before a blog has said its own.
     static let ember = Color(.sRGB, red: 1, green: 0x2E / 255.0, blue: 0)
 
@@ -204,18 +207,23 @@ nonisolated enum RowDate {
 }
 
 extension View {
-    /// A list on paper: no cards of the system's, no ground but ours, and
-    /// the screen's name said by its header rather than by the bar.
-    func paperList() -> some View {
-        listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background(Theme.paper.ignoresSafeArea())
-            .toolbarTitleDisplayMode(.inline)
+    /// The bar keeps its buttons and gives up its title: a screen says its
+    /// own name, in its own face, at the head of what it holds.
+    func namedByItsHeader() -> some View {
+        toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
                 }
             }
+    }
+
+    /// A list on paper: no cards of the system's, no ground but ours.
+    func paperList() -> some View {
+        listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Theme.paper.ignoresSafeArea())
+            .namedByItsHeader()
     }
 
     /// A row of such a list: the ground shows through, a hairline under it
@@ -229,5 +237,378 @@ extension View {
             .listRowSeparatorTint(Theme.line)
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
             .alignmentGuide(.listRowSeparatorTrailing) { row in row.width }
+    }
+}
+
+// MARK: - A screen that is not a list
+
+/// A screen of fields, facts and actions: everything it holds in one
+/// column on paper, between the two gutters.
+struct PaperScreen<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) { content }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Theme.gutter)
+                .padding(.top, 2)
+                .padding(.bottom, 28)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(Theme.paper.ignoresSafeArea())
+        .namedByItsHeader()
+    }
+}
+
+/// A post at the head of its own screen. Its title is its own words, so
+/// it keeps its capitals and the plain face; under it, in the engine's
+/// voice, what the engine calls it.
+struct PostHeading: View {
+    let title: String
+    var detail: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: title)
+                .font(.ui(22, weight: .bold))
+                .foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            if let detail, !detail.isEmpty {
+                Text(verbatim: detail)
+                    .font(.mono(12, bold: false))
+                    .foregroundStyle(Theme.muted)
+                    .textSelection(.enabled)
+            }
+        }
+        .padding(.top, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// What the rows under it are, in the engine's voice.
+struct SectionLabel: View {
+    let text: Text
+
+    init(_ key: LocalizedStringKey) { text = Text(key) }
+    init(verbatim: String) { text = Text(verbatim: verbatim) }
+
+    var body: some View {
+        text.engineLabel()
+            .foregroundStyle(Theme.muted)
+            .padding(.top, 22)
+            .padding(.bottom, 8)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// A word of explanation under a plate.
+struct Hint: View {
+    let text: Text
+
+    init(_ key: LocalizedStringKey) { text = Text(key) }
+    init(verbatim: String) { text = Text(verbatim: verbatim) }
+
+    var body: some View {
+        text.font(.ui(13))
+            .foregroundStyle(Theme.muted)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 8)
+    }
+}
+
+/// What went wrong, where it went wrong.
+struct ProblemLine: View {
+    let text: String
+
+    var body: some View {
+        Text(verbatim: text)
+            .font(.ui(14))
+            .foregroundStyle(Theme.danger)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 10)
+            .textSelection(.enabled)
+    }
+}
+
+/// Several rows that belong together, on one card: a hairline around
+/// them and one between each two. A row that draws nothing takes no
+/// place and leaves no rule behind.
+struct Plate<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+        VStack(alignment: .leading, spacing: 0) {
+            Group(subviews: content) { rows in
+                ForEach(rows) { row in
+                    if row.id != rows.first?.id {
+                        Rectangle().fill(Theme.line).frame(height: 1)
+                    }
+                    row.padding(.horizontal, 13)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+        .background(shape.fill(Theme.card))
+        .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+        .clipShape(shape)
+    }
+}
+
+/// A fact: what it is in the engine's voice, what it says beside it.
+/// One with nothing to say is not drawn, as on the terminal.
+struct InfoRow: View {
+    let label: LocalizedStringKey
+    let value: String?
+    var mono = false
+
+    var body: some View {
+        if let value, !value.isEmpty {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(label).engineLabel().foregroundStyle(Theme.muted).fixedSize()
+                Spacer(minLength: 8)
+                // The value has the row: it wraps rather than being cut, and the
+                // label keeps to its own width.
+                Text(verbatim: value)
+                    .font(mono ? .mono(13, bold: false) : .ui(15))
+                    .foregroundStyle(Theme.ink)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
+                    .textSelection(.enabled)
+            }
+        }
+    }
+}
+
+/// A short value to type, named in the engine's voice at its side.
+struct FieldRow: View {
+    let label: LocalizedStringKey
+    @Binding var text: String
+    var prompt: String = ""
+    var mono = false
+    /// The width the labels of one plate share, so their fields line up.
+    var labelWidth: CGFloat = 72
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(label).engineLabel().foregroundStyle(Theme.muted)
+                .frame(width: labelWidth, alignment: .leading)
+            TextField("", text: $text, prompt: Text(verbatim: prompt).foregroundStyle(Theme.muted))
+                .font(mono ? .mono(15, bold: false) : .ui(16))
+                .foregroundStyle(Theme.ink)
+        }
+    }
+}
+
+/// Something the screen can do or lead to: its mark in the accent, its
+/// name, and an arrow when it leads somewhere. What cannot be taken back
+/// says so by its colour.
+struct CommandRow: View {
+    let symbol: String
+    let label: Text
+    var danger = false
+    var leads = false
+    var busy = false
+
+    init(_ key: LocalizedStringKey, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false) {
+        self.init(text: Text(key), symbol: symbol, danger: danger, leads: leads, busy: busy)
+    }
+
+    init(text: Text, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false) {
+        label = text
+        self.symbol = symbol
+        self.danger = danger
+        self.leads = leads
+        self.busy = busy
+    }
+
+    @Environment(\.isEnabled) private var enabled
+
+    var body: some View {
+        HStack(spacing: 11) {
+            Group {
+                if busy {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: symbol)
+                        .font(.system(size: 16))
+                        .foregroundStyle(danger ? AnyShapeStyle(Theme.danger) : AnyShapeStyle(.tint))
+                }
+            }
+            .frame(width: 22)
+            label.font(.ui(15, weight: .medium))
+                .foregroundStyle(danger ? Theme.danger : Theme.ink)
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 6)
+            if leads {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.muted)
+            }
+        }
+        .opacity(enabled ? 1 : 0.45)
+        .contentShape(Rectangle())
+    }
+}
+
+/// The one thing a screen is for: the accent, filled, the words in the
+/// engine's voice. One of these to a screen.
+struct PrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Face(configuration: configuration)
+    }
+
+    private struct Face: View {
+        let configuration: Configuration
+        @Environment(\.isEnabled) private var enabled
+
+        var body: some View {
+            configuration.label
+                .font(.mono(13))
+                .tracking(0.8)
+                .textCase(.lowercase)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.tint, in: Capsule())
+                .opacity(enabled ? (configuration.isPressed ? 0.7 : 1) : 0.35)
+                .contentShape(Capsule())
+        }
+    }
+}
+
+/// A screen with nothing to show says so, quietly, where the rows would be.
+struct EmptyNote: View {
+    let symbol: String
+    let title: LocalizedStringKey
+    var detail: LocalizedStringKey?
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: symbol)
+                .font(.system(size: 26, weight: .light))
+                .foregroundStyle(Theme.muted)
+            Text(title).font(.ui(16, weight: .medium)).foregroundStyle(Theme.ink)
+            if let detail {
+                Text(detail).font(.ui(14)).foregroundStyle(Theme.muted)
+            }
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 36)
+    }
+}
+
+/// A command row that is a button: it dims under the finger and does its one thing.
+struct Command: View {
+    let label: Text
+    let symbol: String
+    var danger = false
+    var leads = false
+    var busy = false
+    let action: () -> Void
+
+    init(_ key: LocalizedStringKey, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false,
+         action: @escaping () -> Void) {
+        self.init(text: Text(key), symbol: symbol, danger: danger, leads: leads, busy: busy, action: action)
+    }
+
+    init(text: Text, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false,
+         action: @escaping () -> Void) {
+        label = text
+        self.symbol = symbol
+        self.danger = danger
+        self.leads = leads
+        self.busy = busy
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            CommandRow(text: label, symbol: symbol, danger: danger, leads: leads, busy: busy)
+        }
+        .buttonStyle(PressStyle())
+    }
+}
+
+/// One of a few: the property named in the engine's voice, and beside it
+/// what is chosen now -- which opens the others.
+struct ChoiceRow<Selection: Hashable, Options: View>: View {
+    let label: LocalizedStringKey
+    /// The choice as the row says it.
+    let chosen: String
+    @Binding var selection: Selection
+    @ViewBuilder var options: Options
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(label).engineLabel().foregroundStyle(Theme.muted).fixedSize()
+            Spacer(minLength: 8)
+            Menu {
+                Picker(label, selection: $selection) { options }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(verbatim: chosen)
+                        .font(.ui(15))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.tint)
+                }
+                .contentShape(Rectangle())
+            }
+        }
+    }
+}
+
+/// On or off: a sentence in the plain face, or a property in the engine's voice.
+struct SwitchRow: View {
+    let label: LocalizedStringKey
+    @Binding var isOn: Bool
+    var property = false
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            if property {
+                Text(label).engineLabel().foregroundStyle(Theme.muted)
+            } else {
+                Text(label).font(.ui(15)).foregroundStyle(Theme.ink)
+            }
+        }
+        .padding(.vertical, -3)
+    }
+}
+
+/// The text of a post, wherever it is typed: markdown, the raw material
+/// the engine reads, in the typewriter face.
+struct PaperEditor: View {
+    @Binding var text: String
+    var minHeight: CGFloat = 220
+
+    var body: some View {
+        TextEditor(text: $text)
+            .font(.mono(15, bold: false))
+            .foregroundStyle(Theme.ink)
+            .scrollContentBackground(.hidden)
+            .frame(minHeight: minHeight)
+            .padding(.horizontal, -5)
+            .padding(.vertical, -4)
+    }
+}
+
+/// The label of the one filled button, with a spinner while it works.
+struct PrimaryLabel: View {
+    let label: LocalizedStringKey
+    var busy = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if busy { ProgressView().controlSize(.small).tint(.white) }
+            Text(label)
+        }
     }
 }
