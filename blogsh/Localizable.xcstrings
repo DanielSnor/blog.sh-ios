@@ -46,6 +46,16 @@
       }
     },
     "%lld": {},
+    "%lld of %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld z %2$lld"
+          }
+        }
+      }
+    },
     "%lld.": {},
     "(the post has no text)": {
       "localizations": {
@@ -299,6 +309,16 @@
         }
       }
     },
+    "Drafts in progress": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozepsané koncepty"
+          }
+        }
+      }
+    },
     "Drop": {
       "localizations": {
         "cs": {
@@ -509,6 +529,16 @@
         }
       }
     },
+    "No drafts in progress": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádné rozepsané koncepty"
+          }
+        }
+      }
+    },
     "No earlier versions yet": {
       "localizations": {
         "cs": {
@@ -565,6 +595,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nic neodpovídá"
+          }
+        }
+      }
+    },
+    "Nothing scheduled": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic naplánovaného"
           }
         }
       }
@@ -1866,6 +1906,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "text"
+          }
+        }
+      }
+    },
+    "tile.add": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový"
+          }
+        }
+      }
+    },
+    "tile.browse": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv"
+          }
+        }
+      }
+    },
+    "tile.post": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek"
+          }
+        }
+      }
+    },
+    "tile.queue": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fronta"
+          }
+        }
+      }
+    },
+    "tile.rebuild": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web"
+          }
+        }
+      }
+    },
+    "tile.restore": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koš"
           }
         }
       }

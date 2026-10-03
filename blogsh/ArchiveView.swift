@@ -10,6 +10,9 @@ import SwiftUI
 struct ArchiveView: View {
     var languages: [String] = []
     var baseURL: String = ""
+    /// What the screen opens with: a state already chosen, the search already open.
+    var initialState: StateFilter?
+    var searching = false
     @State private var posts: [PostRow] = []
     @State private var problem: String?
     @State private var loading = false
@@ -20,6 +23,8 @@ struct ArchiveView: View {
     @State private var found: Found?
     @State private var searchingFor: String?
     @State private var previewing: PostRow?
+    @State private var searchOpen = false
+    @State private var opened = false
 
     /// What the engine found for a query, in its own order.
     struct Found: Equatable {
@@ -55,32 +60,65 @@ struct ArchiveView: View {
 
     var body: some View {
         List {
-            if let problem {
-                Text(problem).foregroundStyle(.secondary)
-            }
-            Section {
-                ForEach(shown) { post in
-                    NavigationLink(value: post) {
-                        PostRowView(post: post)
+            ScreenHeader(title: String(localized: "tile.browse", defaultValue: "Archive"), count: countLine)
+                .padding(.top, 2)
+                .paperRow(rule: false)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    Button { state = nil } label: { FilterPill(label: String(localized: "all"), selected: state == nil) }
+                    ForEach(StateFilter.allCases) { one in
+                        Button { state = state == one ? nil : one } label: { FilterPill(label: one.label, selected: state == one) }
                     }
-                    .swipeActions(edge: .leading) {
-                        Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                    Menu {
+                        Picker("type", selection: $type) {
+                            Text("any type").tag(String?.none)
+                            ForEach(types, id: \.self) { Text($0).tag(String?.some($0)) }
+                        }
+                    } label: {
+                        FilterPill(label: type.map { String(localized: "type=\($0)") } ?? String(localized: "type"), selected: type != nil)
                     }
-                    .contextMenu {
-                        Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                    Menu {
+                        Picker("tag", selection: $tag) {
+                            Text("any tag").tag(String?.none)
+                            ForEach(tags, id: \.self) { Text($0).tag(String?.some($0)) }
+                        }
+                    } label: {
+                        FilterPill(label: tag.map { String(localized: "tag=\($0)") } ?? String(localized: "tag"), selected: tag != nil)
                     }
                 }
-            } header: {
-                Text(filterLine)
+                .buttonStyle(PressStyle())
+                .padding(.horizontal, Theme.gutter)
+                .padding(.vertical, 10)
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden, edges: .top)
+            .listRowSeparatorTint(Theme.line)
+            if let problem {
+                Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
+            }
+            ForEach(shown) { post in
+                NavigationLink(value: post) {
+                    PostRowView(post: post)
+                }
+                .navigationLinkIndicatorVisibility(.hidden)
+                .paperRow()
+                .swipeActions(edge: .leading) {
+                    Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                }
+                .contextMenu {
+                    Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                }
             }
         }
+        .paperList()
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages)
         }
         .sheet(item: $previewing) { post in
             NavigationStack { PostPreviewView(post: post, baseURL: baseURL) }
         }
-        .searchable(text: $query, prompt: "Search the archive")
+        .searchable(text: $query, isPresented: $searchOpen, prompt: "Search the archive")
         .overlay {
             if loading && posts.isEmpty {
                 ProgressView()
@@ -89,32 +127,14 @@ struct ArchiveView: View {
             }
         }
         .navigationTitle("The archive")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Picker("type", selection: $type) {
-                        Text("any type").tag(String?.none)
-                        ForEach(types, id: \.self) { Text($0).tag(String?.some($0)) }
-                    }
-                    Picker("state", selection: $state) {
-                        Text("any state").tag(StateFilter?.none)
-                        ForEach(StateFilter.allCases) { Text($0.label).tag(StateFilter?.some($0)) }
-                    }
-                    Picker("tag", selection: $tag) {
-                        Text("any tag").tag(String?.none)
-                        ForEach(tags, id: \.self) { Text($0).tag(String?.some($0)) }
-                    }
-                    if type != nil || state != nil || tag != nil || !query.isEmpty {
-                        Button { type = nil; state = nil; tag = nil; query = "" } label: {
-                            Label("Clear the filters", systemImage: "xmark.circle")
-                        }
-                    }
-                } label: {
-                    Label("Filter", systemImage: type != nil || state != nil || tag != nil ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                }
+        .task {
+            if !opened {
+                opened = true
+                state = initialState
+                searchOpen = searching
             }
+            await load()
         }
-        .task { await load() }
         .task(id: words) { await search(words) }
         .refreshable { await load() }
     }
@@ -152,15 +172,11 @@ struct ArchiveView: View {
         }
     }
 
-    /// The status line the screen keeps: which filters are on, and the count.
-    private var filterLine: String {
-        var parts: [String] = []
-        if let type { parts.append(String(localized: "type=\(type)")) }
-        if let state { parts.append(String(localized: "state=\(state.label)")) }
-        if let tag { parts.append(String(localized: "tag=\(tag)")) }
-        if !words.isEmpty { parts.append(String(localized: "search “\(words)”")) }
-        let filters = parts.isEmpty ? String(localized: "all") : parts.joined(separator: " · ")
-        let line = String(localized: "Filter: \(filters) — \(shown.count) of \(posts.count)")
+    /// How many, beside the screen's name: all of them, or how many of
+    /// them the filters and the search leave.
+    private var countLine: String {
+        let filtered = type != nil || state != nil || tag != nil || !words.isEmpty
+        let line = filtered ? String(localized: "\(shown.count) of \(posts.count)") : posts.count.formatted()
         return searchingFor == nil ? line : line + " …"
     }
 
@@ -198,44 +214,51 @@ struct ArchiveView: View {
     }
 }
 
+/// A post as a row says it: its title, its tags under it, and at the
+/// edge its date -- in the accent when it is a date still to come.
 struct PostRowView: View {
     let post: PostRow
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                // An untitled post goes by its slug, dimmed, as the terminal dims it.
                 Text(post.title ?? post.slug)
-                    .font(.headline)
+                    .font(.ui(15, weight: post.title == nil ? .medium : .bold))
+                    .foregroundStyle(post.title == nil ? Theme.muted : Theme.ink)
                     .lineLimit(2)
-                Spacer()
+                Text(post.tags.isEmpty ? post.type : post.tags.joined(separator: ", "))
+                    .font(.ui(13))
+                    .foregroundStyle(Theme.muted)
+                    .lineLimit(1)
+                // Why the search found it: the line of its text that matched.
+                if let match = post.match, !match.isEmpty {
+                    Text(match)
+                        .font(.ui(12))
+                        .foregroundStyle(Theme.muted)
+                        .lineLimit(2)
+                        .padding(.top, 2)
+                }
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 5) {
+                if let day = post.day {
+                    Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
+                        .font(.mono(11, bold: post.scheduled))
+                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
+                } else {
+                    StateBadge(post: post)
+                }
                 if post.pinned {
-                    Image(systemName: "pin.fill")
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "pin")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.muted)
                         .accessibilityLabel("Pinned")
                 }
             }
-            HStack(spacing: 8) {
-                StateBadge(post: post)
-                if let day = post.day {
-                    Text(day, format: .dateTime.year().month().day())
-                }
-                Text(post.type)
-                if !post.tags.isEmpty {
-                    Text(post.tags.joined(separator: ", "))
-                        .lineLimit(1)
-                }
-            }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            // Why the search found it: the line of its text that matched.
-            if let match = post.match, !match.isEmpty {
-                Text(match)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
+            .padding(.top, 3)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 11)
     }
 }
 
@@ -246,21 +269,22 @@ struct StateBadge: View {
 
     var body: some View {
         if post.scheduled {
-            Text("Scheduled").badgeStyle(.cyan)
+            Text("Scheduled").stateMark(filled: true)
         } else if post.state == .draft {
-            Text("Draft").badgeStyle(.yellow)
+            Text("Draft").stateMark(filled: false)
         }
     }
 }
 
 private extension Text {
-    func badgeStyle(_ color: Color) -> some View {
-        self
-            .font(.caption.weight(.semibold))
-            .padding(.horizontal, 6)
+    func stateMark(filled: Bool) -> some View {
+        font(.mono(11, bold: filled))
+            .textCase(.lowercase)
+            .foregroundStyle(filled ? AnyShapeStyle(.white) : AnyShapeStyle(Theme.muted))
+            .padding(.horizontal, 8)
             .padding(.vertical, 2)
-            .background(color.opacity(0.2), in: Capsule())
-            .foregroundStyle(color)
+            .background { if filled { Capsule().fill(.tint) } }
+            .overlay { if !filled { Capsule().strokeBorder(Theme.line, lineWidth: 1) } }
     }
 }
 

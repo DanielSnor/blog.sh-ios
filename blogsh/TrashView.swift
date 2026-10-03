@@ -16,14 +16,20 @@ struct TrashView: View {
 
     var body: some View {
         List {
+            ScreenHeader(title: String(localized: "tile.restore", defaultValue: "Trash"),
+                         count: rows.isEmpty ? nil : rows.count.formatted())
+                .padding(.top, 2)
+                .padding(.bottom, 6)
+                .paperRow()
             if let problem {
-                Text(problem).foregroundStyle(.secondary)
+                Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
             ForEach(rows) { row in
                 Button { restoring = row } label: {
                     TrashRowView(row: row)
                 }
-                .foregroundStyle(.primary)
+                .buttonStyle(PressStyle())
+                .paperRow()
                 .swipeActions(edge: .trailing) {
                     Button { restoring = row } label: { Label("Restore", systemImage: "arrow.uturn.backward") }
                         .tint(.accentColor)
@@ -37,6 +43,7 @@ struct TrashView: View {
                 ContentUnavailableView("Trash is empty", systemImage: "trash")
             }
         }
+        .paperList()
         .disabled(busy)
         .navigationTitle("Trash")
         .task { await load() }
@@ -110,25 +117,34 @@ struct TrashRowView: View {
     let row: TrashRow
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(row.title ?? row.slug)
-                .font(.headline)
-                .lineLimit(2)
-            HStack(spacing: 8) {
-                if let when = ISO8601DateFormatter.engine.date(from: row.date ?? "") {
-                    Text(when, format: .dateTime.year().month().day())
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(row.title ?? row.slug)
+                    .font(.ui(15, weight: row.title == nil ? .medium : .bold))
+                    .foregroundStyle(row.title == nil ? Theme.muted : Theme.ink)
+                    .lineLimit(2)
+                Group {
+                    if row.mediaOnly {
+                        Text("media only")
+                    } else {
+                        Text(verbatim: [row.type ?? "", row.slug].filter { !$0.isEmpty }.joined(separator: " · "))
+                    }
                 }
-                if row.mediaOnly {
-                    Text("media only")
-                } else {
-                    Text(row.type ?? "")
-                    Text(row.slug).lineLimit(1)
-                }
+                .font(.ui(13))
+                .foregroundStyle(Theme.muted)
+                .lineLimit(1)
             }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
+            if let when = ISO8601DateFormatter.engine.date(from: row.date ?? "") {
+                Text(verbatim: RowDate.short(when))
+                    .font(.mono(11, bold: false))
+                    .foregroundStyle(Theme.muted)
+                    .padding(.top, 3)
+            }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 }
 

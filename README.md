@@ -1,7 +1,7 @@
 # blog.sh for iPhone and iPad
 
-The whole of `./blog.sh` on a phone: the wizard's menu, screen for
-screen and key for key. A new post with photographs, a post's text in
+The whole of `./blog.sh` on a phone: the wizard's menu, entry for entry
+and key for key. A new post with photographs, a post's text in
 every language the site publishes, its properties and the actions on it,
 the scheduled-post queue, the archive with its filters and search, the
 trash, and the site's rebuild.
@@ -49,6 +49,21 @@ server and iOS 26 or later on the device.
 Where the terminal asks a question, the app asks it too; where it
 rebuilds without asking, so does the app; where it asks whether to
 rebuild now, the app asks.
+
+## How it looks
+
+Paper and ink by day, ink on black by night, and one accent: the blog's
+own, which the engine says with its identity (`version --json`), the way
+`/write/` wears it. The first screen is the blog at one glance -- what
+waits in the queue, how many drafts are in progress -- over the six
+entries of the menu; a list is a name, a count, its filters as pills and
+its rows.
+
+Three voices of type: a display serif in lower case for what a screen
+is, a sans for what it holds, a typewriter face for what the engine says.
+The first two are Forum and Work Sans when their font files are in
+`blogsh/Fonts/` (any `.ttf` there is bundled and registered at launch);
+without them the system's serif and sans stand in.
 
 ## Building
 

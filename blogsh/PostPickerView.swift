@@ -14,15 +14,22 @@ struct PostPickerView: View {
 
     var body: some View {
         List {
+            ScreenHeader(title: String(localized: "tile.post", defaultValue: "Post"))
+                .padding(.top, 2)
+                .padding(.bottom, 6)
+                .paperRow()
             if let problem {
-                Text(problem).foregroundStyle(.secondary)
+                Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
             ForEach(posts) { post in
                 NavigationLink(value: post) {
                     PostRowView(post: post)
                 }
+                .navigationLinkIndicatorVisibility(.hidden)
+                .paperRow()
             }
         }
+        .paperList()
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages)
         }

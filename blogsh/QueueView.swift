@@ -31,23 +31,35 @@ struct QueueView: View {
 
     var body: some View {
         List {
+            ScreenHeader(title: String(localized: "tile.queue", defaultValue: "Queue"),
+                         count: rows.isEmpty ? nil : rows.count.formatted())
+                .padding(.top, 2)
+                .padding(.bottom, 6)
+                .paperRow()
             if let problem {
-                Text(problem).foregroundStyle(.secondary)
+                Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
             if dirty {
-                Section {
-                    Button {
-                        Task { await rebuild() }
-                    } label: {
-                        Label("The preview is behind the queue — rebuild and deploy now", systemImage: "hammer")
+                Button {
+                    Task { await rebuild() }
+                } label: {
+                    Card(highlighted: true) {
+                        Image(systemName: "hammer").foregroundStyle(.tint)
+                        Text("The preview is behind the queue — rebuild and deploy now")
+                            .font(.ui(14, weight: .medium))
+                            .foregroundStyle(Theme.ink)
                     }
-                    .disabled(rebuilding)
                 }
+                .buttonStyle(PressStyle())
+                .disabled(rebuilding)
+                .padding(.vertical, 10)
+                .paperRow(rule: false)
             }
             if !rows.isEmpty {
-                Section("The queue (\(rows.count) scheduled):") {
+                Section {
                     ForEach(rows) { row in
                         QueueRowView(row: row)
+                            .paperRow()
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 Button { Task { await move(row, "--up") } } label: { Label("Up", systemImage: "arrow.up") }
                                     .disabled(row.position == 1 || row.overdue)
@@ -75,6 +87,7 @@ struct QueueView: View {
                                        description: Text("A draft is scheduled from its properties, or with ./blog.sh schedule."))
             }
         }
+        .paperList()
         .disabled(busy)
         .navigationTitle("The scheduled-post queue")
         .task { await load() }
@@ -212,36 +225,44 @@ struct QueueView: View {
     }
 }
 
+/// A post in the queue: its place as a key, its title, and when it goes
+/// out -- the hour at the edge, the whole date with its zone under the
+/// title, because the queue is the blog's clock and a phone abroad would
+/// otherwise show an hour nobody scheduled.
 struct QueueRowView: View {
     let row: QueueRow
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text("\(row.position).")
-                .font(.callout.monospacedDigit())
-                .foregroundStyle(.secondary)
+        let when = ISO8601DateFormatter.engine.date(from: row.date)
+        HStack(alignment: .top, spacing: 12) {
+            KeyChip(text: "\(row.position)")
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.title.isEmpty ? row.slug : row.title)
-                    .font(.headline)
+                    .font(.ui(15, weight: .bold))
+                    .foregroundStyle(Theme.ink)
                     .lineLimit(2)
-                HStack(spacing: 8) {
-                    if let when = ISO8601DateFormatter.engine.date(from: row.date) {
-                        // With its zone: the queue is the blog's clock, and a phone abroad
-                        // would otherwise show an hour nobody scheduled.
+                Group {
+                    if let when {
                         Text(when, format: .dateTime.year().month().day().hour().minute().timeZone())
                     } else {
                         Text(row.date)
                     }
-                    Text(row.slug).lineLimit(1)
-                    if row.overdue {
-                        Text("(waiting for the cron)")
-                    }
                 }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.ui(13))
+                .foregroundStyle(Theme.muted)
+                if row.overdue {
+                    Text("(waiting for the cron)").font(.ui(13)).foregroundStyle(Theme.muted)
+                }
+            }
+            Spacer(minLength: 8)
+            if let when {
+                Text(verbatim: RowDate.soon(when))
+                    .font(.mono(11))
+                    .foregroundStyle(.tint)
+                    .padding(.top, 3)
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 11)
     }
 }
 

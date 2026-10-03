@@ -36,11 +36,24 @@ actor Engine {
 
     /// Runs `./blog.sh <args>` and decodes its answer, or throws the
     /// refusal the engine gave -- which is an answer too, just a no.
-    nonisolated func call<T: Decodable>(_ args: [String], as type: T.Type = T.self) async throws -> T {
-        let data = try await run(args)
-        // A call the screen called off ends its read early, with nothing: that
-        // is not an answer, and not a failure anybody is waiting to hear about.
-        try Task.checkCancellation()
+    ///
+    /// The call is seen through whatever becomes of the task that asked: a
+    /// screen the system builds, drops and builds again on its way in (a
+    /// split view collapsing does exactly that) would otherwise call its
+    /// own first read off half way, and be left showing nothing -- which
+    /// reads as "there is nothing". A connection is short; its answer is
+    /// simply not used when nobody is left to use it.
+    nonisolated func call<T: Decodable & Sendable>(_ args: [String], as type: T.Type = T.self) async throws -> T {
+        try await Task { try Self.decode(try await self.run(args), as: type) }.value
+    }
+
+    /// Several commands over one connection (`batch`), seen through the same way.
+    nonisolated func answers(to commands: [[String]]) async throws -> [Data] {
+        try await Task { try await self.batch(commands) }.value
+    }
+
+    /// One answer of a batch, read as `call` reads its own.
+    nonisolated static func decode<T: Decodable>(_ data: Data, as type: T.Type = T.self) throws -> T {
         guard !data.isEmpty else {
             throw EngineError.unreadable(String(localized: "The server closed the connection without an answer."))
         }
@@ -61,6 +74,16 @@ actor Engine {
     // executor and the client is not Sendable -- so it is made and used
     // there, never handed across an isolation boundary.
     @concurrent nonisolated func run(_ args: [String]) async throws -> Data {
+        try await batch([args])[0]
+    }
+
+    /// Several commands over ONE connection, one after another, an answer
+    /// for each. A screen that needs three things asks for them here: a
+    /// connection is the expensive part -- a handshake each -- and a
+    /// server that counts connections (a firewall's rate limit does) turns
+    /// the fourth one away. A command that fails ends the batch; what was
+    /// answered before it is lost with it.
+    @concurrent nonisolated func batch(_ commands: [[String]]) async throws -> [Data] {
         guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
         let key: Curve25519.Signing.PrivateKey
         do {
@@ -86,9 +109,12 @@ actor Engine {
         // a task spawned here would carry the client across the actor's
         // boundary, and the compiler is right to refuse that.
         do {
-            let answer = try await Self.exec(args, on: client)
+            var answers: [Data] = []
+            for args in commands {
+                answers.append(try await Self.exec(args, on: client))
+            }
             try? await client.close()
-            return answer
+            return answers
         } catch {
             try? await client.close()
             throw error
