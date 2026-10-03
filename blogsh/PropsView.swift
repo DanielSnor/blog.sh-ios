@@ -134,6 +134,11 @@ struct PropsView: View {
             PropsRow(label: "languages", value: languagesLabel(props))
             PropsRow(label: "announced", value: announcedLabel(props))
             PropsRow(label: "old links", value: props.addresses.isEmpty ? nil : "\(props.addresses.count) address(es) still redirect here")
+            if !props.url.isEmpty, let url = URL(string: props.url) {
+                Link(destination: url) {
+                    Label(props.state == .draft ? "Show the preview on the web" : "Show on the web", systemImage: "safari")
+                }
+            }
         }
     }
 
@@ -328,7 +333,7 @@ struct PropsView: View {
             props = try await Engine.shared.call(["props", slug])
             problem = nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 
@@ -336,7 +341,7 @@ struct PropsView: View {
 
     private func humanDate(_ iso: String) -> String {
         guard let date = ISO8601DateFormatter.engine.date(from: iso) else { return iso }
-        return date.formatted(date: .numeric, time: .shortened)
+        return date.formatted(.dateTime.year().month().day().hour().minute().timeZone())
     }
 
     private func seriesLabel(_ props: PropsAnswer) -> String? {

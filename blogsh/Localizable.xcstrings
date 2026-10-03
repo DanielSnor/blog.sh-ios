@@ -47,6 +47,16 @@
     },
     "%lld": {},
     "%lld.": {},
+    "(the post has no text)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(příspěvek nemá text)"
+          }
+        }
+      }
+    },
     "(waiting for the cron)": {
       "localizations": {
         "cs": {
@@ -135,6 +145,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jiný čas"
+          }
+        }
+      }
+    },
+    "Back to the post": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět k příspěvku"
           }
         }
       }
@@ -325,6 +345,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Filtr"
+          }
+        }
+      }
+    },
+    "Filter: %@ — %lld of %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtr: %1$@ — %2$lld z %3$lld"
           }
         }
       }
@@ -1039,6 +1069,26 @@
         }
       }
     },
+    "Show on the web": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit na webu"
+          }
+        }
+      }
+    },
+    "Show the preview on the web": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit náhled na webu"
+          }
+        }
+      }
+    },
     "Tags, separated by commas": {
       "localizations": {
         "cs": {
@@ -1249,6 +1299,16 @@
         }
       }
     },
+    "The server closed the connection without an answer.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server zavřel spojení bez odpovědi."
+          }
+        }
+      }
+    },
     "The server is not set up yet.": {
       "localizations": {
         "cs": {
@@ -1275,6 +1335,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Web"
+          }
+        }
+      }
+    },
+    "The site has no address set, so there is nothing to open.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web nemá nastavenou adresu, takže není co otevřít."
           }
         }
       }
@@ -1419,6 +1489,16 @@
         }
       }
     },
+    "all": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vše"
+          }
+        }
+      }
+    },
     "announced": {
       "localizations": {
         "cs": {
@@ -1460,6 +1540,56 @@
       }
     },
     "blog.sh": {},
+    "browse.state.draft": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rozepsané"
+          }
+        }
+      }
+    },
+    "browse.state.pinned": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "připnuté"
+          }
+        }
+      }
+    },
+    "browse.state.published": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "publikované"
+          }
+        }
+      }
+    },
+    "browse.state.scheduled": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "naplánované"
+          }
+        }
+      }
+    },
+    "browse.state.unpublished": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nepublikované"
+          }
+        }
+      }
+    },
     "chapter list": {
       "localizations": {
         "cs": {
@@ -1650,6 +1780,16 @@
         }
       }
     },
+    "search “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hledání „%@“"
+          }
+        }
+      }
+    },
     "series": {
       "localizations": {
         "cs": {
@@ -1670,6 +1810,16 @@
         }
       }
     },
+    "state=%@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stav=%@"
+          }
+        }
+      }
+    },
     "tag": {
       "localizations": {
         "cs": {
@@ -1680,12 +1830,32 @@
         }
       }
     },
+    "tag=%@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "štítek=%@"
+          }
+        }
+      }
+    },
     "tags": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "štítky"
+          }
+        }
+      }
+    },
+    "tags: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "štítky: %@"
           }
         }
       }
@@ -1706,6 +1876,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "typ"
+          }
+        }
+      }
+    },
+    "type=%@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "typ=%@"
           }
         }
       }

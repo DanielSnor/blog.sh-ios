@@ -42,6 +42,11 @@ struct ContentView: View {
     @State private var showingSettings = false
     @State private var identity: VersionAnswer?
     @State private var identityProblem: String?
+    // The site's accent, kept from the last answer so the app opens in
+    // the blog's colour before the server has said anything.
+    @AppStorage("site.accent.light") private var accentLight = ""
+    @AppStorage("site.accent.dark") private var accentDark = ""
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationSplitView {
@@ -98,6 +103,10 @@ struct ContentView: View {
                 }
             }
         }
+        // The blog's own accent, as /write/ wears it: every control of the
+        // app, the sheets included. Nothing set, or not a hex colour, and
+        // the system's stays.
+        .tint(Color(hex: colorScheme == .dark ? accentDark : accentLight))
     }
 
     /// The languages the site publishes beyond its own.
@@ -110,12 +119,19 @@ struct ContentView: View {
     /// server set up the header says so and the settings are one tap away.
     private func loadIdentity() async {
         do {
-            identity = try await Engine.shared.call(["version"])
+            let answer: VersionAnswer = try await Engine.shared.call(["version"])
+            identity = answer
             identityProblem = nil
+            if let accent = answer.site.accent {
+                accentLight = accent.light
+                accentDark = accent.dark
+            }
         } catch EngineError.notConfigured {
             identity = nil
             identityProblem = String(localized: "No server yet — set one up under the gear.")
         } catch {
+            // Called off: the header keeps what it was showing.
+            if error.isCalledOff { return }
             identity = nil
             identityProblem = error.localizedDescription
         }
@@ -181,4 +197,21 @@ struct PlaceholderView: View {
 
 #Preview {
     ContentView()
+}
+
+extension Color {
+    /// `#rrggbb` or `#rgb`, the way a palette writes a colour; anything
+    /// else -- rgb(), a name, nothing -- is nil, and a nil tint is the
+    /// system's own.
+    init?(hex: String) {
+        var digits = hex.trimmingCharacters(in: .whitespaces)
+        guard digits.hasPrefix("#") else { return nil }
+        digits.removeFirst()
+        if digits.count == 3 { digits = digits.map { "\($0)\($0)" }.joined() }
+        guard digits.count == 6, let value = UInt32(digits, radix: 16) else { return nil }
+        self.init(.sRGB,
+                  red: Double((value >> 16) & 0xff) / 255,
+                  green: Double((value >> 8) & 0xff) / 255,
+                  blue: Double(value & 0xff) / 255)
+    }
 }

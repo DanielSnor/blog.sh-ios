@@ -38,6 +38,12 @@ actor Engine {
     /// refusal the engine gave -- which is an answer too, just a no.
     nonisolated func call<T: Decodable>(_ args: [String], as type: T.Type = T.self) async throws -> T {
         let data = try await run(args)
+        // A call the screen called off ends its read early, with nothing: that
+        // is not an answer, and not a failure anybody is waiting to hear about.
+        try Task.checkCancellation()
+        guard !data.isEmpty else {
+            throw EngineError.unreadable(String(localized: "The server closed the connection without an answer."))
+        }
         let decoder = JSONDecoder()
         if let refusal = try? decoder.decode(Refusal.self, from: data), refusal.ok == false {
             throw EngineError.refused(refusal)
@@ -242,4 +248,10 @@ nonisolated final class TrustOnFirstUse: NIOSSHClientServerAuthenticationDelegat
             validationCompletePromise.succeed(())
         }
     }
+}
+
+extension Error {
+    /// A call the screen itself called off -- it went away, or asked again.
+    /// Nobody is left to tell, so a screen keeps what it was saying.
+    var isCalledOff: Bool { self is CancellationError }
 }

@@ -3,12 +3,13 @@ import SwiftUI
 /// The archive as `browse` walks it: the posts newest first, the three
 /// filters the screen has ([t] type, [s] state, [g] tag), the search ([/]),
 /// [z] to clear them, Enter to open a post -- its crossroads -- and Space
-/// for a preview of a published one. The search here reads what the rows
-/// carry (title, slug, tags); the terminal's reads the whole text.
+/// for a look at the one under the cursor. The search is the engine's own
+/// (`list --search`), over the whole text; until its answer is back, and on
+/// an engine from before the flag, the rows are matched on what they carry
+/// (title, slug, tags).
 struct ArchiveView: View {
     var languages: [String] = []
     var baseURL: String = ""
-    @Environment(\.openURL) private var openURL
     @State private var posts: [PostRow] = []
     @State private var problem: String?
     @State private var loading = false
@@ -16,11 +17,30 @@ struct ArchiveView: View {
     @State private var type: String?
     @State private var state: StateFilter?
     @State private var tag: String?
+    @State private var found: Found?
+    @State private var searchingFor: String?
+    @State private var previewing: PostRow?
+
+    /// What the engine found for a query, in its own order.
+    struct Found: Equatable {
+        let query: String
+        let rows: [PostRow]
+    }
 
     /// The states [s] offers, in the engine's own words.
     enum StateFilter: String, CaseIterable, Identifiable {
         case published, unpublished, draft, scheduled, pinned
         var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .published: String(localized: "browse.state.published", defaultValue: "published")
+            case .unpublished: String(localized: "browse.state.unpublished", defaultValue: "not published yet")
+            case .draft: String(localized: "browse.state.draft", defaultValue: "in progress")
+            case .scheduled: String(localized: "browse.state.scheduled", defaultValue: "scheduled")
+            case .pinned: String(localized: "browse.state.pinned", defaultValue: "pinned")
+            }
+        }
 
         func matches(_ post: PostRow) -> Bool {
             switch self {
@@ -43,10 +63,11 @@ struct ArchiveView: View {
                     NavigationLink(value: post) {
                         PostRowView(post: post)
                     }
+                    .swipeActions(edge: .leading) {
+                        Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                    }
                     .contextMenu {
-                        if post.state == .published, let url = publicURL(post) {
-                            Button { openURL(url) } label: { Label("Preview", systemImage: "safari") }
-                        }
+                        Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
                     }
                 }
             } header: {
@@ -56,11 +77,14 @@ struct ArchiveView: View {
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages)
         }
+        .sheet(item: $previewing) { post in
+            NavigationStack { PostPreviewView(post: post, baseURL: baseURL) }
+        }
         .searchable(text: $query, prompt: "Search the archive")
         .overlay {
             if loading && posts.isEmpty {
                 ProgressView()
-            } else if !loading && shown.isEmpty && problem == nil {
+            } else if !loading && shown.isEmpty && problem == nil && searchingFor == nil {
                 ContentUnavailableView(posts.isEmpty ? "No posts" : "Nothing matches", systemImage: "tray")
             }
         }
@@ -74,7 +98,7 @@ struct ArchiveView: View {
                     }
                     Picker("state", selection: $state) {
                         Text("any state").tag(StateFilter?.none)
-                        ForEach(StateFilter.allCases) { Text($0.rawValue).tag(StateFilter?.some($0)) }
+                        ForEach(StateFilter.allCases) { Text($0.label).tag(StateFilter?.some($0)) }
                     }
                     Picker("tag", selection: $tag) {
                         Text("any tag").tag(String?.none)
@@ -91,41 +115,53 @@ struct ArchiveView: View {
             }
         }
         .task { await load() }
+        .task(id: words) { await search(words) }
         .refreshable { await load() }
     }
 
     private var types: [String] { Array(Set(posts.map(\.type))).sorted() }
     private var tags: [String] { Array(Set(posts.flatMap(\.tags))).sorted { $0.lowercased() < $1.lowercased() } }
 
-    /// The rows the filters and the search leave, in the order they came.
+    /// The query as it is asked: what was typed, without the space around it.
+    private var words: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    /// The rows the filters and the search leave. The engine's answer when
+    /// it is the answer to this very query -- it read the whole text, and
+    /// its order is the screen's -- and the rows' own words until then.
     private var shown: [PostRow] {
-        let words = query.lowercased().split(whereSeparator: { $0.isWhitespace }).map(String.init)
-        return posts.filter { post in
+        let searched: [PostRow]
+        if let found, found.query == words {
+            searched = found.rows
+        } else {
+            searched = posts.filter(matchesLocally)
+        }
+        return searched.filter { post in
             if let type, post.type != type { return false }
             if let state, !state.matches(post) { return false }
             if let tag, !post.tags.contains(where: { $0.lowercased() == tag.lowercased() }) { return false }
-            guard !words.isEmpty else { return true }
-            let haystack = ([post.title ?? "", post.slug] + post.tags).joined(separator: " ").lowercased()
-            return words.allSatisfy { word in
-                word.hasPrefix("-") ? !haystack.contains(word.dropFirst()) : haystack.contains(word)
-            }
+            return true
+        }
+    }
+
+    private func matchesLocally(_ post: PostRow) -> Bool {
+        let tokens = words.lowercased().split(whereSeparator: { $0.isWhitespace }).map(String.init)
+        guard !tokens.isEmpty else { return true }
+        let haystack = ([post.title ?? "", post.slug] + post.tags).joined(separator: " ").lowercased()
+        return tokens.allSatisfy { token in
+            token.hasPrefix("-") ? !haystack.contains(token.dropFirst()) : haystack.contains(token)
         }
     }
 
     /// The status line the screen keeps: which filters are on, and the count.
     private var filterLine: String {
         var parts: [String] = []
-        if let type { parts.append("type=\(type)") }
-        if let state { parts.append("state=\(state.rawValue)") }
-        if let tag { parts.append("tag=\(tag)") }
-        if !query.isEmpty { parts.append("search “\(query)”") }
-        let filters = parts.isEmpty ? "all" : parts.joined(separator: " · ")
-        return "Filter: \(filters) — \(shown.count) of \(posts.count)"
-    }
-
-    private func publicURL(_ post: PostRow) -> URL? {
-        guard !baseURL.isEmpty else { return nil }
-        return URL(string: baseURL.hasSuffix("/") ? "\(baseURL)posts/\(post.year)/\(post.slug)/" : "\(baseURL)/posts/\(post.year)/\(post.slug)/")
+        if let type { parts.append(String(localized: "type=\(type)")) }
+        if let state { parts.append(String(localized: "state=\(state.label)")) }
+        if let tag { parts.append(String(localized: "tag=\(tag)")) }
+        if !words.isEmpty { parts.append(String(localized: "search “\(words)”")) }
+        let filters = parts.isEmpty ? String(localized: "all") : parts.joined(separator: " · ")
+        let line = String(localized: "Filter: \(filters) — \(shown.count) of \(posts.count)")
+        return searchingFor == nil ? line : line + " …"
     }
 
     private func load() async {
@@ -135,9 +171,30 @@ struct ArchiveView: View {
             let answer: ListAnswer = try await Engine.shared.call(["list"])
             posts = answer.posts
             problem = nil
+            // The archive is in hand: the tag suggestions need not ask for it again.
+            TagStore.shared.take(answer.posts)
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
+    }
+
+    /// [/]: the question goes to the engine once the keys rest, not on
+    /// every one of them -- each asking is a connection.
+    private func search(_ words: String) async {
+        guard !words.isEmpty else {
+            found = nil
+            searchingFor = nil
+            return
+        }
+        try? await Task.sleep(for: .milliseconds(450))
+        guard !Task.isCancelled else { return }
+        searchingFor = words
+        defer { if searchingFor == words { searchingFor = nil } }
+        let answer: ListAnswer? = try? await Engine.shared.call(["list", "--search=\(words)"])
+        guard let answer, !Task.isCancelled else { return }
+        // An engine from before the flag ignores it and answers with the
+        // whole archive; the query said back is how the two are told apart.
+        if answer.search != nil { found = Found(query: words, rows: answer.posts) }
     }
 }
 
@@ -170,6 +227,13 @@ struct PostRowView: View {
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
+            // Why the search found it: the line of its text that matched.
+            if let match = post.match, !match.isEmpty {
+                Text(match)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
         }
         .padding(.vertical, 2)
     }

@@ -37,6 +37,13 @@ nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
         let url: String
         let lang: String
         let locales: [String]
+        /// The palette's accent, per scheme; nil from an engine before it said so.
+        let accent: Accent?
+    }
+
+    struct Accent: Decodable, Equatable, Sendable {
+        let light: String
+        let dark: String
     }
 }
 
@@ -56,6 +63,9 @@ nonisolated struct PostRow: Decodable, Identifiable, Equatable, Sendable {
     let scheduled: Bool
     let series: String?
     let pinned: Bool
+    /// The line of the text a search matched on; nil without a search, on
+    /// a hit in the title or a tag, and from an engine before `--search`.
+    var match: String? = nil
 
     /// Slug and year together: the same slug can live in two years, and
     /// the engine refuses to guess between them, so neither does this.
@@ -76,6 +86,9 @@ nonisolated struct ListAnswer: Decodable, Sendable {
     let posts: [PostRow]
     let count: Int
     let drafts: Int
+    /// The query said back; nil when there was none, and from an engine
+    /// that does not know `--search` and answered with everything.
+    let search: String?
 }
 
 /// `props <slug> --json`.

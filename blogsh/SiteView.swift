@@ -55,7 +55,7 @@ struct SiteView: View {
             result = try await Engine.shared.call(args)
             problem = nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }

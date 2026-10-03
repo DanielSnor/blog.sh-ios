@@ -28,6 +28,9 @@ struct ComposeView: View {
                     .focused($bodyFocused)
                 TextField("Tags, separated by commas", text: $tags)
                     .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .task { await TagStore.shared.loadIfNeeded() }
+                TagSuggestions(text: $tags)
             } footer: {
                 Text("Markdown. A picture goes in as a paragraph of its own: insert it from its card below.")
             }
@@ -161,7 +164,7 @@ struct ComposeView: View {
             // The form is the next post's now.
             title = ""; tags = ""; text = ""; shots = []
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }

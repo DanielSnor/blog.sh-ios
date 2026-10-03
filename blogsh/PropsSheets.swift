@@ -47,7 +47,7 @@ struct ScheduleSheet: View {
             await done()
             dismiss()
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }
@@ -89,6 +89,10 @@ struct PropertiesForm: View {
                 TextField("series", text: $series)
                 TextField("part of series", text: $seriesPart).keyboardType(.numberPad)
                 TextField("tags", text: $tags)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .task { await TagStore.shared.loadIfNeeded() }
+                TagSuggestions(text: $tags)
                 Picker("type", selection: $type) {
                     ForEach(Self.types, id: \.self) { Text($0 == "-" ? "\(props.type) (from the content)" : $0).tag($0) }
                 }
@@ -141,7 +145,7 @@ struct PropertiesForm: View {
             await done()
             dismiss()
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }
@@ -197,7 +201,7 @@ struct AddressesSheet: View {
             addresses = answer.addresses
             await done()
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }
@@ -249,7 +253,7 @@ struct VersionsSheet: View {
             versions = answer.versions
             loaded = true
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 
@@ -259,7 +263,7 @@ struct VersionsSheet: View {
             await done()
             dismiss()
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }

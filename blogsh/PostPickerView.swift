@@ -46,7 +46,7 @@ struct PostPickerView: View {
             posts = Array(answer.posts.prefix(Self.recentCount))
             problem = nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }
@@ -57,6 +57,9 @@ struct PostPickerView: View {
 struct PostCrossroadsView: View {
     let post: PostRow
     var languages: [String] = []
+    @Environment(\.openURL) private var openURL
+    @State private var looking = false
+    @State private var problem: String?
 
     var body: some View {
         List {
@@ -90,9 +93,41 @@ struct PostCrossroadsView: View {
                     Label("properties and actions", systemImage: "slider.horizontal.3")
                 }
             }
+            // Not a key of the prompt: at the desk the browser is one window
+            // away, on a phone the page is only this far. A published post
+            // opens at its address, a draft at the hidden page the build keeps.
+            Section {
+                Button {
+                    Task { await show() }
+                } label: {
+                    Label(post.state == .published ? "Show on the web" : "Show the preview on the web", systemImage: "safari")
+                }
+                .disabled(looking)
+            } footer: {
+                if let problem {
+                    Text(problem).foregroundStyle(.red)
+                }
+            }
         }
         .navigationTitle(post.title ?? post.slug)
         .toolbarTitleDisplayMode(.inline)
+    }
+
+    /// The address is the engine's to say: a post can carry one of its own.
+    private func show() async {
+        looking = true
+        defer { looking = false }
+        do {
+            let props: PropsAnswer = try await Engine.shared.call(["props", post.slug])
+            guard let url = URL(string: props.url), !props.url.isEmpty else {
+                problem = String(localized: "The site has no address set, so there is nothing to open.")
+                return
+            }
+            problem = nil
+            openURL(url)
+        } catch {
+            problem = error.isCalledOff ? problem : error.localizedDescription
+        }
     }
 }
 

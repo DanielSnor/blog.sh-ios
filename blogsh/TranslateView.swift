@@ -9,6 +9,7 @@ import SwiftUI
 struct TranslateView: View {
     let slug: String
     let lang: String
+    @Environment(\.dismiss) private var dismiss
     @State private var entry: TranslationEntry?
     @State private var text = ""
     @State private var showingOriginal = true
@@ -62,6 +63,7 @@ struct TranslateView: View {
                         if let warnings = saved.warnings, !warnings.isEmpty {
                             ForEach(warnings, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
                         }
+                        Button("Back to the post") { dismiss() }
                     }
                 }
             } else if let problem {
@@ -85,7 +87,7 @@ struct TranslateView: View {
             text = answer.post.text
             problem = nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 
@@ -115,7 +117,7 @@ struct TranslateView: View {
             saved = try decoder.decode(ActionAnswer.self, from: last)
             await load()
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }

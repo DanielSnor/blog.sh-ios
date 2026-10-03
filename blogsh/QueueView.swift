@@ -145,7 +145,7 @@ struct QueueView: View {
             rows = answer.queue
             dirty = true
         } catch {
-            notice = error.localizedDescription
+            notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }
 
@@ -157,7 +157,7 @@ struct QueueView: View {
             rows = answer.queue
             dirty = true
         } catch {
-            notice = error.localizedDescription
+            notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }
 
@@ -178,7 +178,7 @@ struct QueueView: View {
             if !leaving.publish { dirty = true }
             await load()
         } catch {
-            notice = error.localizedDescription
+            notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }
 
@@ -195,7 +195,7 @@ struct QueueView: View {
             dirty = false
             notice = answer.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run."
         } catch {
-            notice = error.localizedDescription
+            notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }
 
@@ -207,7 +207,7 @@ struct QueueView: View {
             rows = answer.queue
             problem = nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }
@@ -226,7 +226,9 @@ struct QueueRowView: View {
                     .lineLimit(2)
                 HStack(spacing: 8) {
                     if let when = ISO8601DateFormatter.engine.date(from: row.date) {
-                        Text(when, format: .dateTime.year().month().day().hour().minute())
+                        // With its zone: the queue is the blog's clock, and a phone abroad
+                        // would otherwise show an hour nobody scheduled.
+                        Text(when, format: .dateTime.year().month().day().hour().minute().timeZone())
                     } else {
                         Text(row.date)
                     }

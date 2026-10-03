@@ -93,6 +93,8 @@ struct TextEditView: View {
                         if let warnings = saved.warnings, !warnings.isEmpty {
                             ForEach(warnings, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
                         }
+                        // The editor closes on a save; here the way back is a key.
+                        Button("Back to the post") { dismiss() }
                     }
                 }
             } else if let problem {
@@ -127,7 +129,7 @@ struct TextEditView: View {
             text = answer.post.text ?? ""
             problem = answer.post.text == nil ? String(localized: "The text did not come with the answer.") : nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 
@@ -184,7 +186,7 @@ struct TextEditView: View {
             shots = []
             await load()
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }

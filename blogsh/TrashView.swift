@@ -78,7 +78,7 @@ struct TrashView: View {
             await load()
             if answer.state == .published { askingRebuild = true }
         } catch {
-            notice = error.localizedDescription
+            notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }
 
@@ -89,7 +89,7 @@ struct TrashView: View {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
             notice = answer.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run."
         } catch {
-            notice = error.localizedDescription
+            notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }
 
@@ -101,7 +101,7 @@ struct TrashView: View {
             rows = answer.trash
             problem = nil
         } catch {
-            problem = error.localizedDescription
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }
