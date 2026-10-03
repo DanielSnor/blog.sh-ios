@@ -57,6 +57,9 @@ struct ContentView: View {
                     }
                 }
             }
+            // The header sits right under the title, as the terminal's second
+            // line sits under its first: the list's own top margin is dropped.
+            .contentMargins(.top, 0, for: .scrollContent)
             // The terminal's first line is the title: the command and the
             // engine's version, in the type the terminal sets them in.
             .navigationTitle(Text(verbatim: "./blog.sh"))
