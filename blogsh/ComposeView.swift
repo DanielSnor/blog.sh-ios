@@ -46,8 +46,10 @@ struct ComposeView: View {
                         remove(shot)
                     }
                 }
+                // Read here, on the main actor: the picker's label is built off it.
+                let reading = importing
                 PhotosPicker(selection: $picked, matching: .images) {
-                    CommandRow(importing ? "Reading…" : "Add pictures", symbol: "photo.on.rectangle", busy: importing)
+                    CommandRow(reading ? "Reading…" : "Add pictures", symbol: "photo.on.rectangle", busy: reading)
                 }
                 .buttonStyle(PressStyle())
                 .disabled(importing)

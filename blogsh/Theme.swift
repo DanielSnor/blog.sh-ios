@@ -414,11 +414,13 @@ struct CommandRow: View {
     var leads = false
     var busy = false
 
-    init(_ key: LocalizedStringKey, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false) {
+    // Callable from a label closure that is not the main actor's -- the
+    // photo picker's is one.
+    nonisolated init(_ key: LocalizedStringKey, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false) {
         self.init(text: Text(key), symbol: symbol, danger: danger, leads: leads, busy: busy)
     }
 
-    init(text: Text, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false) {
+    nonisolated init(text: Text, symbol: String, danger: Bool = false, leads: Bool = false, busy: Bool = false) {
         label = text
         self.symbol = symbol
         self.danger = danger
