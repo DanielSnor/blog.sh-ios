@@ -78,6 +78,7 @@ struct ContentView: View {
     private var blogs = Blogs.shared
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.scenePhase) private var phase
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columns, preferredCompactColumn: $column) {
@@ -138,6 +139,15 @@ struct ContentView: View {
         // app, the sheets included. Until a blog has said its own, the
         // look's.
         .tint(Color(hex: (colorScheme == .dark ? blogs.current?.accentDark : blogs.current?.accentLight) ?? "") ?? Theme.ember)
+        // The icon on the home screen wears the open blog's accent too. The
+        // system only changes an icon for an app that is in front, and not
+        // in the very moment it comes there.
+        .task(id: "\(blogs.current?.accentLight ?? "")|\(phase == .active)") {
+            guard phase == .active else { return }
+            try? await Task.sleep(for: .milliseconds(700))
+            guard !Task.isCancelled else { return }
+            AppIcon.follow(blogs.current?.accentLight ?? "")
+        }
         // Another blog: nothing of the last one stays on the screen, and its
         // own name and colour are there before its server answers.
         .onChange(of: blogs.currentID) {
