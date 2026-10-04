@@ -52,10 +52,12 @@ nonisolated enum Typeface {
         }
     }
 
-    /// The face of the web's own header: the banner's title is set in
-    /// JetBrains Mono unless the site says otherwise. A lighter cut of it
-    /// than the banner's: a name here stands on paper, not over a picture.
-    static let display: String? = UIFont.fontNames(forFamilyName: "JetBrains Mono").first { $0.hasSuffix("-Medium") }
+    /// A terminal's face with a typewriter's feet, kin to the one the
+    /// engine speaks in. The file names its family with its weight, so
+    /// both spellings are asked.
+    static let display: String? = ["IBM Plex Mono", "IBM Plex Mono Medium"]
+        .flatMap { UIFont.fontNames(forFamilyName: $0) }
+        .first { $0.hasPrefix("IBMPlexMono-Med") }
     private static let sans: [String] = UIFont.fontNames(forFamilyName: "Work Sans")
 
     static func sans(_ weight: Font.Weight) -> String? {

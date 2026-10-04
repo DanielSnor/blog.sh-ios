@@ -172,7 +172,7 @@ struct ContentView: View {
                  url: identity?.site.url ?? blogs.current?.url ?? "",
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: identityProblem, glance: glance,
-                 facts: identity == nil ? nil : blogs.current?.facts,
+                 facts: blogs.current?.facts,
                  current: sizeClass == .regular && !roomy ? selection : nil,
                  roomy: roomy,
                  open: open)
