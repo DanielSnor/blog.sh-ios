@@ -145,10 +145,19 @@ final class Blogs {
         save()
     }
 
-    /// A new blog, open and empty: its place and its key are the settings' to fill in.
+    /// A new blog, open: its directory and its key are the settings' to
+    /// fill in. The server is the one of the blog that was open -- a second
+    /// blog most often lives beside the first, and what the first is
+    /// reached through is long to type twice. Every field stays editable.
     @discardableResult
     func add() -> Blog {
-        let blog = Blog()
+        var blog = Blog()
+        if let beside = current {
+            blog.host = beside.host
+            blog.port = beside.port
+            blog.user = beside.user
+            blog.through = beside.through
+        }
         all.append(blog)
         currentID = blog.id
         save()

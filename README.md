@@ -44,9 +44,11 @@ The app holds as many blogs as you write. The name on the first screen is
 the switch: tap it for the list, pick another, or add one. Each blog has
 its own server, its own directory and its own key -- a key's forced
 command names one blog's `scripts/remote.sh`, so one key is one blog and
-nothing more, even when two blogs share a server and an account. Adding a
-blog makes its key and writes its line; removing a blog removes its key
-from the device, and the line on the server is then yours to delete.
+nothing more, even when two blogs share a server and an account. A new
+blog starts with the server of the one that was open -- a second blog
+most often lives beside the first -- and asks for its directory and a key
+of its own; removing a blog removes its key from the device, and the line
+on the server is then yours to delete.
 Switching changes everything the screen wears: the name, the favicon, the
 accent, what waits in the queue.
 
