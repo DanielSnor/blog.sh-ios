@@ -822,16 +822,6 @@
         }
       }
     },
-    "Path to the blog on the server": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cesta k blogu na serveru"
-          }
-        }
-      }
-    },
     "Pictures and video": {
       "localizations": {
         "cs": {
@@ -1498,6 +1488,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klíč vzniká na tomhle zařízení a nikdy ho neopustí. Řádek výše dej na serveru do ~/.ssh/authorized_keys; forced command před ním je vše, co klíč smí spustit."
+          }
+        }
+      }
+    },
+    "The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek pro ~/.ssh/authorized_keys na serveru se složí z toho, kde blog leží. K blogu v kontejneru se jde přes příkaz, který do něj vstoupí, například sudo docker exec -i blog."
           }
         }
       }
@@ -2448,6 +2448,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "text"
+          }
+        }
+      }
+    },
+    "through": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přes"
           }
         }
       }

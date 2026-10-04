@@ -10,7 +10,10 @@ struct SettingsView: View {
     @AppStorage(ServerSettings.portKey) private var port = 22
     @AppStorage(ServerSettings.userKey) private var user = ""
     @State private var publicKey: String? = try? KeyStore.publicKeyLine()
-    @State private var installPath = "/path/to/blog"
+    // Where the blog is on the server, and what the server enters it through:
+    // kept, so the line shown is the line that was installed.
+    @AppStorage("server.path") private var installPath = ""
+    @AppStorage("server.through") private var through = ""
     @State private var probe: Probe = .idle
     @State private var confirmingNewKey = false
 
@@ -49,15 +52,24 @@ struct SettingsView: View {
                         .font(.mono(12, bold: false))
                         .foregroundStyle(Theme.ink)
                         .textSelection(.enabled)
-                    FieldRow(label: "path", text: $installPath, prompt: String(localized: "Path to the blog on the server"), mono: true)
+                    FieldRow(label: "path", text: $installPath, prompt: "/home/you/blog", mono: true)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                    Text(verbatim: authorizedKeysLine(publicKey))
-                        .font(.mono(12, bold: false))
-                        .foregroundStyle(Theme.ink)
-                        .textSelection(.enabled)
-                    Command("Copy the authorized_keys line", symbol: "doc.on.doc") {
-                        UIPasteboard.general.string = authorizedKeysLine(publicKey)
+                        .keyboardType(.asciiCapable)
+                    FieldRow(label: "through", text: $through, prompt: "sudo docker exec -i blog", mono: true)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.asciiCapable)
+                    // No line until it can be a true one: a made-up path in it is a
+                    // line somebody copies.
+                    if let line = authorizedKeysLine(publicKey) {
+                        Text(verbatim: line)
+                            .font(.mono(12, bold: false))
+                            .foregroundStyle(Theme.ink)
+                            .textSelection(.enabled)
+                        Command("Copy the authorized_keys line", symbol: "doc.on.doc") {
+                            UIPasteboard.general.string = line
+                        }
                     }
                     Command("Make a new key", symbol: "key", danger: true) { confirmingNewKey = true }
                         .confirmationDialog("Make a new key? The server will not know it until its line is put into authorized_keys again.",
@@ -70,6 +82,7 @@ struct SettingsView: View {
                     Command("Make the app's key", symbol: "key") { makeKey() }
                 }
             }
+            Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog.")
             Hint("The key is made on this device and never leaves it. Put the line above into the server's ~/.ssh/authorized_keys; the forced command in front of it is what the key may run, and nothing else.")
 
             SectionLabel("Connection")
@@ -121,14 +134,25 @@ struct SettingsView: View {
         }
     }
 
-    /// The forced command runs through the account's shell, so a path with
-    /// a space in it (an iCloud folder on a Mac) is single-quoted inside the
-    /// double quotes sshd takes; a plain path stays plain.
-    private func authorizedKeysLine(_ publicKey: String) -> String {
-        let path = "\(installPath)/scripts/remote.sh"
+    /// The line, or nothing while the blog's place is not known. The forced
+    /// command runs through the account's shell, so a path with a space in
+    /// it (an iCloud folder on a Mac) is single-quoted inside the double
+    /// quotes sshd takes; a plain path stays plain. Through a wrapper -- the
+    /// command that enters a container, an `env PATH=…` for a Ruby the
+    /// server's own PATH does not have -- the word SSH hands over does not
+    /// reach the script by itself, so it is passed as its argument, which
+    /// `scripts/remote.sh` takes the same way.
+    private func authorizedKeysLine(_ publicKey: String) -> String? {
+        var directory = installPath.trimmingCharacters(in: .whitespaces)
+        if directory.hasSuffix("/scripts/remote.sh") { directory.removeLast("/scripts/remote.sh".count) }
+        while directory.count > 1, directory.hasSuffix("/") { directory.removeLast() }
+        guard !directory.isEmpty else { return nil }
+        let path = directory + "/scripts/remote.sh"
         let safe = path.unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) || "/._-+@:".unicodeScalars.contains($0) }
-        let quoted = safe ? path : "'" + path.replacingOccurrences(of: "'", with: "'\''") + "'"
-        return "restrict,command=\"\(quoted)\" \(publicKey)"
+        let script = safe ? path : "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        let wrapper = through.trimmingCharacters(in: .whitespaces)
+        let command = wrapper.isEmpty ? script : "\(wrapper) \(script) \"$SSH_ORIGINAL_COMMAND\""
+        return "restrict,command=\"\(command.replacingOccurrences(of: "\"", with: "\\\""))\" \(publicKey)"
     }
 
     private func makeKey() {

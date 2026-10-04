@@ -67,6 +67,11 @@ struct ContentView: View {
     // the blog's colour before the server has said anything.
     @AppStorage("site.accent.light") private var accentLight = ""
     @AppStorage("site.accent.dark") private var accentDark = ""
+    // Who the blog is, kept from the last answer too: the first screen opens
+    // as the blog it was, not as a blank waiting for the server.
+    @AppStorage("site.name") private var siteName = ""
+    @AppStorage("site.claim") private var siteClaim = ""
+    @AppStorage("site.url") private var siteURL = ""
     // The receiver's ceiling, for the screens that send.
     @AppStorage("site.maxMb") private var maxMb = 24
     @Environment(\.colorScheme) private var colorScheme
@@ -74,7 +79,9 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView(preferredCompactColumn: $column) {
-            HomeView(identity: identity, problem: identityProblem, glance: glance,
+            HomeView(name: identity?.site.name ?? siteName, claim: identity?.site.claim ?? siteClaim,
+                     url: identity?.site.url ?? siteURL,
+                     identity: identity, problem: identityProblem, glance: glance,
                      current: sizeClass == .regular ? selection : nil,
                      open: open)
                 .toolbar {
@@ -141,6 +148,9 @@ struct ContentView: View {
             identity = answer
             identityProblem = nil
             maxMb = answer.maxMb
+            siteName = answer.site.name
+            siteClaim = answer.site.claim
+            siteURL = answer.site.url
             if let accent = answer.site.accent {
                 accentLight = accent.light
                 accentDark = accent.dark
@@ -149,6 +159,10 @@ struct ContentView: View {
         } catch EngineError.notConfigured {
             identity = nil
             glance = nil
+            // No server, no blog: nothing of the last one is kept on show.
+            siteName = ""
+            siteClaim = ""
+            siteURL = ""
             identityProblem = String(localized: "No server yet — set one up under the gear.")
         } catch {
             // Called off: the screen keeps what it was showing.
@@ -179,6 +193,10 @@ struct ContentView: View {
 /// waits -- the next post in the queue, the drafts in progress -- and the
 /// six entries of the wizard's menu as tiles.
 struct HomeView: View {
+    /// The blog as it was last known, or as it has just said.
+    let name: String
+    let claim: String
+    let url: String
     let identity: VersionAnswer?
     let problem: String?
     let glance: Glance?
@@ -186,21 +204,32 @@ struct HomeView: View {
     let current: MenuEntry?
     let open: (MenuEntry, ArchiveView.StateFilter?, Bool) -> Void
 
+    @State private var mark: UIImage?
+
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text(verbatim: identity?.site.name ?? "blog.sh")
-                    .font(.display(40))
-                    .textCase(.lowercase)
-                    .foregroundStyle(Theme.ink)
-                    .accessibilityAddTraits(.isHeader)
-                if let claim = identity?.site.claim, !claim.isEmpty {
-                    Text(verbatim: claim)
-                        .font(.ui(15))
-                        .foregroundStyle(Theme.muted)
-                        .padding(.top, 2)
+                // The blog's own mark beside its name, as /write/ wears it: the name
+                // and the claim share one left edge, the mark stands before both.
+                HStack(alignment: .center, spacing: 14) {
+                    if let mark { SiteMark(image: mark) }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: name.isEmpty ? "blog.sh" : name)
+                            .font(.display(40))
+                            .textCase(.lowercase)
+                            .foregroundStyle(Theme.ink)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .accessibilityAddTraits(.isHeader)
+                        if !claim.isEmpty {
+                            Text(verbatim: claim)
+                                .font(.ui(15))
+                                .foregroundStyle(Theme.muted)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
                 HStack(spacing: 8) {
                     Rectangle().fill(.tint).frame(width: 14, height: 1)
@@ -254,6 +283,11 @@ struct HomeView: View {
             .padding(.bottom, 24)
         }
         .background(Theme.paper.ignoresSafeArea())
+        // The mark: at once from the copy kept on the device, then fetched again.
+        .task(id: url) {
+            mark = SiteIcon.kept(for: url)
+            if let fresh = await SiteIcon.fetch(for: url) { mark = fresh }
+        }
         .navigationTitle(Text(verbatim: "./blog.sh"))
         .namedByItsHeader()
     }
@@ -287,6 +321,54 @@ struct HomeView: View {
                 Text("No drafts in progress").font(.ui(15)).foregroundStyle(Theme.muted)
             }
         }
+    }
+}
+
+/// The blog's favicon, the one the build puts at /assets/images/favicon.png
+/// and /write/ shows in its header. Shown at once from the copy kept on the
+/// device, then fetched again; a blog without one has no mark, and the name
+/// stands at the edge by itself.
+struct SiteMark: View {
+    let image: UIImage
+
+    var body: some View {
+        Image(uiImage: image)
+            .resizable()
+            .interpolation(.high)
+            .scaledToFill()
+            .frame(width: 56, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+nonisolated enum SiteIcon {
+    static func address(for site: String) -> URL? {
+        guard !site.isEmpty, let base = URL(string: site), base.scheme == "https" || base.scheme == "http" else { return nil }
+        return base.appendingPathComponent("assets/images/favicon.png")
+    }
+
+    /// One file per blog, by its host, among what the system may clear.
+    private static func file(for site: String) -> URL? {
+        guard let host = URL(string: site)?.host(), !host.isEmpty else { return nil }
+        let name = "site-mark-" + host.replacingOccurrences(of: "[^A-Za-z0-9.-]", with: "_", options: .regularExpression) + ".png"
+        return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent(name)
+    }
+
+    static func kept(for site: String) -> UIImage? {
+        guard let file = file(for: site), let data = try? Data(contentsOf: file) else { return nil }
+        return UIImage(data: data)
+    }
+
+    @concurrent static func fetch(for site: String) async -> UIImage? {
+        guard let address = address(for: site) else { return nil }
+        var request = URLRequest(url: address)
+        request.timeoutInterval = 10
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let image = UIImage(data: data) else { return nil }
+        if let file = file(for: site) { try? data.write(to: file, options: .atomic) }
+        return image
     }
 }
 

@@ -23,14 +23,17 @@ server and iOS 26 or later on the device.
    enter the server's host, the account and the port.
 2. **Make the app's key.** It is made on the device and kept in its
    keychain; it never leaves it.
-3. Put the line the app shows into the account's `~/.ssh/authorized_keys`
-   on the server. The line carries a forced command in front of the key
-   -- `scripts/remote.sh` in the blog's directory -- which is all the key
-   may ever run: one engine command at a time, or a delivery of files
-   into `incoming/`. It never gets a shell. See *Driving the engine from
-   a program* in the engine's `docs/operations.md` for what the command
-   allows and refuses, and for the `PATH` the line needs when Ruby lives
-   under rbenv.
+3. Say where the blog is on the server -- its directory -- and the app
+   writes the line for the account's `~/.ssh/authorized_keys`. The line
+   carries a forced command in front of the key, `scripts/remote.sh` in
+   the blog's directory, which is all the key may ever run: one engine
+   command at a time, or a delivery of files into `incoming/`. It never
+   gets a shell. A blog inside a container is reached *through* the
+   command that enters it (`sudo docker exec -i blog`), and a Ruby that is
+   not on the server's own `PATH` through `env PATH=…`; the app puts
+   either in front of the script and hands it the word SSH was asked for.
+   See *Driving the engine from a program* in the engine's
+   `docs/operations.md` for what the command allows and refuses.
 4. **Test the connection.** The identity block the terminal shows above
    every screen appears; the server's key is remembered on first use and
    has to be the same every time after.
@@ -64,7 +67,7 @@ refuses to send what the server would refuse.
 
 Paper and ink by day, ink on black by night, and one accent: the blog's
 own, which the engine says with its identity (`version --json`), the way
-`/write/` wears it. The first screen is the blog at one glance -- what
+`/write/` wears it -- with the blog's favicon beside its name. The first screen is the blog at one glance -- what
 waits in the queue, how many drafts are in progress -- over the six
 entries of the menu; a list is a name, a count, its filters as pills and
 its rows; every other screen is plates on paper -- rows that belong
