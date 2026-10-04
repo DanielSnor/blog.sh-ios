@@ -261,24 +261,7 @@ struct HomeView: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.6)
                                 .accessibilityAddTraits(.isHeader)
-                            // A claim the blog broke into lines keeps them: each
-                            // gives a little rather than break again beside the mark.
-                            let lines = claim.split(separator: "\n").map(String.init)
-                            if lines.count > 1 {
-                                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                                    Text(verbatim: line)
-                                        .font(.ui(15))
-                                        .foregroundStyle(Theme.muted)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
-                                }
-                            } else if !claim.isEmpty {
-                                Text(verbatim: claim)
-                                    .font(.ui(15))
-                                    .foregroundStyle(Theme.muted)
-                                    .multilineTextAlignment(.leading)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
+                            if !claim.isEmpty { ClaimText(claim: claim) }
                         }
                         Spacer(minLength: 6)
                         Image(systemName: "chevron.up.chevron.down")
@@ -428,6 +411,42 @@ nonisolated enum SiteIcon {
               let image = UIImage(data: data) else { return nil }
         if let file = file(for: site) { try? data.write(to: file, options: .atomic) }
         return image
+    }
+}
+
+/// The claim under the blog's name, in the largest size that lets every
+/// line of it stand whole: a short claim speaks up, a long one lowers its
+/// voice. A claim the blog broke into lines keeps them; one too long even
+/// for the smallest size wraps at it.
+struct ClaimText: View {
+    let claim: String
+
+    var body: some View {
+        let lines = claim.split(separator: "\n").map(String.init)
+        ViewThatFits(in: .horizontal) {
+            block(lines, size: 20)
+            block(lines, size: 19)
+            block(lines, size: 18)
+            block(lines, size: 17)
+            block(lines, size: 16)
+            block(lines, size: 15)
+            block(lines, size: 14)
+            block(lines, size: 13)
+            block(lines, size: 13, wraps: true)
+        }
+    }
+
+    private func block(_ lines: [String], size: CGFloat, wraps: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                Text(verbatim: line)
+                    .font(.ui(size))
+                    .foregroundStyle(Theme.muted)
+                    .lineLimit(wraps ? nil : 1)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: !wraps, vertical: true)
+            }
+        }
     }
 }
 
