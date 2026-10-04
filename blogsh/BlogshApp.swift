@@ -9,7 +9,13 @@ struct BlogshApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // Under its tests the app is only a host: no screen, and so no
+            // connection to anybody's blog.
+            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+                Color.clear
+            } else {
+                ContentView()
+            }
         }
     }
 }

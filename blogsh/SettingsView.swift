@@ -170,16 +170,7 @@ struct SettingsView: View {
     /// reach the script by itself, so it is passed as its argument, which
     /// `scripts/remote.sh` takes the same way.
     private func authorizedKeysLine(_ publicKey: String) -> String? {
-        var directory = (blogs.current?.path ?? "").trimmingCharacters(in: .whitespaces)
-        if directory.hasSuffix("/scripts/remote.sh") { directory.removeLast("/scripts/remote.sh".count) }
-        while directory.count > 1, directory.hasSuffix("/") { directory.removeLast() }
-        guard !directory.isEmpty else { return nil }
-        let path = directory + "/scripts/remote.sh"
-        let safe = path.unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) || "/._-+@:".unicodeScalars.contains($0) }
-        let script = safe ? path : "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
-        let wrapper = (blogs.current?.through ?? "").trimmingCharacters(in: .whitespaces)
-        let command = wrapper.isEmpty ? script : "\(wrapper) \(script) \"$SSH_ORIGINAL_COMMAND\""
-        return "restrict,command=\"\(command.replacingOccurrences(of: "\"", with: "\\\""))\" \(publicKey)"
+        KeyLine.compose(publicKey: publicKey, path: blogs.current?.path ?? "", through: blogs.current?.through ?? "")
     }
 
     private func makeKey() {

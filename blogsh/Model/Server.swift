@@ -97,3 +97,27 @@ nonisolated enum KeyStore {
         guard status == errSecSuccess else { throw Failure.keychain(status) }
     }
 }
+
+/// The line for the account's `~/.ssh/authorized_keys`: the key, and in
+/// front of it the forced command that is all the key may run -- one
+/// blog's `scripts/remote.sh`.
+nonisolated enum KeyLine {
+    /// Nil until the blog's directory is known: a made-up path in the line
+    /// is a line somebody copies. A directory given with the script's own
+    /// name on its end, or with a slash, is the same directory. A path the
+    /// shell would take apart is quoted. With a command the blog is reached
+    /// through, the word SSH was asked for does not reach the script by
+    /// itself, so it is handed over as its argument.
+    static func compose(publicKey: String, path: String, through: String) -> String? {
+        var directory = path.trimmingCharacters(in: .whitespaces)
+        if directory.hasSuffix("/scripts/remote.sh") { directory.removeLast("/scripts/remote.sh".count) }
+        while directory.count > 1, directory.hasSuffix("/") { directory.removeLast() }
+        guard !directory.isEmpty else { return nil }
+        let script = directory + "/scripts/remote.sh"
+        let safe = script.unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) || "/._-+@:".unicodeScalars.contains($0) }
+        let quoted = safe ? script : "'" + script.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        let wrapper = through.trimmingCharacters(in: .whitespaces)
+        let command = wrapper.isEmpty ? quoted : "\(wrapper) \(quoted) \"$SSH_ORIGINAL_COMMAND\""
+        return "restrict,command=\"\(command.replacingOccurrences(of: "\"", with: "\\\""))\" \(publicKey)"
+    }
+}

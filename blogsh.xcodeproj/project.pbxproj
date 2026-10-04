@@ -10,14 +10,30 @@
 		B10C5A0100000000000000D1 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = B10C5A0100000000000000D2 /* Citadel */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B10C5A0100000000000000EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B10C5A0100000000000000B0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B10C5A0100000000000000A6;
+			remoteInfo = blogsh;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		B10C5A0100000000000000A1 /* blogsh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = blogsh.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10C5A0100000000000000E2 /* blogshTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = blogshTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B10C5A0100000000000000A2 /* blogsh */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = blogsh;
+			sourceTree = "<group>";
+		};
+		B10C5A0100000000000000E3 /* blogshTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = blogshTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +47,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B10C5A0100000000000000E5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -38,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				B10C5A0100000000000000A2 /* blogsh */,
+				B10C5A0100000000000000E3 /* blogshTests */,
 				B10C5A0100000000000000A5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -46,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				B10C5A0100000000000000A1 /* blogsh.app */,
+				B10C5A0100000000000000E2 /* blogshTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -76,6 +101,27 @@
 			productReference = B10C5A0100000000000000A1 /* blogsh.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B10C5A0100000000000000E1 /* blogshTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B10C5A0100000000000000E7 /* Build configuration list for PBXNativeTarget "blogshTests" */;
+			buildPhases = (
+				B10C5A0100000000000000E4 /* Sources */,
+				B10C5A0100000000000000E5 /* Frameworks */,
+				B10C5A0100000000000000E6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B10C5A0100000000000000EA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B10C5A0100000000000000E3 /* blogshTests */,
+			);
+			name = blogshTests;
+			productName = blogshTests;
+			productReference = B10C5A0100000000000000E2 /* blogshTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -88,6 +134,10 @@
 				TargetAttributes = {
 					B10C5A0100000000000000A6 = {
 						CreatedOnToolsVersion = 27.0;
+					};
+					B10C5A0100000000000000E1 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = B10C5A0100000000000000A6;
 					};
 				};
 			};
@@ -110,12 +160,20 @@
 			projectRoot = "";
 			targets = (
 				B10C5A0100000000000000A6 /* blogsh */,
+				B10C5A0100000000000000E1 /* blogshTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B10C5A0100000000000000A9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10C5A0100000000000000E6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -132,7 +190,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B10C5A0100000000000000E4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B10C5A0100000000000000EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B10C5A0100000000000000A6 /* blogsh */;
+			targetProxy = B10C5A0100000000000000EB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B10C5A0100000000000000C1 /* Debug */ = {
@@ -261,6 +334,48 @@
 			};
 			name = Release;
 		};
+		B10C5A0100000000000000E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = app.blogsh.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blogsh.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/blogsh";
+			};
+			name = Debug;
+		};
+		B10C5A0100000000000000E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = app.blogsh.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blogsh.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/blogsh";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -278,6 +393,15 @@
 			buildConfigurations = (
 				B10C5A0100000000000000C1 /* Debug */,
 				B10C5A0100000000000000C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B10C5A0100000000000000E7 /* Build configuration list for PBXNativeTarget "blogshTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10C5A0100000000000000E8 /* Debug */,
+				B10C5A0100000000000000E9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
