@@ -2142,6 +2142,26 @@
         }
       }
     },
+    "editor.back": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět do formuláře"
+          }
+        }
+      }
+    },
+    "editor.whole": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Psát na celé obrazovce"
+          }
+        }
+      }
+    },
     "facts.media": {
       "localizations": {
         "cs": {

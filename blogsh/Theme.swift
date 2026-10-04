@@ -600,14 +600,17 @@ struct SwitchRow: View {
 
 /// The text of a post, wherever it is typed: markdown, the raw material
 /// the engine reads, in the typewriter face -- and over it the marks the
-/// /write/ page offers, as keys.
+/// /write/ page offers, as keys. The last key opens the text over the whole
+/// screen, for writing with nothing else in sight; the same key there
+/// closes it again. Both are the one text.
 struct PaperEditor: View {
     @Binding var text: String
     var minHeight: CGFloat = 220
-    @State private var selection: TextSelection?
+    @State private var whole = false
 
     var body: some View {
-        MarkBar { kind in mark(kind) }
+        EditorKeys(text: $text, selection: $selection, symbol: "arrow.up.left.and.arrow.down.right",
+                   label: String(localized: "editor.whole", defaultValue: "Write on the whole screen")) { whole = true }
         TextEditor(text: $text, selection: $selection)
             .font(.mono(15, bold: false))
             .foregroundStyle(Theme.ink)
@@ -615,6 +618,68 @@ struct PaperEditor: View {
             .frame(minHeight: minHeight)
             .padding(.horizontal, -5)
             .padding(.vertical, -4)
+            .fullScreenCover(isPresented: $whole) { WritingScreen(text: $text) }
+    }
+
+    @State private var selection: TextSelection?
+}
+
+/// Nothing but the text: the marks over it, the paper under it, the
+/// keyboard up. On a wide screen the lines keep a length one can read.
+struct WritingScreen: View {
+    @Binding var text: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var selection: TextSelection?
+    @FocusState private var typing: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            EditorKeys(text: $text, selection: $selection, symbol: "arrow.down.right.and.arrow.up.left",
+                       label: String(localized: "editor.back", defaultValue: "Back to the form")) { dismiss() }
+                .padding(.horizontal, Theme.gutter)
+                .padding(.vertical, 12)
+            Rectangle().fill(Theme.line).frame(height: 1)
+            TextEditor(text: $text, selection: $selection)
+                .font(.mono(16, bold: false))
+                .lineSpacing(4)
+                .foregroundStyle(Theme.ink)
+                .scrollContentBackground(.hidden)
+                .focused($typing)
+                .padding(.horizontal, Theme.gutter - 5)
+                .padding(.top, 8)
+        }
+        .frame(maxWidth: 760)
+        .frame(maxWidth: .infinity)
+        .background(Theme.paper.ignoresSafeArea())
+        .onAppear { typing = true }
+    }
+}
+
+/// The marks, and at their end the key that opens or closes the whole
+/// screen. The marks scroll under it; the key stays where the thumb left it.
+struct EditorKeys: View {
+    @Binding var text: String
+    @Binding var selection: TextSelection?
+    let symbol: String
+    let label: String
+    let turn: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            MarkBar { kind in mark(kind) }
+            Button(action: turn) {
+                let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+                Image(systemName: symbol)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .frame(width: 34, height: 30)
+                    .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+                    .contentShape(shape)
+            }
+            .buttonStyle(PressStyle())
+            .padding(.vertical, -4)
+            .accessibilityLabel(Text(verbatim: label))
+        }
     }
 
     /// The mark goes where the caret or the selection is; with neither
