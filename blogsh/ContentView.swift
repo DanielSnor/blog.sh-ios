@@ -340,7 +340,7 @@ struct HomeView: View {
                         if let mark { SiteMark(image: mark) }
                         VStack(alignment: .leading, spacing: 2 * k) {
                             Text(verbatim: name.isEmpty ? "blog.sh" : name)
-                                .font(.display(40 * k))
+                                .font(.display(34 * k))
                                 .textCase(.lowercase)
                                 .foregroundStyle(Theme.ink)
                                 .lineLimit(1)

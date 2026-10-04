@@ -96,8 +96,8 @@ an open screen takes the whole of it, with the way back where a phone
 has it.
 
 Three voices of type: the face of the web's own header for what a screen
-is -- JetBrains Mono, bold, in lower case, the one the banner sets the
-site's name in -- a sans for what it holds, a typewriter face for what the
+is -- JetBrains Mono in lower case, the one the banner sets the site's
+name in, in a lighter cut -- a sans for what it holds, a typewriter face for what the
 engine says. The first two are bundled from `blogsh/Fonts/` with their
 licences (SIL Open Font License 1.1) and registered at launch -- any
 `.ttf` put there is. Take them out and the system's own stand in.
