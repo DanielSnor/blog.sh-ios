@@ -67,24 +67,21 @@ struct ContentView: View {
     @State private var identity: VersionAnswer?
     @State private var identityProblem: String?
     @State private var glance: Glance?
-    // The site's accent, kept from the last answer so the app opens in
-    // the blog's colour before the server has said anything.
-    @AppStorage("site.accent.light") private var accentLight = ""
-    @AppStorage("site.accent.dark") private var accentDark = ""
-    // Who the blog is, kept from the last answer too: the first screen opens
-    // as the blog it was, not as a blank waiting for the server.
-    @AppStorage("site.name") private var siteName = ""
-    @AppStorage("site.claim") private var siteClaim = ""
-    @AppStorage("site.url") private var siteURL = ""
-    // The receiver's ceiling, for the screens that send.
-    @AppStorage("site.maxMb") private var maxMb = 24
+    @State private var showingBlogs = false
+    // After the blogs' sheet has closed: a blog just added goes to its settings.
+    @State private var settingsNext = false
+    // The blogs, and the one that is open: its name, its colour and its limit
+    // are kept from its last answer, so the app opens as that blog before
+    // the server has said anything.
+    private var blogs = Blogs.shared
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columns, preferredCompactColumn: $column) {
-            HomeView(name: identity?.site.name ?? siteName, claim: identity?.site.claim ?? siteClaim,
-                     url: identity?.site.url ?? siteURL,
+            HomeView(name: identity?.site.name ?? blogs.current?.label ?? "", claim: identity?.site.claim ?? blogs.current?.claim ?? "",
+                     url: identity?.site.url ?? blogs.current?.url ?? "",
+                     switchBlog: { showingBlogs = true },
                      identity: identity, problem: identityProblem, glance: glance,
                      current: sizeClass == .regular ? selection : nil,
                      open: open)
@@ -95,6 +92,14 @@ struct ContentView: View {
                 }
                 .sheet(isPresented: $showingSettings, onDismiss: { Task { await load() } }) {
                     NavigationStack { SettingsView() }
+                }
+                .sheet(isPresented: $showingBlogs, onDismiss: {
+                    if settingsNext {
+                        settingsNext = false
+                        showingSettings = true
+                    }
+                }) {
+                    NavigationStack { BlogsView(added: { settingsNext = true }) }
                 }
                 .task { await load() }
                 .refreshable { await load() }
@@ -122,7 +127,20 @@ struct ContentView: View {
         // The blog's own accent, as /write/ wears it: every control of the
         // app, the sheets included. Until a blog has said its own, the
         // look's.
-        .tint(Color(hex: colorScheme == .dark ? accentDark : accentLight) ?? Theme.ember)
+        .tint(Color(hex: (colorScheme == .dark ? blogs.current?.accentDark : blogs.current?.accentLight) ?? "") ?? Theme.ember)
+        // Another blog: nothing of the last one stays on the screen, and its
+        // own name and colour are there before its server answers.
+        .onChange(of: blogs.currentID) {
+            identity = nil
+            identityProblem = nil
+            glance = nil
+            selection = nil
+            visit += 1
+            column = .sidebar
+            if upright { columns = .all }
+            TagStore.shared.reset()
+            Task { await load() }
+        }
         // Upright there is room for one column: the screen that is open, or
         // the menu when none is. On its side there is room for both.
         .onGeometryChange(for: Bool.self) { $0.size.width < $0.size.height } action: { now in
@@ -154,31 +172,33 @@ struct ContentView: View {
     /// block (`version --json`), the queue and the drafts. Without a server
     /// set up the header says so and the settings are one tap away.
     private func load() async {
+        let asked = blogs.currentID
         do {
             let answers = try await Engine.shared.answers(to: [["version"], ["queue"], ["list", "--drafts"]])
+            // Another blog was opened while this one was answering.
+            guard asked == blogs.currentID else { return }
             let answer: VersionAnswer = try Engine.decode(answers[0])
             identity = answer
             identityProblem = nil
-            maxMb = answer.maxMb
-            siteName = answer.site.name
-            siteClaim = answer.site.claim
-            siteURL = answer.site.url
-            if let accent = answer.site.accent {
-                accentLight = accent.light
-                accentDark = accent.dark
+            // Asked of one blog, answered while another is open: not this one's to keep.
+            blogs.update { blog in
+                blog.name = answer.site.name
+                blog.claim = answer.site.claim
+                blog.url = answer.site.url
+                blog.maxMb = answer.maxMb
+                if let accent = answer.site.accent {
+                    blog.accentLight = accent.light
+                    blog.accentDark = accent.dark
+                }
             }
             glance = Self.glance(queue: answers[1], drafts: answers[2])
         } catch EngineError.notConfigured {
             identity = nil
             glance = nil
-            // No server, no blog: nothing of the last one is kept on show.
-            siteName = ""
-            siteClaim = ""
-            siteURL = ""
             identityProblem = String(localized: "No server yet — set one up under the gear.")
         } catch {
-            // Called off: the screen keeps what it was showing.
-            if error.isCalledOff { return }
+            // Called off, or another blog by now: the screen keeps what it shows.
+            if error.isCalledOff || asked != blogs.currentID { return }
             identity = nil
             glance = nil
             identityProblem = error.localizedDescription
@@ -188,8 +208,10 @@ struct ContentView: View {
     /// The two cards again, on the way back from a screen that may have
     /// changed them -- one connection, and a failure leaves them as they were.
     private func loadGlance() async {
+        let asked = blogs.currentID
         guard identity != nil,
-              let answers = try? await Engine.shared.answers(to: [["queue"], ["list", "--drafts"]]) else { return }
+              let answers = try? await Engine.shared.answers(to: [["queue"], ["list", "--drafts"]]),
+              asked == blogs.currentID else { return }
         glance = Self.glance(queue: answers[0], drafts: answers[1]) ?? glance
     }
 
@@ -209,6 +231,8 @@ struct HomeView: View {
     let name: String
     let claim: String
     let url: String
+    /// The header is the way to the other blogs.
+    let switchBlog: () -> Void
     let identity: VersionAnswer?
     let problem: String?
     let glance: Glance?
@@ -225,24 +249,36 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // The blog's own mark beside its name, as /write/ wears it: the name
                 // and the claim share one left edge, the mark stands before both.
-                HStack(alignment: .center, spacing: 14) {
-                    if let mark { SiteMark(image: mark) }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: name.isEmpty ? "blog.sh" : name)
-                            .font(.display(40))
-                            .textCase(.lowercase)
-                            .foregroundStyle(Theme.ink)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
-                            .accessibilityAddTraits(.isHeader)
-                        if !claim.isEmpty {
-                            Text(verbatim: claim)
-                                .font(.ui(15))
-                                .foregroundStyle(Theme.muted)
-                                .fixedSize(horizontal: false, vertical: true)
+                // The whole of it is a key: the other blogs are behind it.
+                Button(action: switchBlog) {
+                    HStack(alignment: .center, spacing: 14) {
+                        if let mark { SiteMark(image: mark) }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: name.isEmpty ? "blog.sh" : name)
+                                .font(.display(40))
+                                .textCase(.lowercase)
+                                .foregroundStyle(Theme.ink)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                                .accessibilityAddTraits(.isHeader)
+                            if !claim.isEmpty {
+                                Text(verbatim: claim)
+                                    .font(.ui(15))
+                                    .foregroundStyle(Theme.muted)
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                         }
+                        Spacer(minLength: 6)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
                     }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(PressStyle())
+                .accessibilityHint(Text("Blogs"))
                 HStack(spacing: 8) {
                     Rectangle().fill(.tint).frame(width: 14, height: 1)
                     Text(verbatim: "./blog.sh \(identity?.engine ?? "")")

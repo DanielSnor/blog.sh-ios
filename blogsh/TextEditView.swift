@@ -9,7 +9,8 @@ import PhotosUI
 /// gets its preview rebuilt; a published post is rebuilt and deployed.
 struct TextEditView: View {
     let slug: String
-    @AppStorage("site.maxMb") private var maxMb = 24
+    /// The receiver's ceiling on one delivery, as the blog last said it.
+    private var maxMb: Int { Blogs.shared.current?.maxMb ?? 24 }
     @Environment(\.dismiss) private var dismiss
     @State private var entry: EditEntry?
     @State private var text = ""

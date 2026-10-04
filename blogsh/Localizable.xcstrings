@@ -112,6 +112,16 @@
         }
       }
     },
+    "A new blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový blog"
+          }
+        }
+      }
+    },
     "A picture is shrunk to %@ px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under %lld MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about %lld MB.": {
       "localizations": {
         "cs": {
@@ -138,6 +148,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Akce"
+          }
+        }
+      }
+    },
+    "Add a blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat blog"
           }
         }
       }
@@ -208,6 +228,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zpět k příspěvku"
+          }
+        }
+      }
+    },
+    "Blogs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blogy"
           }
         }
       }
@@ -812,6 +842,16 @@
         }
       }
     },
+    "Open": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřený"
+          }
+        }
+      }
+    },
     "Open the preview": {
       "localizations": {
         "cs": {
@@ -1098,6 +1138,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odebrat"
+          }
+        }
+      }
+    },
+    "Remove '%@' from the app? Its key is deleted with it; the blog itself is not touched.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat „%@“ z appky? Smaže se i jeho klíč; samotného blogu se to nedotkne."
+          }
+        }
+      }
+    },
+    "Remove this blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat tento blog"
           }
         }
       }
@@ -1638,6 +1698,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Server zavřel spojení bez odpovědi."
+          }
+        }
+      }
+    },
+    "The server does not know this blog's key. The line under the key in Settings belongs in ~/.ssh/authorized_keys on the server.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server klíč tohoto blogu nezná. Řádek pod klíčem v Nastavení patří na serveru do ~/.ssh/authorized_keys."
           }
         }
       }

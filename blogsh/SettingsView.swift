@@ -6,14 +6,9 @@ import SwiftUI
 /// front of it, which is what keeps this key from ever getting a shell.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(ServerSettings.hostKey) private var host = ""
-    @AppStorage(ServerSettings.portKey) private var port = 22
-    @AppStorage(ServerSettings.userKey) private var user = ""
-    @State private var publicKey: String? = try? KeyStore.publicKeyLine()
-    // Where the blog is on the server, and what the server enters it through:
-    // kept, so the line shown is the line that was installed.
-    @AppStorage("server.path") private var installPath = ""
-    @AppStorage("server.through") private var through = ""
+    private var blogs = Blogs.shared
+    @State private var publicKey: String?
+    @State private var confirmingRemoval = false
     @State private var probe: Probe = .idle
     @State private var confirmingNewKey = false
 
@@ -23,9 +18,19 @@ struct SettingsView: View {
         case failed(String)
     }
 
-    private var portText: Binding<String> {
-        Binding(get: { String(port) }, set: { port = Int($0.filter(\.isNumber)) ?? port })
+    // The fields are the open blog's own, written down as they are typed.
+    private func field(_ key: WritableKeyPath<Blog, String>) -> Binding<String> {
+        Binding(get: { blogs.current?[keyPath: key] ?? "" }, set: { value in blogs.update { $0[keyPath: key] = value } })
     }
+
+    private var portText: Binding<String> {
+        Binding(get: { String(blogs.current?.port ?? 22) },
+                set: { value in blogs.update { $0.port = Int(value.filter(\.isNumber)) ?? $0.port } })
+    }
+
+    private var host: String { blogs.current?.host ?? "" }
+    private var user: String { blogs.current?.user ?? "" }
+    private var port: Int { blogs.current?.port ?? 22 }
 
     var body: some View {
         PaperScreen {
@@ -33,17 +38,27 @@ struct SettingsView: View {
 
             SectionLabel("Server")
             Plate {
-                FieldRow(label: "Host", text: $host, mono: true)
+                FieldRow(label: "Host", text: field(\.host), mono: true)
                     .textContentType(.URL)
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                FieldRow(label: "User", text: $user, mono: true)
+                FieldRow(label: "User", text: field(\.user), mono: true)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                 FieldRow(label: "Port", text: portText, mono: true)
                     .keyboardType(.numberPad)
+                // Where on it the blog is, and what it is entered through.
+                FieldRow(label: "path", text: field(\.path), prompt: "/home/you/blog", mono: true)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.asciiCapable)
+                FieldRow(label: "through", text: field(\.through), prompt: "sudo docker exec -i blog", mono: true)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.asciiCapable)
             }
+            Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog.")
 
             SectionLabel("Key")
             if let publicKey {
@@ -52,14 +67,6 @@ struct SettingsView: View {
                         .font(.mono(12, bold: false))
                         .foregroundStyle(Theme.ink)
                         .textSelection(.enabled)
-                    FieldRow(label: "path", text: $installPath, prompt: "/home/you/blog", mono: true)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.asciiCapable)
-                    FieldRow(label: "through", text: $through, prompt: "sudo docker exec -i blog", mono: true)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.asciiCapable)
                     // No line until it can be a true one: a made-up path in it is a
                     // line somebody copies.
                     if let line = authorizedKeysLine(publicKey) {
@@ -82,7 +89,6 @@ struct SettingsView: View {
                     Command("Make the app's key", symbol: "key") { makeKey() }
                 }
             }
-            Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog.")
             Hint("The key is made on this device and never leaves it. Put the line above into the server's ~/.ssh/authorized_keys; the forced command in front of it is what the key may run, and nothing else.")
 
             SectionLabel("Connection")
@@ -125,12 +131,33 @@ struct SettingsView: View {
                 }
                 .padding(.top, 12)
             }
+
+            // The blog leaves the app; nothing on the server is touched.
+            if let blog = blogs.current {
+                Plate {
+                    Command("Remove this blog", symbol: "minus.circle", danger: true) { confirmingRemoval = true }
+                        .confirmationDialog("Remove '\(blog.label)' from the app? Its key is deleted with it; the blog itself is not touched.",
+                                            isPresented: $confirmingRemoval, titleVisibility: .visible) {
+                            Button("Remove", role: .destructive) {
+                                blogs.remove(blog.id)
+                                dismiss()
+                            }
+                        }
+                }
+                .padding(.top, 28)
+            }
         }
         .navigationTitle("Settings")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") { dismiss() }
             }
+        }
+        // The settings are a blog's: with none yet, they begin one.
+        .task(id: blogs.currentID) {
+            if blogs.current == nil { blogs.add() }
+            publicKey = blogs.current.flatMap { try? KeyStore.publicKeyLine(account: $0.keyAccount) }
+            probe = .idle
         }
     }
 
@@ -143,22 +170,23 @@ struct SettingsView: View {
     /// reach the script by itself, so it is passed as its argument, which
     /// `scripts/remote.sh` takes the same way.
     private func authorizedKeysLine(_ publicKey: String) -> String? {
-        var directory = installPath.trimmingCharacters(in: .whitespaces)
+        var directory = (blogs.current?.path ?? "").trimmingCharacters(in: .whitespaces)
         if directory.hasSuffix("/scripts/remote.sh") { directory.removeLast("/scripts/remote.sh".count) }
         while directory.count > 1, directory.hasSuffix("/") { directory.removeLast() }
         guard !directory.isEmpty else { return nil }
         let path = directory + "/scripts/remote.sh"
         let safe = path.unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) || "/._-+@:".unicodeScalars.contains($0) }
         let script = safe ? path : "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
-        let wrapper = through.trimmingCharacters(in: .whitespaces)
+        let wrapper = (blogs.current?.through ?? "").trimmingCharacters(in: .whitespaces)
         let command = wrapper.isEmpty ? script : "\(wrapper) \(script) \"$SSH_ORIGINAL_COMMAND\""
         return "restrict,command=\"\(command.replacingOccurrences(of: "\"", with: "\\\""))\" \(publicKey)"
     }
 
     private func makeKey() {
         do {
-            try KeyStore.makeKey()
-            publicKey = try KeyStore.publicKeyLine()
+            guard let account = blogs.current?.keyAccount else { return }
+            try KeyStore.makeKey(account: account)
+            publicKey = try KeyStore.publicKeyLine(account: account)
             probe = .idle
         } catch {
             probe = .failed(error.localizedDescription)

@@ -2,65 +2,64 @@ import Foundation
 import CryptoKit
 import Security
 
-/// Where the blog is: the machine, the account, the port. The path to the
-/// engine is not here, on purpose -- the key's forced command on the
-/// server fixes it (scripts/remote.sh), so the app cannot be pointed
-/// anywhere else. Nothing secret lives in these three fields.
+/// Where the open blog is: the machine, the account, the port, and which
+/// key reaches it. The path to the engine is not what the app connects
+/// by, on purpose -- the key's forced command on the server fixes it
+/// (scripts/remote.sh), so the app cannot be pointed anywhere else.
 nonisolated struct ServerSettings: Equatable, Sendable {
     var host: String
     var port: Int
     var user: String
-
-    static let hostKey = "server.host"
-    static let portKey = "server.port"
-    static let userKey = "server.user"
+    var keyAccount: String
 
     static func load(from defaults: UserDefaults = .standard) -> ServerSettings? {
-        let host = defaults.string(forKey: hostKey)?.trimmingCharacters(in: .whitespaces) ?? ""
-        let user = defaults.string(forKey: userKey)?.trimmingCharacters(in: .whitespaces) ?? ""
+        guard let blog = BlogShelf.current(from: defaults) else { return nil }
+        let host = blog.host.trimmingCharacters(in: .whitespaces)
+        let user = blog.user.trimmingCharacters(in: .whitespaces)
         guard !host.isEmpty, !user.isEmpty else { return nil }
-        let port = defaults.integer(forKey: portKey)
-        return ServerSettings(host: host, port: port == 0 ? 22 : port, user: user)
+        return ServerSettings(host: host, port: blog.port == 0 ? 22 : blog.port, user: user, keyAccount: blog.keyAccount)
     }
 }
 
-/// The app's own SSH key: made on this device, kept in the keychain,
-/// never leaving it. The public half is what goes into the server's
-/// authorized_keys, in front of the forced command.
+/// A blog's SSH key: made on this device, kept in the keychain, never
+/// leaving it. The public half is what goes into the server's
+/// authorized_keys, in front of the forced command. One to a blog, each
+/// under its own account.
 nonisolated enum KeyStore {
     static let service = "app.blogsh.ios"
-    static let account = "ssh-ed25519"
+    /// The account of the one key the app had before it had blogs.
+    static let firstAccount = "ssh-ed25519"
 
     enum Failure: Error {
         case noKey
         case keychain(OSStatus)
     }
 
-    static func privateKey() throws -> Curve25519.Signing.PrivateKey {
-        guard let data = try read() else { throw Failure.noKey }
+    static func privateKey(account: String) throws -> Curve25519.Signing.PrivateKey {
+        guard let data = try read(account) else { throw Failure.noKey }
         return try Curve25519.Signing.PrivateKey(rawRepresentation: data)
     }
 
-    static func hasKey() -> Bool {
-        (try? read()) != nil
+    static func hasKey(account: String) -> Bool {
+        (try? read(account)) != nil
     }
 
     /// A new key, replacing the old one: the server has to be told again.
     @discardableResult
-    static func makeKey() throws -> Curve25519.Signing.PrivateKey {
+    static func makeKey(account: String) throws -> Curve25519.Signing.PrivateKey {
         let key = Curve25519.Signing.PrivateKey()
-        try write(key.rawRepresentation)
+        try write(key.rawRepresentation, account)
         return key
     }
 
-    static func deleteKey() throws {
-        let status = SecItemDelete(query() as CFDictionary)
+    static func deleteKey(account: String) throws {
+        let status = SecItemDelete(query(account) as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else { throw Failure.keychain(status) }
     }
 
     /// The line for authorized_keys, as ssh-keygen would print it.
-    static func publicKeyLine(comment: String = "blogsh-app") throws -> String {
-        let key = try privateKey().publicKey
+    static func publicKeyLine(account: String, comment: String = "blogsh-app") throws -> String {
+        let key = try privateKey(account: account).publicKey
         var wire = Data()
         func sshString(_ bytes: Data) {
             var length = UInt32(bytes.count).bigEndian
@@ -72,14 +71,14 @@ nonisolated enum KeyStore {
         return "ssh-ed25519 \(wire.base64EncodedString()) \(comment)"
     }
 
-    private static func query() -> [String: Any] {
+    private static func query(_ account: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
          kSecAttrService as String: service,
          kSecAttrAccount as String: account]
     }
 
-    private static func read() throws -> Data? {
-        var q = query()
+    private static func read(_ account: String) throws -> Data? {
+        var q = query(account)
         q[kSecReturnData as String] = true
         q[kSecMatchLimit as String] = kSecMatchLimitOne
         var item: CFTypeRef?
@@ -89,9 +88,9 @@ nonisolated enum KeyStore {
         return item as? Data
     }
 
-    private static func write(_ data: Data) throws {
-        try deleteKey()
-        var q = query()
+    private static func write(_ data: Data, _ account: String) throws {
+        try deleteKey(account: account)
+        var q = query(account)
         q[kSecValueData as String] = data
         q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         let status = SecItemAdd(q as CFDictionary, nil)

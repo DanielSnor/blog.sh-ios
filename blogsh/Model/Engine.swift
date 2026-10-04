@@ -8,6 +8,9 @@ import NIOSSH
 nonisolated enum EngineError: Error, LocalizedError {
     case notConfigured
     case noKey
+    /// The server let the connection in and turned the key away: its
+    /// account has no line for it.
+    case keyNotKnown
     case hostKeyChanged(String)
     case refused(Refusal)
     case unreadable(String)
@@ -18,6 +21,8 @@ nonisolated enum EngineError: Error, LocalizedError {
         switch self {
         case .notConfigured: String(localized: "The server is not set up yet.")
         case .noKey: String(localized: "The app has no key yet.")
+        case .keyNotKnown:
+            String(localized: "The server does not know this blog's key. The line under the key in Settings belongs in ~/.ssh/authorized_keys on the server.")
         case .hostKeyChanged(let fingerprint):
             String(localized: "The server's key changed (\(fingerprint)). If the server was reinstalled, forget the old key in Settings.")
         case .refused(let refusal): refusal.message
@@ -87,7 +92,7 @@ actor Engine {
         guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
         let key: Curve25519.Signing.PrivateKey
         do {
-            key = try KeyStore.privateKey()
+            key = try KeyStore.privateKey(account: settings.keyAccount)
         } catch {
             throw EngineError.noKey
         }
@@ -102,6 +107,8 @@ actor Engine {
             )
         } catch let error as EngineError {
             throw error
+        } catch SSHClientError.allAuthenticationOptionsFailed {
+            throw EngineError.keyNotKnown
         } catch {
             throw EngineError.stage("connect", error)
         }
@@ -129,7 +136,7 @@ actor Engine {
         guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
         let key: Curve25519.Signing.PrivateKey
         do {
-            key = try KeyStore.privateKey()
+            key = try KeyStore.privateKey(account: settings.keyAccount)
         } catch {
             throw EngineError.noKey
         }
@@ -144,6 +151,8 @@ actor Engine {
             )
         } catch let error as EngineError {
             throw error
+        } catch SSHClientError.allAuthenticationOptionsFailed {
+            throw EngineError.keyNotKnown
         } catch {
             throw EngineError.stage("connect", error)
         }

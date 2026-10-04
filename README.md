@@ -38,6 +38,18 @@ server and iOS 26 or later on the device.
    every screen appears; the server's key is remembered on first use and
    has to be the same every time after.
 
+## More than one blog
+
+The app holds as many blogs as you write. The name on the first screen is
+the switch: tap it for the list, pick another, or add one. Each blog has
+its own server, its own directory and its own key -- a key's forced
+command names one blog's `scripts/remote.sh`, so one key is one blog and
+nothing more, even when two blogs share a server and an account. Adding a
+blog makes its key and writes its line; removing a blog removes its key
+from the device, and the line on the server is then yours to delete.
+Switching changes everything the screen wears: the name, the favicon, the
+accent, what waits in the queue.
+
 ## What is where
 
 | the wizard says | the app |

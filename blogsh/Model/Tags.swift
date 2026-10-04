@@ -19,7 +19,13 @@ final class TagStore {
     private(set) var tags: [TagUse] = []
     private var asked = false
 
-    /// Once per run of the app; a screen that already holds the archive
+    /// Another blog is open: its tags are not this one's.
+    func reset() {
+        tags = []
+        asked = false
+    }
+
+    /// Once per blog; a screen that already holds the archive
     /// hands its rows over with `take` instead.
     func loadIfNeeded() async {
         guard !asked else { return }

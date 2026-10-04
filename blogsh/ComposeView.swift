@@ -8,7 +8,7 @@ import PhotosUI
 /// decision, the way it is at the desk.
 struct ComposeView: View {
     /// The receiver's ceiling on one delivery, as the blog last said it.
-    @AppStorage("site.maxMb") private var maxMb = 24
+    private var maxMb: Int { Blogs.shared.current?.maxMb ?? 24 }
     @State private var title = ""
     @State private var tags = ""
     @State private var text = ""
