@@ -94,17 +94,24 @@ extension Text {
     }
 }
 
+extension EnvironmentValues {
+    /// How much larger than on a phone the first screen draws itself: one,
+    /// or more where it is a page of its own on a wide screen.
+    @Entry var scale: CGFloat = 1
+}
+
 /// A row of its own on the ground: a hairline around, a large corner.
 struct Card<Content: View>: View {
     var highlighted = false
     var capsule = false
     @ViewBuilder var content: Content
+    @Environment(\.scale) private var scale
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: capsule ? 999 : Theme.corner, style: .continuous)
-        HStack(spacing: 10) { content }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 12)
+        let shape = RoundedRectangle(cornerRadius: capsule ? 999 : Theme.corner * scale, style: .continuous)
+        HStack(spacing: 10 * scale) { content }
+            .padding(.horizontal, 13 * scale)
+            .padding(.vertical, 12 * scale)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background { if highlighted { shape.fill(.tint.opacity(0.12)) } else { shape.fill(Theme.card) } }
             .overlay { if highlighted { shape.strokeBorder(.tint, lineWidth: 1) } else { shape.strokeBorder(Theme.line, lineWidth: 1) } }
@@ -115,13 +122,14 @@ struct Card<Content: View>: View {
 /// How many: the accent, filled, with the number in the engine's voice.
 struct CountBadge: View {
     let count: Int
+    @Environment(\.scale) private var scale
 
     var body: some View {
         Text(verbatim: "\(count)")
-            .font(.mono(12))
+            .font(.mono(12 * scale))
             .foregroundStyle(.white)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 2)
+            .padding(.horizontal, 9 * scale)
+            .padding(.vertical, 2 * scale)
             .background(.tint, in: Capsule())
     }
 }

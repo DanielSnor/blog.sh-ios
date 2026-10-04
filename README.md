@@ -89,6 +89,12 @@ together on one card, a hairline between them -- with one filled button
 for the one thing the screen is for, and what cannot be taken back set
 apart in a colour of its own.
 
+An iPad on its side shows the menu beside the open screen. Held upright
+it has room for one: the first screen is then a page of its own, two
+thirds of the width and everything on it larger by the same measure, and
+an open screen takes the whole of it, with the way back where a phone
+has it.
+
 Three voices of type: a display serif in lower case for what a screen
 is, a sans for what it holds, a typewriter face for what the engine says.
 The first two are Forum and Work Sans, bundled from `blogsh/Fonts/` with

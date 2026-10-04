@@ -79,51 +79,59 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columns, preferredCompactColumn: $column) {
-            HomeView(name: identity?.site.name ?? blogs.current?.label ?? "", claim: identity?.site.claim ?? blogs.current?.claim ?? "",
-                     url: identity?.site.url ?? blogs.current?.url ?? "",
-                     switchBlog: { showingBlogs = true },
-                     identity: identity, problem: identityProblem, glance: glance,
-                     current: sizeClass == .regular ? selection : nil,
-                     open: open)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Settings", systemImage: "gearshape") { showingSettings = true }
-                    }
-                }
-                .sheet(isPresented: $showingSettings, onDismiss: { Task { await load() } }) {
-                    NavigationStack { SettingsView() }
-                }
-                .sheet(isPresented: $showingBlogs, onDismiss: {
-                    if settingsNext {
-                        settingsNext = false
-                        showingSettings = true
-                    }
-                }) {
-                    NavigationStack { BlogsView(added: { settingsNext = true }) }
-                }
-                .task { await load() }
-                .refreshable { await load() }
+            home(roomy: false)
+                .toolbar(removing: single ? .sidebarToggle : nil)
         } detail: {
             // A stack of its own: the screens push further screens (a post,
             // then its properties), and the split view's detail column does
             // not push by itself.
             NavigationStack {
-                switch selection {
-                case .add: ComposeView()
-                case .post: PostPickerView(languages: otherLanguages)
-                case .queue: QueueView()
-                case .browse: ArchiveView(languages: otherLanguages, baseURL: identity?.site.url ?? "",
-                                          initialState: archiveState, searching: archiveSearching)
-                case .restore: TrashView()
-                case .rebuild: SiteView()
-                case nil:
-                    EmptyNote(symbol: "terminal", title: "What do you want to do?")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Theme.paper.ignoresSafeArea())
+                Group {
+                    switch selection {
+                    case .add: ComposeView()
+                    case .post: PostPickerView(languages: otherLanguages)
+                    case .queue: QueueView()
+                    case .browse: ArchiveView(languages: otherLanguages, baseURL: identity?.site.url ?? "",
+                                              initialState: archiveState, searching: archiveSearching)
+                    case .restore: TrashView()
+                    case .rebuild: SiteView()
+                    case nil:
+                        // A wide screen held upright is one large page: with
+                        // nothing open, the menu is that page.
+                        if single {
+                            home(roomy: true)
+                        } else {
+                            EmptyNote(symbol: "terminal", title: "What do you want to do?")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Theme.paper.ignoresSafeArea())
+                        }
+                    }
+                }
+                // ...and from an open screen the way back to it is here,
+                // where a phone has it.
+                .toolbar {
+                    if single && selection != nil {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button(action: close) { Image(systemName: "chevron.left") }
+                                .accessibilityLabel(Text(verbatim: "./blog.sh"))
+                        }
+                    }
                 }
             }
             .id(visit)
         }
+        .sheet(isPresented: $showingSettings, onDismiss: { Task { await load() } }) {
+            NavigationStack { SettingsView() }
+        }
+        .sheet(isPresented: $showingBlogs, onDismiss: {
+            if settingsNext {
+                settingsNext = false
+                showingSettings = true
+            }
+        }) {
+            NavigationStack { BlogsView(added: { settingsNext = true }) }
+        }
+        .task { await load() }
         // The blog's own accent, as /write/ wears it: every control of the
         // app, the sheets included. Until a blog has said its own, the
         // look's.
@@ -137,20 +145,47 @@ struct ContentView: View {
             selection = nil
             visit += 1
             column = .sidebar
-            if upright { columns = .all }
             TagStore.shared.reset()
             Task { await load() }
         }
         // Upright there is room for one column: the screen that is open, or
-        // the menu when none is. On its side there is room for both.
+        // the menu as a page of its own when none is. On its side there is
+        // room for both.
         .onGeometryChange(for: Bool.self) { $0.size.width < $0.size.height } action: { now in
             upright = now
-            columns = now && selection != nil ? .detailOnly : .all
+            columns = now ? .detailOnly : .all
         }
         // What changed on the way back is on the first screen again.
         .onChange(of: column) { _, now in
             if now == .sidebar { Task { await loadGlance() } }
         }
+    }
+
+    /// A wide screen held upright: one column, and the menu a page in it.
+    private var single: Bool { upright && sizeClass == .regular }
+
+    /// The first screen, as the column beside the open one or as a page of its own.
+    private func home(roomy: Bool) -> some View {
+        HomeView(name: identity?.site.name ?? blogs.current?.label ?? "", claim: identity?.site.claim ?? blogs.current?.claim ?? "",
+                 url: identity?.site.url ?? blogs.current?.url ?? "",
+                 switchBlog: { showingBlogs = true },
+                 identity: identity, problem: identityProblem, glance: glance,
+                 current: sizeClass == .regular && !roomy ? selection : nil,
+                 roomy: roomy,
+                 open: open)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Settings", systemImage: "gearshape") { showingSettings = true }
+                }
+            }
+            .refreshable { await load() }
+    }
+
+    /// Back to the menu from an open screen, upright on a wide screen.
+    private func close() {
+        selection = nil
+        visit += 1
+        Task { await loadGlance() }
     }
 
     private func open(_ entry: MenuEntry, state: ArchiveView.StateFilter? = nil, searching: Bool = false) {
@@ -238,11 +273,15 @@ struct HomeView: View {
     let glance: Glance?
     /// The entry whose screen is open beside this one, where there is a beside.
     let current: MenuEntry?
+    /// A page of its own on a wide screen: two thirds of its width, and
+    /// everything on it larger by the same measure.
+    var roomy = false
     let open: (MenuEntry, ArchiveView.StateFilter?, Bool) -> Void
 
     @State private var mark: UIImage?
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    private var k: CGFloat { roomy ? 1.35 : 1 }
+    private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 8 * k), count: 3) }
 
     var body: some View {
         ScrollView {
@@ -251,11 +290,11 @@ struct HomeView: View {
                 // and the claim share one left edge, the mark stands before both.
                 // The whole of it is a key: the other blogs are behind it.
                 Button(action: switchBlog) {
-                    HStack(alignment: .center, spacing: 14) {
+                    HStack(alignment: .center, spacing: 14 * k) {
                         if let mark { SiteMark(image: mark) }
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 2 * k) {
                             Text(verbatim: name.isEmpty ? "blog.sh" : name)
-                                .font(.display(40))
+                                .font(.display(40 * k))
                                 .textCase(.lowercase)
                                 .foregroundStyle(Theme.ink)
                                 .lineLimit(1)
@@ -265,7 +304,7 @@ struct HomeView: View {
                         }
                         Spacer(minLength: 6)
                         Image(systemName: "chevron.up.chevron.down")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.system(size: 13 * k, weight: .semibold))
                             .foregroundStyle(.tint)
                             .accessibilityHidden(true)
                     }
@@ -274,34 +313,34 @@ struct HomeView: View {
                 .buttonStyle(PressStyle())
                 .accessibilityHint(Text("Blogs"))
                 HStack(spacing: 8) {
-                    Rectangle().fill(.tint).frame(width: 14, height: 1)
+                    Rectangle().fill(.tint).frame(width: 14 * k, height: 1)
                     Text(verbatim: "./blog.sh \(identity?.engine ?? "")")
-                        .engineLabel()
+                        .engineLabel(12 * k)
                         .foregroundStyle(Theme.muted)
                 }
-                .padding(.top, 14)
+                .padding(.top, 14 * k)
 
                 if identity == nil {
                     if let problem {
                         Text(verbatim: problem)
-                            .font(.ui(14))
+                            .font(.ui(14 * k))
                             .foregroundStyle(Theme.muted)
-                            .padding(.top, 14)
+                            .padding(.top, 14 * k)
                     } else {
                         ProgressView().padding(.top, 14)
                     }
                 }
 
                 if let glance {
-                    VStack(spacing: 8) {
+                    VStack(spacing: 8 * k) {
                         Button { open(.queue, nil, false) } label: { queueCard(glance) }
                         Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
                     }
                     .buttonStyle(PressStyle())
-                    .padding(.top, 18)
+                    .padding(.top, 18 * k)
                 }
 
-                LazyVGrid(columns: columns, spacing: 8) {
+                LazyVGrid(columns: columns, spacing: 8 * k) {
                     ForEach(MenuEntry.allCases) { entry in
                         Button { open(entry, nil, false) } label: {
                             Tile(entry: entry, highlighted: current == entry)
@@ -309,20 +348,22 @@ struct HomeView: View {
                     }
                 }
                 .buttonStyle(PressStyle())
-                .padding(.top, glance == nil ? 22 : 10)
+                .padding(.top, (glance == nil ? 22 : 10) * k)
 
                 Button { open(.browse, nil, true) } label: {
                     Card(capsule: true) {
-                        Text(verbatim: "/").font(.mono(13)).foregroundStyle(.tint)
-                        Text("Search the archive").engineLabel().foregroundStyle(Theme.muted)
+                        Text(verbatim: "/").font(.mono(13 * k)).foregroundStyle(.tint)
+                        Text("Search the archive").engineLabel(12 * k).foregroundStyle(Theme.muted)
                     }
                 }
                 .buttonStyle(PressStyle())
-                .padding(.top, 14)
+                .padding(.top, 14 * k)
             }
-            .padding(.horizontal, Theme.gutter)
-            .padding(.top, 4)
+            .padding(.horizontal, roomy ? 0 : Theme.gutter)
+            .padding(.top, roomy ? 40 : 4)
             .padding(.bottom, 24)
+            .modifier(TwoThirds(on: roomy))
+            .environment(\.scale, k)
         }
         .background(Theme.paper.ignoresSafeArea())
         // The mark: at once from the copy kept on the device, then fetched again.
@@ -337,30 +378,30 @@ struct HomeView: View {
     /// The next post to go out, and how many wait in all.
     private func queueCard(_ glance: Glance) -> some View {
         Card {
-            Image(systemName: "clock").foregroundStyle(.tint)
+            Image(systemName: "clock").font(.system(size: 17 * k)).foregroundStyle(.tint)
             if let next = glance.queue.first {
                 let when = ISO8601DateFormatter.engine.date(from: next.date).map(RowDate.soon) ?? ""
                 Text(verbatim: "\(next.title.isEmpty ? next.slug : next.title) · \(when)")
-                    .font(.ui(15, weight: .medium))
+                    .font(.ui(15 * k, weight: .medium))
                     .foregroundStyle(Theme.ink)
                     .lineLimit(1)
                 Spacer(minLength: 6)
                 CountBadge(count: glance.queue.count)
             } else {
-                Text("Nothing scheduled").font(.ui(15)).foregroundStyle(Theme.muted)
+                Text("Nothing scheduled").font(.ui(15 * k)).foregroundStyle(Theme.muted)
             }
         }
     }
 
     private func draftsCard(_ glance: Glance) -> some View {
         Card {
-            Image(systemName: "pencil").foregroundStyle(.tint)
+            Image(systemName: "pencil").font(.system(size: 17 * k)).foregroundStyle(.tint)
             if glance.drafts > 0 {
-                Text("Drafts in progress").font(.ui(15, weight: .medium)).foregroundStyle(Theme.ink)
+                Text("Drafts in progress").font(.ui(15 * k, weight: .medium)).foregroundStyle(Theme.ink)
                 Spacer(minLength: 6)
                 CountBadge(count: glance.drafts)
             } else {
-                Text("No drafts in progress").font(.ui(15)).foregroundStyle(Theme.muted)
+                Text("No drafts in progress").font(.ui(15 * k)).foregroundStyle(Theme.muted)
             }
         }
     }
@@ -372,14 +413,15 @@ struct HomeView: View {
 /// stands at the edge by itself.
 struct SiteMark: View {
     let image: UIImage
+    @Environment(\.scale) private var scale
 
     var body: some View {
         Image(uiImage: image)
             .resizable()
             .interpolation(.high)
             .scaledToFill()
-            .frame(width: 56, height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .frame(width: 56 * scale, height: 56 * scale)
+            .clipShape(RoundedRectangle(cornerRadius: 12 * scale, style: .continuous))
             .accessibilityHidden(true)
     }
 }
@@ -420,6 +462,7 @@ nonisolated enum SiteIcon {
 /// for the smallest size wraps at it.
 struct ClaimText: View {
     let claim: String
+    @Environment(\.scale) private var scale
 
     var body: some View {
         let lines = claim.split(separator: "\n").map(String.init)
@@ -440,7 +483,7 @@ struct ClaimText: View {
         VStack(alignment: .leading, spacing: 1) {
             ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
                 Text(verbatim: line)
-                    .font(.ui(size))
+                    .font(.ui(size * scale))
                     .foregroundStyle(Theme.muted)
                     .lineLimit(wraps ? nil : 1)
                     .multilineTextAlignment(.leading)
@@ -450,26 +493,45 @@ struct ClaimText: View {
     }
 }
 
+/// Two thirds of the screen's width, in its middle: the first screen as a
+/// page of its own on a wide screen held upright.
+private struct TwoThirds: ViewModifier {
+    let on: Bool
+
+    func body(content: Content) -> some View {
+        if on {
+            // The outer frame keeps the scroll view as wide as its place: left
+            // to its content's width it would measure itself against itself.
+            content
+                .containerRelativeFrame(.horizontal) { width, _ in width * 2 / 3 }
+                .frame(maxWidth: .infinity)
+        } else {
+            content
+        }
+    }
+}
+
 /// One entry of the menu: its mark and its word.
 struct Tile: View {
     let entry: MenuEntry
     var highlighted = false
+    @Environment(\.scale) private var scale
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
-        VStack(spacing: 8) {
+        let shape = RoundedRectangle(cornerRadius: Theme.corner * scale, style: .continuous)
+        VStack(spacing: 8 * scale) {
             Image(systemName: entry.symbol)
-                .font(.system(size: 21, weight: .regular))
-                .frame(height: 24)
+                .font(.system(size: 21 * scale, weight: .regular))
+                .frame(height: 24 * scale)
             Text(verbatim: entry.short)
-                .font(.ui(13, weight: .semibold))
+                .font(.ui(13 * scale, weight: .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
         .foregroundStyle(Theme.ink)
         .frame(maxWidth: .infinity)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.top, 16 * scale)
+        .padding(.bottom, 12 * scale)
         .background { if highlighted { shape.fill(.tint.opacity(0.12)) } else { shape.fill(Theme.card) } }
         .overlay { if highlighted { shape.strokeBorder(.tint, lineWidth: 1) } else { shape.strokeBorder(Theme.line, lineWidth: 1) } }
         .contentShape(shape)
