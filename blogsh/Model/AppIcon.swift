@@ -25,8 +25,9 @@ enum AppIcon {
 
     /// Changes the icon when the accent asks for another one. The system
     /// tells the person it did; that notice is its own and cannot be kept
-    /// back, so the icon is only touched when it would really change. A
-    /// blog that has not said its accent yet leaves the icon alone.
+    /// back, so the icon is only touched when it would really change, and
+    /// the app only asks when it comes to the front. A blog that has not
+    /// said its accent yet leaves the icon alone.
     static func follow(_ hex: String) {
         guard !hex.isEmpty else { return }
         let app = UIApplication.shared

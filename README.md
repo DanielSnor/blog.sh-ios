@@ -89,11 +89,12 @@ together on one card, a hairline between them -- with one filled button
 for the one thing the screen is for, and what cannot be taken back set
 apart in a colour of its own.
 
-The icon on the home screen follows: its cursor takes the open blog's
-accent. An app cannot draw its icon while it runs, only choose among those
-it was built with, so the catalog holds the icon in thirty-six hues and
-the nearest is chosen; the system says so each time the icon changes, and
-that notice is its own.
+The icon on the home screen follows: its cursor takes the accent of the
+blog the app was last opened with. An app cannot draw its icon while it
+runs, only choose among those it was built with, so the catalog holds the
+icon in thirty-six hues and the nearest is chosen. The system says so each
+time an icon changes, and that notice is its own -- so the icon is set
+when the app comes to the front, not while one switches blogs inside it.
 
 An iPad on its side shows the menu beside the open screen. Held upright
 it has room for one: the first screen is then a page of its own, two

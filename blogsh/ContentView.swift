@@ -139,10 +139,13 @@ struct ContentView: View {
         // app, the sheets included. Until a blog has said its own, the
         // look's.
         .tint(Color(hex: (colorScheme == .dark ? blogs.current?.accentDark : blogs.current?.accentLight) ?? "") ?? Theme.ember)
-        // The icon on the home screen wears the open blog's accent too. The
-        // system only changes an icon for an app that is in front, and not
-        // in the very moment it comes there.
-        .task(id: "\(blogs.current?.accentLight ?? "")|\(phase == .active)") {
+        // The icon on the home screen wears the accent of the blog the app
+        // was last opened with: it is set when the app comes to the front,
+        // never while one is switching blogs inside it -- the system says
+        // so every time an icon changes, and once a visit is enough. It
+        // only changes an icon for an app that is in front, and not in the
+        // very moment it comes there.
+        .task(id: phase == .active) {
             guard phase == .active else { return }
             try? await Task.sleep(for: .milliseconds(700))
             guard !Task.isCancelled else { return }
