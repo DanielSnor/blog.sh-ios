@@ -55,6 +55,10 @@ struct Glance: Equatable {
 struct ContentView: View {
     @State private var selection: MenuEntry?
     @State private var column: NavigationSplitViewColumn = .sidebar
+    // Where there is room for both, which of the two columns are shown: the
+    // menu steps aside when the screen is turned upright over an open screen.
+    @State private var columns: NavigationSplitViewVisibility = .automatic
+    @State private var upright = false
     // A fresh stack for every visit, and what the archive opens with.
     @State private var visit = 0
     @State private var archiveState: ArchiveView.StateFilter?
@@ -78,7 +82,7 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
-        NavigationSplitView(preferredCompactColumn: $column) {
+        NavigationSplitView(columnVisibility: $columns, preferredCompactColumn: $column) {
             HomeView(name: identity?.site.name ?? siteName, claim: identity?.site.claim ?? siteClaim,
                      url: identity?.site.url ?? siteURL,
                      identity: identity, problem: identityProblem, glance: glance,
@@ -119,6 +123,12 @@ struct ContentView: View {
         // app, the sheets included. Until a blog has said its own, the
         // look's.
         .tint(Color(hex: colorScheme == .dark ? accentDark : accentLight) ?? Theme.ember)
+        // Upright there is room for one column: the screen that is open, or
+        // the menu when none is. On its side there is room for both.
+        .onGeometryChange(for: Bool.self) { $0.size.width < $0.size.height } action: { now in
+            upright = now
+            columns = now && selection != nil ? .detailOnly : .all
+        }
         // What changed on the way back is on the first screen again.
         .onChange(of: column) { _, now in
             if now == .sidebar { Task { await loadGlance() } }
@@ -131,6 +141,8 @@ struct ContentView: View {
         visit += 1
         selection = entry
         column = .detail
+        // Upright there is room for one: the screen that was asked for.
+        if upright { columns = .detailOnly }
     }
 
     /// The languages the site publishes beyond its own.
