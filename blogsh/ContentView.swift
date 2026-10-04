@@ -440,7 +440,9 @@ struct HomeView: View {
             FactLine(label: String(localized: "facts.versions", defaultValue: "versions"), value: facts.versions.formatted(),
                      detail: facts.versions > 0 ? Self.size(facts.versionsBytes) : nil) { open(.restore, nil, false) }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        // The block stands in the middle as one: its widest line centred,
+        // the others keeping their places under it.
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private static func hours(_ hours: Double) -> String {
