@@ -23,6 +23,8 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
     var accentLight = ""
     var accentDark = ""
     var maxMb = 24
+    /// What it counted last: `stats`, the trash, the versions.
+    var facts: Facts?
 
     init(keyAccount: String? = nil) {
         let id = UUID()
@@ -48,6 +50,7 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         accentLight = try c.decodeIfPresent(String.self, forKey: .accentLight) ?? ""
         accentDark = try c.decodeIfPresent(String.self, forKey: .accentDark) ?? ""
         maxMb = try c.decodeIfPresent(Int.self, forKey: .maxMb) ?? 24
+        facts = try c.decodeIfPresent(Facts.self, forKey: .facts)
     }
 
     /// What to call it in a list: its own name, or where it is, before it has said one.
@@ -58,6 +61,23 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         let folder = path.split(separator: "/").last.map(String.init) ?? ""
         return folder.isEmpty ? host.trimmingCharacters(in: .whitespaces) : folder
     }
+}
+
+/// The blog in numbers, as the first screen says them under the search:
+/// the archive counted (`stats`), and what the trash and the versions hold.
+nonisolated struct Facts: Codable, Equatable, Sendable {
+    var posts = 0
+    /// The year of the first post.
+    var since = ""
+    var words = 0
+    var readingHours = 0.0
+    var tags = 0
+    var media = 0
+    var mediaBytes = 0
+    var trash = 0
+    var trashBytes = 0
+    var versions = 0
+    var versionsBytes = 0
 }
 
 /// Where the blogs are written down. Plain defaults, read and written from

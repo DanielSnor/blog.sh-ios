@@ -52,7 +52,9 @@ nonisolated enum Typeface {
         }
     }
 
-    static let display: String? = UIFont.fontNames(forFamilyName: "Forum").first
+    /// The face of the web's own header: the banner's title is set in
+    /// JetBrains Mono, bold, unless the site says otherwise.
+    static let display: String? = UIFont.fontNames(forFamilyName: "JetBrains Mono").first { $0.hasSuffix("-Bold") }
     private static let sans: [String] = UIFont.fontNames(forFamilyName: "Work Sans")
 
     static func sans(_ weight: Font.Weight) -> String? {
@@ -71,7 +73,7 @@ extension Font {
     /// What a screen is: its name, the blog's name.
     static func display(_ size: CGFloat) -> Font {
         if let name = Typeface.display { return .custom(name, size: size, relativeTo: .largeTitle) }
-        return .system(size: size, weight: .regular, design: .serif)
+        return .system(size: size, weight: .bold, design: .monospaced)
     }
 
     /// What a screen holds.

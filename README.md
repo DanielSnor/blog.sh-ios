@@ -95,12 +95,19 @@ thirds of the width and everything on it larger by the same measure, and
 an open screen takes the whole of it, with the way back where a phone
 has it.
 
-Three voices of type: a display serif in lower case for what a screen
-is, a sans for what it holds, a typewriter face for what the engine says.
-The first two are Forum and Work Sans, bundled from `blogsh/Fonts/` with
-their licences (SIL Open Font License 1.1) and registered at launch --
-any `.ttf` put there is. Take them out and the system's serif and sans
-stand in.
+Three voices of type: the face of the web's own header for what a screen
+is -- JetBrains Mono, bold, in lower case, the one the banner sets the
+site's name in -- a sans for what it holds, a typewriter face for what the
+engine says. The first two are bundled from `blogsh/Fonts/` with their
+licences (SIL Open Font License 1.1) and registered at launch -- any
+`.ttf` put there is. Take them out and the system's own stand in.
+
+Under the search the first screen says the blog in numbers: posts and the
+year of the first, words and the hours it takes to read them, tags, media,
+and what the trash and the versions hold -- those two are keys to the
+trash. The archive is counted (`stats --json`) after the screen itself is
+up, and the numbers are kept with the blog, so the next launch shows them
+at once.
 
 ## Building
 
@@ -110,6 +117,6 @@ SSH, is fetched by Xcode.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The two typefaces in `blogsh/Fonts/` are
-their authors', under the SIL Open Font License 1.1; each licence sits
-beside its font.
+MIT, see [LICENSE](LICENSE). The typefaces in `blogsh/Fonts/` are their
+authors', under the SIL Open Font License 1.1; each licence sits beside
+its font.

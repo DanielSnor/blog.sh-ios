@@ -198,6 +198,38 @@ nonisolated struct ActionAnswer: Decodable, Sendable {
     let trash: String?
 }
 
+/// `stats --json`: the archive counted. Only what the first screen says.
+nonisolated struct StatsAnswer: Decodable, Sendable {
+    struct Posts: Decodable, Sendable { let total: Int }
+    struct Span: Decodable, Sendable { let first: String? }
+    struct Words: Decodable, Sendable {
+        let total: Int
+        let readingHours: Double
+        enum CodingKeys: String, CodingKey {
+            case total
+            case readingHours = "reading_hours"
+        }
+    }
+    struct Tags: Decodable, Sendable { let unique: Int }
+    struct Media: Decodable, Sendable {
+        let files: Int
+        let bytes: Int
+    }
+
+    let posts: Posts
+    let span: Span
+    let words: Words
+    let tags: Tags
+    let media: Media
+}
+
+/// `empty trash --json` and `empty versions --json`, asked without `--yes`:
+/// how much there is, and nothing is touched.
+nonisolated struct HeldAnswer: Decodable, Sendable {
+    let count: Int
+    let bytes: Int
+}
+
 /// `props <slug> --versions --json`.
 nonisolated struct VersionsAnswer: Decodable, Sendable {
     let ok: Bool

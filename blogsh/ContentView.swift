@@ -68,6 +68,8 @@ struct ContentView: View {
     @State private var identityProblem: String?
     @State private var glance: Glance?
     @State private var showingBlogs = false
+    // One counting at a time: it is the slowest thing the first screen asks.
+    @State private var counting = false
     // After the blogs' sheet has closed: a blog just added goes to its settings.
     @State private var settingsNext = false
     // The blogs, and the one that is open: its name, its colour and its limit
@@ -170,6 +172,7 @@ struct ContentView: View {
                  url: identity?.site.url ?? blogs.current?.url ?? "",
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: identityProblem, glance: glance,
+                 facts: identity == nil ? nil : blogs.current?.facts,
                  current: sizeClass == .regular && !roomy ? selection : nil,
                  roomy: roomy,
                  open: open)
@@ -227,6 +230,9 @@ struct ContentView: View {
                 }
             }
             glance = Self.glance(queue: answers[1], drafts: answers[2])
+            // The numbers under the search come after the screen itself:
+            // counting the archive takes the engine seconds.
+            Task { await loadFacts(whole: true) }
         } catch EngineError.notConfigured {
             identity = nil
             glance = nil
@@ -248,6 +254,44 @@ struct ContentView: View {
               let answers = try? await Engine.shared.answers(to: [["queue"], ["list", "--drafts"]]),
               asked == blogs.currentID else { return }
         glance = Self.glance(queue: answers[0], drafts: answers[1]) ?? glance
+        await loadFacts(whole: false)
+    }
+
+    /// The blog in numbers: the archive counted (`stats`), and what the
+    /// trash and the versions hold -- `empty` asked without `--yes` says
+    /// how much and touches nothing. Kept with the blog, so the next launch
+    /// shows them at once. On the way back from a screen only the two that
+    /// a screen can have changed are asked again; the archive is counted
+    /// when the first screen is loaded whole.
+    private func loadFacts(whole: Bool) async {
+        let asked = blogs.currentID
+        guard identity != nil, !counting else { return }
+        counting = true
+        defer { counting = false }
+        var facts = blogs.current?.facts ?? Facts()
+        let whole = whole || blogs.current?.facts == nil
+        let commands: [[String]] = (whole ? [["stats"]] : []) + [["empty", "trash"], ["empty", "versions"]]
+        guard let answers = try? await Engine.shared.answers(to: commands),
+              answers.count == commands.count, asked == blogs.currentID else { return }
+        if whole {
+            guard let stats: StatsAnswer = try? Engine.decode(answers[0]) else { return }
+            facts.posts = stats.posts.total
+            facts.since = String(stats.span.first?.prefix(4) ?? "")
+            facts.words = stats.words.total
+            facts.readingHours = stats.words.readingHours
+            facts.tags = stats.tags.unique
+            facts.media = stats.media.files
+            facts.mediaBytes = stats.media.bytes
+        }
+        if let trash: HeldAnswer = try? Engine.decode(answers[answers.count - 2]) {
+            facts.trash = trash.count
+            facts.trashBytes = trash.bytes
+        }
+        if let versions: HeldAnswer = try? Engine.decode(answers[answers.count - 1]) {
+            facts.versions = versions.count
+            facts.versionsBytes = versions.bytes
+        }
+        blogs.update { $0.facts = facts }
     }
 
     /// An engine too old to answer one of the two has no cards, not an error.
@@ -271,6 +315,8 @@ struct HomeView: View {
     let identity: VersionAnswer?
     let problem: String?
     let glance: Glance?
+    /// The blog in numbers, once it has counted itself.
+    let facts: Facts?
     /// The entry whose screen is open beside this one, where there is a beside.
     let current: MenuEntry?
     /// A page of its own on a wide screen: two thirds of its width, and
@@ -358,6 +404,8 @@ struct HomeView: View {
                 }
                 .buttonStyle(PressStyle())
                 .padding(.top, 14 * k)
+
+                if let facts { factLines(facts).padding(.top, 26 * k) }
             }
             .padding(.horizontal, roomy ? 0 : Theme.gutter)
             .padding(.top, roomy ? 40 : 4)
@@ -373,6 +421,35 @@ struct HomeView: View {
         }
         .navigationTitle(Text(verbatim: "./blog.sh"))
         .namedByItsHeader()
+    }
+
+    /// The blog in numbers, in the engine's voice: what the archive holds,
+    /// and what waits in the trash and among the versions -- those two are
+    /// keys, to the screen that empties them.
+    private func factLines(_ facts: Facts) -> some View {
+        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14 * k, verticalSpacing: 7 * k) {
+            FactLine(label: String(localized: "facts.posts", defaultValue: "posts"), value: facts.posts.formatted(),
+                     detail: facts.since.isEmpty ? nil : String(localized: "facts.since", defaultValue: "since \(facts.since)"))
+            FactLine(label: String(localized: "facts.words", defaultValue: "words"), value: facts.words.formatted(),
+                     detail: facts.readingHours >= 1 ? String(localized: "facts.reading", defaultValue: "\(Self.hours(facts.readingHours)) of reading") : nil)
+            FactLine(label: String(localized: "facts.tags", defaultValue: "tags"), value: facts.tags.formatted(), detail: nil)
+            FactLine(label: String(localized: "facts.media", defaultValue: "media"), value: facts.media.formatted(),
+                     detail: facts.media > 0 ? Self.size(facts.mediaBytes) : nil)
+            FactLine(label: String(localized: "facts.trash", defaultValue: "in the trash"), value: facts.trash.formatted(),
+                     detail: facts.trash > 0 ? Self.size(facts.trashBytes) : nil) { open(.restore, nil, false) }
+            FactLine(label: String(localized: "facts.versions", defaultValue: "versions"), value: facts.versions.formatted(),
+                     detail: facts.versions > 0 ? Self.size(facts.versionsBytes) : nil) { open(.restore, nil, false) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private static func hours(_ hours: Double) -> String {
+        Measurement(value: hours.rounded(), unit: UnitDuration.hours)
+            .formatted(.measurement(width: .wide, usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))))
+    }
+
+    private static func size(_ bytes: Int) -> String {
+        Int64(bytes).formatted(.byteCount(style: .file))
     }
 
     /// The next post to go out, and how many wait in all.
@@ -490,6 +567,47 @@ struct ClaimText: View {
                     .fixedSize(horizontal: !wraps, vertical: true)
             }
         }
+    }
+}
+
+/// One number of the blog: what is counted, how many, and what else there
+/// is to say of it. With an action the line is a key, and says so by the
+/// accent on its number.
+struct FactLine: View {
+    let label: String
+    let value: String
+    let detail: String?
+    var action: (() -> Void)?
+    @Environment(\.scale) private var scale
+
+    var body: some View {
+        GridRow {
+            Text(verbatim: label)
+                .engineLabel(12 * scale)
+                .foregroundStyle(Theme.muted)
+            Group {
+                if let action {
+                    Button(action: action) { words(tappable: true) }.buttonStyle(PressStyle())
+                } else {
+                    words(tappable: false)
+                }
+            }
+        }
+    }
+
+    private func words(tappable: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            Text(verbatim: value)
+                .font(.mono(12 * scale))
+                .foregroundStyle(tappable ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.ink))
+            if let detail {
+                Text(verbatim: " · " + detail)
+                    .font(.mono(12 * scale, bold: false))
+                    .foregroundStyle(Theme.muted)
+            }
+        }
+        .lineLimit(1)
+        .contentShape(Rectangle())
     }
 }
 

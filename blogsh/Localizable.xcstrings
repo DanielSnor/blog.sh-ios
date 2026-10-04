@@ -2142,6 +2142,86 @@
         }
       }
     },
+    "facts.media": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "médií"
+          }
+        }
+      }
+    },
+    "facts.posts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "příspěvků"
+          }
+        }
+      }
+    },
+    "facts.reading": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ čtení"
+          }
+        }
+      }
+    },
+    "facts.since": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "od roku %@"
+          }
+        }
+      }
+    },
+    "facts.tags": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "štítků"
+          }
+        }
+      }
+    },
+    "facts.trash": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v koši"
+          }
+        }
+      }
+    },
+    "facts.versions": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "verzí"
+          }
+        }
+      }
+    },
+    "facts.words": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "slov"
+          }
+        }
+      }
+    },
     "flag.no": {
       "localizations": {
         "cs": {
