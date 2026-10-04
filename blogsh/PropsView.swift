@@ -55,6 +55,7 @@ struct PropsView: View {
                                 leads: Self.opensAScreen.contains(action)) {
                             tapped(action)
                         }
+                        .modifier(asked(action))
                     }
                 }
                 // What cannot be taken back sits apart, and last -- as [x] is the
@@ -64,6 +65,7 @@ struct PropsView: View {
                         Command(text: Text(verbatim: actionLabel(.delete, props)), symbol: actionSymbol(.delete), danger: true) {
                             tapped(.delete)
                         }
+                        .modifier(asked(.delete))
                     }
                     .padding(.top, 10)
                 }
@@ -77,16 +79,6 @@ struct PropsView: View {
         .toolbarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
-        .confirmationDialog(confirmTitle, isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } }),
-                            titleVisibility: .visible) {
-            if let action = confirming {
-                Button(confirmButton(action), role: action == .delete || action == .unpublish ? .destructive : nil) {
-                    Task { await perform(action) }
-                }
-            }
-        } message: {
-            if let text = confirmMessage { Text(text) }
-        }
         .sheet(isPresented: $scheduling) {
             NavigationStack { ScheduleSheet(slug: slug, offered: props?.slot, scheduled: props?.scheduled == true) { await load() } }
         }
@@ -163,6 +155,33 @@ struct PropsView: View {
             InfoRow(label: "announced", value: announcedLabel(props))
             InfoRow(label: "old links", value: props.addresses.isEmpty ? nil : String(localized: "\(props.addresses.count) address(es) still redirect here"))
         }
+    }
+
+    /// What a key asks before it acts, asked over the key itself -- not at
+    /// the head of the screen, a hand's width from where the finger is.
+    private struct Asked: ViewModifier {
+        let action: PostAction
+        @Binding var confirming: PostAction?
+        let title: String
+        let message: String?
+        let button: String
+        let perform: () async -> Void
+
+        func body(content: Content) -> some View {
+            content.confirmationDialog(title, isPresented: Binding(get: { confirming == action }, set: { if !$0 { confirming = nil } }),
+                                       titleVisibility: .visible) {
+                Button(button, role: action == .delete || action == .unpublish ? .destructive : nil) {
+                    Task { await perform() }
+                }
+            } message: {
+                if let message { Text(verbatim: message) }
+            }
+        }
+    }
+
+    private func asked(_ action: PostAction) -> Asked {
+        Asked(action: action, confirming: $confirming, title: confirmTitle, message: confirmMessage,
+              button: confirmButton(action)) { await perform(action) }
     }
 
     // MARK: - The keys

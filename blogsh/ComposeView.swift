@@ -7,7 +7,8 @@ import PhotosUI
 /// post arrives as a draft with a preview; publishing is its properties'
 /// decision, the way it is at the desk.
 struct ComposeView: View {
-    let maxMb: Int
+    /// The receiver's ceiling on one delivery, as the blog last said it.
+    @AppStorage("site.maxMb") private var maxMb = 24
     @State private var title = ""
     @State private var tags = ""
     @State private var text = ""
@@ -28,16 +29,17 @@ struct ComposeView: View {
                     .foregroundStyle(Theme.ink)
                 PaperEditor(text: $text, minHeight: 200)
                     .focused($bodyFocused)
-                FieldRow(label: "tags", text: $tags, prompt: String(localized: "separated by commas"))
+                FieldRow(label: "tags", text: $tags, prompt: String(localized: "Comma separated."))
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .task { await TagStore.shared.loadIfNeeded() }
                 TagSuggestions(text: $tags)
             }
             .padding(.top, 14)
-            Hint("Markdown. A picture goes in as a paragraph of its own: insert it from its card below.")
+            // Said as it is typed: the marks in the sentence are examples, not marks.
+            Hint(verbatim: String(localized: "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) -- the bare name, no path."))
 
-            SectionLabel("Pictures")
+            SectionLabel("Pictures and video")
             Plate {
                 ForEach($shots) { $shot in
                     ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
@@ -48,13 +50,13 @@ struct ComposeView: View {
                 }
                 // Read here, on the main actor: the picker's label is built off it.
                 let reading = importing
-                PhotosPicker(selection: $picked, matching: .images) {
-                    CommandRow(reading ? "Reading…" : "Add pictures", symbol: "photo.on.rectangle", busy: reading)
+                PhotosPicker(selection: $picked, matching: .any(of: [.images, .videos])) {
+                    CommandRow(reading ? "Reading…" : "Add a picture or video", symbol: "photo.on.rectangle", busy: reading)
                 }
                 .buttonStyle(PressStyle())
                 .disabled(importing)
             }
-            Hint(verbatim: weight)
+            DeliveryNote(shots: shots, textBytes: text.utf8.count, maxMb: maxMb)
 
             Button {
                 Task { await send() }
@@ -98,17 +100,12 @@ struct ComposeView: View {
         guard !items.isEmpty else { return }
         importing = true
         defer { importing = false; picked = [] }
-        var taken = shots.map(\.name)
-        for (index, item) in items.enumerated() {
-            guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
-            guard let shrunk = Pictures.shrink(data) else {
+        for item in items {
+            guard let shot = await Media.shot(from: item, index: shots.count + 1, taken: shots.map(\.name)) else {
                 problem = String(localized: "One picture could not be read.")
                 continue
             }
-            let wanted = Pictures.safeName(item.itemIdentifier, index: shots.count + index + 1)
-            let name = Pictures.freeName(wanted, taken: taken)
-            taken.append(name)
-            shots.append(Shot(name: name, data: shrunk.data, width: shrunk.width, height: shrunk.height))
+            shots.append(shot)
         }
     }
 
@@ -122,22 +119,10 @@ struct ComposeView: View {
 
     private func remove(_ shot: Shot) {
         shots.removeAll { $0.id == shot.id }
-        text = text.replacingOccurrences(of: #"\n*!\[[^\]]*\]\(\#(NSRegularExpression.escapedPattern(for: shot.name))\)\n*"#,
-                                         with: "\n\n", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"\n*"# + shot.markPattern + #"\n*"#, with: "\n\n", options: .regularExpression)
     }
 
-    private var encodedBytes: Int {
-        shots.reduce(0) { $0 + encodedSize($1.data.count) } + encodedSize(text.utf8.count + 200)
-    }
-
-    private var overweight: Bool { encodedBytes > maxMb * 1_048_576 }
-
-    private var weight: String {
-        let mb = Double(encodedBytes) / 1_048_576
-        return overweight
-            ? String(localized: "\(mb, specifier: "%.1f") MB on the wire — over the blog's \(maxMb) MB limit; take a picture out.")
-            : String(localized: "\(mb, specifier: "%.1f") MB of \(maxMb) MB the blog takes in one delivery.")
-    }
+    private var overweight: Bool { Delivery.over(shots: shots, textBytes: text.utf8.count, maxMb: maxMb) }
 
     // MARK: - Sending
 
@@ -148,8 +133,8 @@ struct ComposeView: View {
         // The descriptions follow the marks already in the text.
         var marked = text
         for shot in shots {
-            marked = marked.replacingOccurrences(of: #"!\[[^\]]*\]\(\#(NSRegularExpression.escapedPattern(for: shot.name))\)"#,
-                                             with: shot.mark, options: .regularExpression)
+            marked = marked.replacingOccurrences(of: shot.markPattern,
+                                                 with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
         }
         let markdown = Markdown.file(title: title, tags: tags, body: marked)
         var files = shots.map { DeliveryFile(name: $0.name, data: $0.data) }
@@ -172,8 +157,8 @@ struct ComposeView: View {
     }
 }
 
-/// One picture's card: a thumbnail, its name as the text names it, its
-/// description, and the way into the text.
+/// One shot's card: what it looks like, its name as the text names it
+/// and what it weighs, its description, and the way into the text.
 struct ShotCard: View {
     @Binding var shot: Shot
     let inText: Bool
@@ -182,21 +167,43 @@ struct ShotCard: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            if let image = UIImage(data: shot.data) {
+            if let image = UIImage(data: shot.kind == .video ? (shot.poster ?? Data()) : shot.data) {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 64, height: 64)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(alignment: .bottomLeading) {
+                        if shot.kind == .video {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white)
+                                .padding(5)
+                                .background(.black.opacity(0.55), in: Circle())
+                                .padding(4)
+                        }
+                    }
+            } else if shot.kind == .video {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(Theme.line, lineWidth: 1)
+                    .frame(width: 64, height: 64)
+                    .overlay(Image(systemName: "film").foregroundStyle(Theme.muted))
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text(verbatim: shot.name).font(.mono(12, bold: false)).foregroundStyle(Theme.muted)
-                TextField("", text: $shot.alt, prompt: Text("Description").foregroundStyle(Theme.muted))
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: shot.name).font(.mono(12, bold: false)).foregroundStyle(Theme.muted).lineLimit(1)
+                    if shot.kind == .video {
+                        Text("video").engineLabel(11).foregroundStyle(.tint)
+                    }
+                    Spacer(minLength: 4)
+                    Text(verbatim: Delivery.size(shot.data.count)).font(.mono(11, bold: false)).foregroundStyle(Theme.muted)
+                }
+                TextField("", text: $shot.alt, prompt: Text("No description yet").foregroundStyle(Theme.muted))
                     .font(.ui(15))
                     .foregroundStyle(Theme.ink)
                 HStack {
                     Button(action: insert) {
-                        Text(inText ? "In the text" : "Insert into the text").engineLabel(11)
+                        Text(inText ? "Used in the text" : "Insert into text").engineLabel(11)
                     }
                     .foregroundStyle(inText ? AnyShapeStyle(Theme.muted) : AnyShapeStyle(.tint))
                     .disabled(inText)
@@ -210,6 +217,7 @@ struct ShotCard: View {
     }
 }
 
+
 #Preview {
-    NavigationStack { ComposeView(maxMb: 24) }
+    NavigationStack { ComposeView() }
 }

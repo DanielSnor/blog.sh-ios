@@ -67,6 +67,8 @@ struct ContentView: View {
     // the blog's colour before the server has said anything.
     @AppStorage("site.accent.light") private var accentLight = ""
     @AppStorage("site.accent.dark") private var accentDark = ""
+    // The receiver's ceiling, for the screens that send.
+    @AppStorage("site.maxMb") private var maxMb = 24
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -91,7 +93,7 @@ struct ContentView: View {
             // not push by itself.
             NavigationStack {
                 switch selection {
-                case .add: ComposeView(maxMb: identity?.maxMb ?? 24)
+                case .add: ComposeView()
                 case .post: PostPickerView(languages: otherLanguages)
                 case .queue: QueueView()
                 case .browse: ArchiveView(languages: otherLanguages, baseURL: identity?.site.url ?? "",
@@ -138,6 +140,7 @@ struct ContentView: View {
             let answer: VersionAnswer = try Engine.decode(answers[0])
             identity = answer
             identityProblem = nil
+            maxMb = answer.maxMb
             if let accent = answer.site.accent {
                 accentLight = accent.light
                 accentDark = accent.dark

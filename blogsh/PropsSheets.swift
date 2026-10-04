@@ -214,6 +214,11 @@ struct AddressesSheet: View {
                         .font(.ui(13)).foregroundStyle(Theme.muted)
                 }
                 .padding(.vertical, 11)
+                .confirmationDialog("Drop \(address.value)? It no longer redirects anywhere.",
+                                    isPresented: Binding(get: { dropping?.value == address.value }, set: { if !$0 { dropping = nil } }),
+                                    titleVisibility: .visible) {
+                    Button("Drop", role: .destructive) { Task { await drop(address) } }
+                }
                 .paperRow()
                 .swipeActions {
                     Button("Drop", role: .destructive) { dropping = address }
@@ -226,12 +231,6 @@ struct AddressesSheet: View {
         }
         .navigationTitle("Old links")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-        .confirmationDialog("Drop \(dropping?.value ?? "")? It no longer redirects anywhere.",
-                            isPresented: Binding(get: { dropping != nil }, set: { if !$0 { dropping = nil } }), titleVisibility: .visible) {
-            if let address = dropping {
-                Button("Drop", role: .destructive) { Task { await drop(address) } }
-            }
-        }
     }
 
     private func drop(_ address: PropsAnswer.OldAddress) async {
@@ -279,6 +278,11 @@ struct VersionsSheet: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(PressStyle())
+                .confirmationDialog("Restore this version? The current text is kept as a version first.",
+                                    isPresented: Binding(get: { restoring?.id == version.id }, set: { if !$0 { restoring = nil } }),
+                                    titleVisibility: .visible) {
+                    Button("Restore") { Task { await restore(version) } }
+                }
                 .paperRow()
             }
             if !versions.isEmpty {
@@ -294,12 +298,6 @@ struct VersionsSheet: View {
         .navigationTitle("Earlier versions")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         .task { await load() }
-        .confirmationDialog("Restore this version? The current text is kept as a version first.",
-                            isPresented: Binding(get: { restoring != nil }, set: { if !$0 { restoring = nil } }), titleVisibility: .visible) {
-            if let version = restoring {
-                Button("Restore") { Task { await restore(version) } }
-            }
-        }
     }
 
     private func load() async {

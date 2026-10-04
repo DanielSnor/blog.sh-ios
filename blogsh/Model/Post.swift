@@ -2,19 +2,31 @@ import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
-/// A picture chosen for a post: its bytes as they will travel (JPEG, the
-/// long edge capped, the way /write/ shrinks a phone photograph), the
-/// name the markdown refers to it by, and its description.
+/// A picture or a video chosen for a post: its bytes as they will travel
+/// (a picture as JPEG with the long edge capped, the way /write/ shrinks a
+/// phone photograph; a video as H.264 in an MP4), the name the markdown
+/// refers to it by, and its description.
 nonisolated struct Shot: Identifiable, Sendable {
+    enum Kind: Sendable { case picture, video }
+
     let id = UUID()
     let name: String
     let data: Data
     let width: Int
     let height: Int
     var alt: String = ""
+    var kind: Kind = .picture
+    /// A frame of a video, for its card.
+    var poster: Data?
+    /// False for a video that could not be converted and goes as it came.
+    var converted = true
 
-    /// The picture as a line of markdown, a paragraph of its own.
-    var mark: String { "![\(alt.trimmingCharacters(in: .whitespacesAndNewlines))](\(name))" }
+    /// The shot as a line of markdown, a paragraph of its own. One mark or
+    /// two: a picture is ![…](name), a video !![…](name).
+    var mark: String { (kind == .video ? "!!" : "!") + "[\(alt.trimmingCharacters(in: .whitespacesAndNewlines))](\(name))" }
+
+    /// The shot's mark wherever the text has it, whatever it says there.
+    var markPattern: String { #"!{1,2}\[[^\]]*\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"# }
 }
 
 /// What /write/ does to a picture and to a name, so a post from the app
@@ -43,13 +55,13 @@ nonisolated enum Pictures {
 
     /// A file name the receiver takes and a reader recognises: the
     /// original's stem, folded to a-z0-9 and dashes, `.jpg` on the end.
-    static func safeName(_ original: String?, index: Int) -> String {
+    static func safeName(_ original: String?, index: Int, stem: String = "photo", ext: String = "jpg") -> String {
         var base = (original ?? "").replacingOccurrences(of: #"\.[^.]*$"#, with: "", options: .regularExpression)
         base = base.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil).lowercased()
         base = base.replacingOccurrences(of: "[^a-z0-9]+", with: "-", options: .regularExpression)
         base = base.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
         base = String(base.prefix(100))
-        return (base.isEmpty ? "photo-\(index)" : base) + ".jpg"
+        return (base.isEmpty ? "\(stem)-\(index)" : base) + "." + ext
     }
 
     /// Two photographs can fold to one name; the second gets a number.

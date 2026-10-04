@@ -59,7 +59,30 @@ struct QueueView: View {
                 Section {
                     ForEach(rows) { row in
                         QueueRowView(row: row)
+                            // Asked over the row it is asked about.
+                            .confirmationDialog(leavingTitle, isPresented: asking(row), titleVisibility: .visible) {
+                                if let leaving {
+                                    let behind = rows.count - leaving.row.position
+                                    Button(leaving.publish ? "Publish now" : "Return to drafts", role: leaving.publish ? nil : .destructive) {
+                                        Task { await leave(leaving, compact: false) }
+                                    }
+                                    if behind > 0 && !leaving.row.overdue {
+                                        Button(leaving.publish ? "Publish now and shift the rest (\(behind)) a slot earlier"
+                                                               : "Return to drafts and shift the rest (\(behind)) a slot earlier") {
+                                            Task { await leave(leaving, compact: true) }
+                                        }
+                                    }
+                                }
+                            } message: {
+                                if let leaving {
+                                    Text(leaving.publish
+                                         ? "The same as publishing a draft by hand, announcement included."
+                                         : "The post keeps its text and loses only the plan.")
+                                }
+                            }
                             .paperRow()
+                            // A post waiting for the cron has no slot to trade.
+                            .moveDisabled(row.overdue)
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 Button { Task { await move(row, "--up") } } label: { Label("Up", systemImage: "arrow.up") }
                                     .disabled(row.position == 1 || row.overdue)
@@ -75,6 +98,16 @@ struct QueueView: View {
                                 }
                             }
                             .contextMenu { rowMenu(row) }
+                    }
+                    // [m] with a finger: the row is carried to where it is dropped. It
+                    // is shown there at once; the engine's answer is what stays.
+                    .onMove { source, destination in
+                        guard let from = source.first, rows.indices.contains(from) else { return }
+                        let row = rows[from]
+                        let position = destination > from ? destination : destination + 1
+                        guard position != row.position else { return }
+                        rows.move(fromOffsets: source, toOffset: destination)
+                        Task { await carry(row, to: position) }
                     }
                 }
             }
@@ -92,23 +125,6 @@ struct QueueView: View {
         .navigationTitle("The scheduled-post queue")
         .task { await load() }
         .refreshable { await load() }
-        .confirmationDialog(leavingTitle, isPresented: Binding(get: { leaving != nil }, set: { if !$0 { leaving = nil } }),
-                            titleVisibility: .visible) {
-            if let leaving {
-                let behind = rows.count - leaving.row.position
-                let verb = leaving.publish ? "Publish now" : "Return to drafts"
-                Button(verb, role: leaving.publish ? nil : .destructive) { Task { await leave(leaving, compact: false) } }
-                if behind > 0 && !leaving.row.overdue {
-                    Button("\(verb) and shift the rest (\(behind)) a slot earlier") { Task { await leave(leaving, compact: true) } }
-                }
-            }
-        } message: {
-            if let leaving {
-                Text(leaving.publish
-                     ? "The same as publishing a draft by hand, announcement included."
-                     : "The post keeps its text and loses only the plan.")
-            }
-        }
         .sheet(item: $rescheduling) { row in
             NavigationStack { ScheduleSheet(slug: row.slug, offered: nil, scheduled: true) { await changed() } }
         }
@@ -145,7 +161,12 @@ struct QueueView: View {
 
     private var leavingTitle: String {
         guard let leaving else { return "" }
-        return leaving.publish ? "Publish '\(leaving.row.slug)' now?" : "Return '\(leaving.row.slug)' to the drafts?"
+        return leaving.publish ? String(localized: "Publish '\(leaving.row.slug)' now?")
+                               : String(localized: "Return '\(leaving.row.slug)' to the drafts?")
+    }
+
+    private func asking(_ row: QueueRow) -> Binding<Bool> {
+        Binding(get: { leaving?.row.id == row.id }, set: { if !$0 { leaving = nil } })
     }
 
     // MARK: - The keys
@@ -171,6 +192,8 @@ struct QueueView: View {
             dirty = true
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
+            // The row was shown where it was dropped; the queue is as the engine has it.
+            await load()
         }
     }
 
@@ -184,7 +207,7 @@ struct QueueView: View {
             // The engine says what it did in its own words (the warnings carry
             // the screen's lines); the app adds only the address a publish gave.
             var said: [String] = []
-            if leaving.publish { said.append("Published: \(answer.url ?? leaving.row.slug)") }
+            if leaving.publish { said.append(String(localized: "Published: \(answer.url ?? leaving.row.slug)")) }
             if let warnings = answer.warnings, !warnings.isEmpty { said.append(contentsOf: warnings) }
             if !said.isEmpty { notice = said.joined(separator: "\n") }
             // Publishing rebuilds by itself; a plan cancelled leaves the preview behind.
@@ -206,7 +229,7 @@ struct QueueView: View {
         do {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
             dirty = false
-            notice = answer.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run."
+            notice = answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run.")
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
         }

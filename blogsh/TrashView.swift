@@ -29,6 +29,14 @@ struct TrashView: View {
                     TrashRowView(row: row)
                 }
                 .buttonStyle(PressStyle())
+                // Asked over the row it is asked about, not at the head of the screen.
+                .confirmationDialog("Restore '\(row.slug)'?", isPresented: asking(row), titleVisibility: .visible) {
+                    Button("Restore") { Task { await restore(row) } }
+                } message: {
+                    Text(row.mediaOnly
+                         ? "Only media are in the trash for this post; the terminal restores those."
+                         : "The post, its media and its history come back where they were.")
+                }
                 .paperRow()
                 .swipeActions(edge: .trailing) {
                     Button { restoring = row } label: { Label("Restore", systemImage: "arrow.uturn.backward") }
@@ -48,16 +56,6 @@ struct TrashView: View {
         .navigationTitle("Trash")
         .task { await load() }
         .refreshable { await load() }
-        .confirmationDialog("Restore '\(restoring?.slug ?? "")'?",
-                            isPresented: Binding(get: { restoring != nil }, set: { if !$0 { restoring = nil } }), titleVisibility: .visible) {
-            if let row = restoring {
-                Button("Restore") { Task { await restore(row) } }
-            }
-        } message: {
-            Text(restoring?.mediaOnly == true
-                 ? "Only media are in the trash for this post; the terminal restores those."
-                 : "The post, its media and its history come back where they were.")
-        }
         .alert("Rebuild and deploy the site now?", isPresented: $askingRebuild) {
             Button("Rebuild") { Task { await rebuild() } }
             Button("Not now", role: .cancel) {}
@@ -67,6 +65,10 @@ struct TrashView: View {
         } message: {
             Text(notice ?? "")
         }
+    }
+
+    private func asking(_ row: TrashRow) -> Binding<Bool> {
+        Binding(get: { restoring?.id == row.id }, set: { if !$0 { restoring = nil } })
     }
 
     // The row as a value: the dialog's binding has cleared the state by the
@@ -81,7 +83,7 @@ struct TrashView: View {
             let answer: ActionAnswer = try await Engine.shared.call(args)
             // The engine's own lines say it; the address only when it said nothing.
             let said = answer.warnings ?? []
-            notice = said.isEmpty ? "Restored: \(answer.url ?? row.slug)" : said.joined(separator: "\n")
+            notice = said.isEmpty ? String(localized: "Restored: \(answer.url ?? row.slug)") : said.joined(separator: "\n")
             await load()
             if answer.state == .published { askingRebuild = true }
         } catch {
@@ -94,7 +96,7 @@ struct TrashView: View {
         defer { busy = false }
         do {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            notice = answer.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run."
+            notice = answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run.")
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
         }

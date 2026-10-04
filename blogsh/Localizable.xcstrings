@@ -2,26 +2,6 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
-    "%.1f MB of %lld MB the blog takes in one delivery.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%.1f MB z %lld MB, které blog vezme v jedné dodávce."
-          }
-        }
-      }
-    },
-    "%.1f MB on the wire — over the blog's %lld MB limit; take a picture out.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%.1f MB na drátu — nad limitem blogu %lld MB; vynech nějakou fotku."
-          }
-        }
-      }
-    },
     "%@ (from the content)": {
       "localizations": {
         "cs": {
@@ -32,12 +12,12 @@
         }
       }
     },
-    "%@ and shift the rest (%lld) a slot earlier": {
+    "%@ once encoded for the wire, over the server's limit of %lld MB: it will refuse this": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ a posunout zbytek (%lld) o slot dřív"
+            "value": "po zakódování %1$@, přes limit serveru %2$lld MB: odmítne to"
           }
         }
       }
@@ -52,7 +32,6 @@
         }
       }
     },
-    "%@: %@": {},
     "%@: the %@ text": {
       "localizations": {
         "cs": {
@@ -133,6 +112,16 @@
         }
       }
     },
+    "A picture is shrunk to %@ px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under %lld MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about %lld MB.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázek se před odesláním zmenší na %1$@ px po delší straně; video se převede na H.264 v 720p. Celý příspěvek — text, obrázky, video — se musí vejít do %2$lld MB, to je limit serveru; měří se zakódovaný přenos, který je o třetinu větší než soubory, takže na soubory zbývá zhruba %3$lld MB."
+          }
+        }
+      }
+    },
     "A post": {
       "localizations": {
         "cs": {
@@ -153,12 +142,12 @@
         }
       }
     },
-    "Add pictures": {
+    "Add a picture or video": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přidat fotky"
+            "value": "Přidat obrázek nebo video"
           }
         }
       }
@@ -219,6 +208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zpět k příspěvku"
+          }
+        }
+      }
+    },
+    "Bold": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tučně"
           }
         }
       }
@@ -293,6 +292,36 @@
         }
       }
     },
+    "Code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kód"
+          }
+        }
+      }
+    },
+    "Code block": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blok kódu"
+          }
+        }
+      }
+    },
+    "Comma separated.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oddělené čárkou."
+          }
+        }
+      }
+    },
     "Connection": {
       "localizations": {
         "cs": {
@@ -329,16 +358,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smazáno (je v koši, obnovíš ho z Koše): %@"
-          }
-        }
-      }
-    },
-    "Description": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Popisek"
           }
         }
       }
@@ -453,6 +472,16 @@
         }
       }
     },
+    "Heading": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nadpis"
+          }
+        }
+      }
+    },
     "Hide the original": {
       "localizations": {
         "cs": {
@@ -483,22 +512,22 @@
         }
       }
     },
-    "In the text": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "V textu"
-          }
-        }
-      }
-    },
-    "Insert into the text": {
+    "Insert into text": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Vložit do textu"
+          }
+        }
+      }
+    },
+    "Italic": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzíva"
           }
         }
       }
@@ -543,6 +572,26 @@
         }
       }
     },
+    "Link": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkaz"
+          }
+        }
+      }
+    },
+    "List": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam"
+          }
+        }
+      }
+    },
     "Make a new key": {
       "localizations": {
         "cs": {
@@ -573,22 +622,12 @@
         }
       }
     },
-    "Markdown. A picture goes in as a paragraph of its own: insert it from its card below.": {
+    "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) -- the bare name, no path.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Markdown. Fotka jde do textu jako samostatný odstavec: vlož ji z její karty níž."
-          }
-        }
-      }
-    },
-    "New pictures": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nové fotky"
+            "value": "Markdown. Obrázek se vkládá jako ![popis](foto.jpg), video jako !![popis](klip.mp4) — jenom jméno, bez cesty."
           }
         }
       }
@@ -609,6 +648,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nový slug"
+          }
+        }
+      }
+    },
+    "No description yet": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zatím bez popisu"
           }
         }
       }
@@ -693,6 +742,16 @@
         }
       }
     },
+    "Numbered list": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Číslovaný seznam"
+          }
+        }
+      }
+    },
     "OK": {
       "localizations": {
         "cs": {
@@ -709,6 +768,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Staré odkazy"
+          }
+        }
+      }
+    },
+    "On the way: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "K odeslání: %@"
           }
         }
       }
@@ -763,12 +832,12 @@
         }
       }
     },
-    "Pictures": {
+    "Pictures and video": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fotky"
+            "value": "Obrázky a video"
           }
         }
       }
@@ -873,6 +942,16 @@
         }
       }
     },
+    "Publish '%@' now?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikovat „%@“ teď?"
+          }
+        }
+      }
+    },
     "Publish '%@'?": {
       "localizations": {
         "cs": {
@@ -893,12 +972,42 @@
         }
       }
     },
+    "Publish now and shift the rest (%lld) a slot earlier": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikovat hned a posunout zbytek (%lld) o slot dřív"
+          }
+        }
+      }
+    },
     "Publish when?": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Publikovat kdy?"
+          }
+        }
+      }
+    },
+    "Published: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikováno: %@"
+          }
+        }
+      }
+    },
+    "Quote": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Citát"
           }
         }
       }
@@ -1063,6 +1172,16 @@
         }
       }
     },
+    "Restored: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnoveno: %@"
+          }
+        }
+      }
+    },
     "Result": {
       "localizations": {
         "cs": {
@@ -1073,12 +1192,32 @@
         }
       }
     },
+    "Return '%@' to the drafts?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vrátit „%@“ mezi koncepty?"
+          }
+        }
+      }
+    },
     "Return to drafts": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Vrátit do konceptů"
+          }
+        }
+      }
+    },
+    "Return to drafts and shift the rest (%lld) a slot earlier": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vrátit mezi koncepty a posunout zbytek (%lld) o slot dřív"
           }
         }
       }
@@ -1259,6 +1398,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit náhled na webu"
+          }
+        }
+      }
+    },
+    "Strikethrough": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeškrtnutě"
           }
         }
       }
@@ -1643,6 +1792,16 @@
         }
       }
     },
+    "Used in the text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V textu použit"
+          }
+        }
+      }
+    },
     "User": {
       "localizations": {
         "cs": {
@@ -1739,6 +1898,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "jakýkoli typ"
+          }
+        }
+      }
+    },
+    "batch.pictures.few": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fotky"
+          }
+        }
+      }
+    },
+    "batch.pictures.many": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fotek"
+          }
+        }
+      }
+    },
+    "batch.pictures.one": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fotka"
+          }
+        }
+      }
+    },
+    "batch.text_only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jen text"
+          }
+        }
+      }
+    },
+    "batch.videos.few": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "videa"
+          }
+        }
+      }
+    },
+    "batch.videos.many": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "videí"
+          }
+        }
+      }
+    },
+    "batch.videos.one": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "video"
           }
         }
       }
@@ -1899,6 +2128,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "úvodní obrázek"
+          }
+        }
+      }
+    },
+    "mark.link.text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "text"
           }
         }
       }
@@ -2153,16 +2392,6 @@
         }
       }
     },
-    "separated by commas": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "oddělené čárkami"
-          }
-        }
-      }
-    },
     "series": {
       "localizations": {
         "cs": {
@@ -2329,6 +2558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "stáhnout z webu"
+          }
+        }
+      }
+    },
+    "video": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "video"
           }
         }
       }

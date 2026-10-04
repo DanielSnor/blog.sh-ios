@@ -60,6 +60,10 @@ struct SettingsView: View {
                         UIPasteboard.general.string = authorizedKeysLine(publicKey)
                     }
                     Command("Make a new key", symbol: "key", danger: true) { confirmingNewKey = true }
+                        .confirmationDialog("Make a new key? The server will not know it until its line is put into authorized_keys again.",
+                                            isPresented: $confirmingNewKey, titleVisibility: .visible) {
+                            Button("Make a new key", role: .destructive) { makeKey() }
+                        }
                 }
             } else {
                 Plate {
@@ -114,10 +118,6 @@ struct SettingsView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") { dismiss() }
             }
-        }
-        .confirmationDialog("Make a new key? The server will not know it until its line is put into authorized_keys again.",
-                            isPresented: $confirmingNewKey, titleVisibility: .visible) {
-            Button("Make a new key", role: .destructive) { makeKey() }
         }
     }
 

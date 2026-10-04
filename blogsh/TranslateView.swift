@@ -61,6 +61,10 @@ struct TranslateView: View {
                 if entry.written {
                     Plate {
                         Command("Take this language off the post", symbol: "minus.circle", danger: true) { confirmingRemoval = true }
+                            .confirmationDialog("Take the \(languageName) text off '\(slug)'? The post then looks exactly as it did before the translation existed.",
+                                                isPresented: $confirmingRemoval, titleVisibility: .visible) {
+                                Button("Take it off", role: .destructive) { Task { await save("---\ntitle:\n---\n\n") } }
+                            }
                             .disabled(saving)
                     }
                     .padding(.top, 14)
@@ -83,12 +87,7 @@ struct TranslateView: View {
         .overlay { if entry == nil && problem == nil { ProgressView() } }
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
-        .confirmationDialog("Take the \(languageName) text off '\(slug)'? The post then looks exactly as it did before the translation existed.",
-                            isPresented: $confirmingRemoval, titleVisibility: .visible) {
-            Button("Take it off", role: .destructive) { Task { await save("---\ntitle:\n---\n\n") } }
-        }
     }
-
 
     private func load() async {
         do {

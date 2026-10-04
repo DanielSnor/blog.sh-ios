@@ -586,13 +586,16 @@ struct SwitchRow: View {
 }
 
 /// The text of a post, wherever it is typed: markdown, the raw material
-/// the engine reads, in the typewriter face.
+/// the engine reads, in the typewriter face -- and over it the marks the
+/// /write/ page offers, as keys.
 struct PaperEditor: View {
     @Binding var text: String
     var minHeight: CGFloat = 220
+    @State private var selection: TextSelection?
 
     var body: some View {
-        TextEditor(text: $text)
+        MarkBar { kind in mark(kind) }
+        TextEditor(text: $text, selection: $selection)
             .font(.mono(15, bold: false))
             .foregroundStyle(Theme.ink)
             .scrollContentBackground(.hidden)
@@ -600,7 +603,114 @@ struct PaperEditor: View {
             .padding(.horizontal, -5)
             .padding(.vertical, -4)
     }
+
+    /// The mark goes where the caret or the selection is; with neither
+    /// -- the text was never touched -- at its end.
+    private func mark(_ kind: Marks.Kind) {
+        let whole = (text as NSString).length
+        var range = NSRange(location: whole, length: 0)
+        if let selection {
+            switch selection.indices {
+            case .selection(let picked):
+                if picked.lowerBound >= text.startIndex, picked.upperBound <= text.endIndex {
+                    range = NSRange(picked, in: text)
+                }
+            case .multiSelection(let set):
+                if let first = set.ranges.first, first.upperBound <= text.endIndex {
+                    range = NSRange(first, in: text)
+                }
+            @unknown default:
+                break
+            }
+        }
+        let words = Marks.Words(text: String(localized: "mark.link.text", defaultValue: "text"), url: "https://")
+        let out = Marks.apply(text, selection: range, kind: kind, words: words)
+        text = out.value
+        if let picked = Range(out.selection, in: out.value) {
+            selection = picked.isEmpty ? TextSelection(insertionPoint: picked.lowerBound) : TextSelection(range: picked)
+        }
+    }
 }
+
+/// The marks as a row of keys over the text: the ones the /write/ page
+/// has, in its order.
+struct MarkBar: View {
+    let apply: (Marks.Kind) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(Marks.Kind.allCases, id: \.self) { kind in
+                    Button { apply(kind) } label: { face(kind) }
+                        .accessibilityLabel(Text(name(kind)))
+                }
+            }
+            .buttonStyle(PressStyle())
+        }
+        .padding(.vertical, -4)
+    }
+
+    @ViewBuilder
+    private func face(_ kind: Marks.Kind) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        Group {
+            switch kind {
+            case .bold: Text(verbatim: "B").font(.ui(14, weight: .bold))
+            case .italic: Text(verbatim: "I").font(.system(size: 15, design: .serif)).italic()
+            case .strike: Text(verbatim: "S").font(.ui(14)).strikethrough()
+            case .code: Text(verbatim: "</>").font(.mono(11))
+            case .link: Image(systemName: "link").font(.system(size: 12, weight: .semibold))
+            case .h2: Text(verbatim: "H").font(.ui(14, weight: .bold))
+            case .quote: Text(verbatim: "❝").font(.ui(14))
+            case .ul: Text(verbatim: "•").font(.ui(16, weight: .bold))
+            case .ol: Text(verbatim: "1.").font(.mono(12))
+            case .fence: Text(verbatim: "```").font(.mono(11))
+            }
+        }
+        .foregroundStyle(Theme.ink)
+        .frame(width: 34, height: 30)
+        .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+        .contentShape(shape)
+    }
+
+    private func name(_ kind: Marks.Kind) -> LocalizedStringKey {
+        switch kind {
+        case .bold: "Bold"
+        case .italic: "Italic"
+        case .strike: "Strikethrough"
+        case .code: "Code"
+        case .link: "Link"
+        case .h2: "Heading"
+        case .quote: "Quote"
+        case .ul: "List"
+        case .ol: "Numbered list"
+        case .fence: "Code block"
+        }
+    }
+}
+
+/// What is on the way and whether the blog will take it: the line the
+/// /write/ page keeps under its pictures, in its words, and its legend.
+struct DeliveryNote: View {
+    let shots: [Shot]
+    let textBytes: Int
+    let maxMb: Int
+
+    var body: some View {
+        let over = Delivery.over(shots: shots, textBytes: textBytes, maxMb: maxMb)
+        if !shots.isEmpty || textBytes > 0 {
+            let line = String(localized: "On the way: \(Delivery.describe(shots: shots, textBytes: textBytes))")
+            let refusal = String(localized: "\(Delivery.size(Delivery.wireBytes(shots: shots, textBytes: textBytes))) once encoded for the wire, over the server's limit of \(maxMb) MB: it will refuse this")
+            Text(verbatim: over ? "\(line) — \(refusal)" : line)
+                .font(.ui(13, weight: over ? .medium : .regular))
+                .foregroundStyle(over ? Theme.danger : Theme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 8)
+        }
+        Hint("A picture is shrunk to \(String(Pictures.maxEdge)) px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under \(maxMb) MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about \(Int(Double(maxMb) * 0.73)) MB.")
+    }
+}
+
 
 /// The label of the one filled button, with a spinner while it works.
 struct PrimaryLabel: View {

@@ -9,6 +9,7 @@ import PhotosUI
 /// gets its preview rebuilt; a published post is rebuilt and deployed.
 struct TextEditView: View {
     let slug: String
+    @AppStorage("site.maxMb") private var maxMb = 24
     @Environment(\.dismiss) private var dismiss
     @State private var entry: EditEntry?
     @State private var text = ""
@@ -52,7 +53,7 @@ struct TextEditView: View {
                     }
                 }
 
-                SectionLabel("New pictures")
+                SectionLabel("Pictures and video")
                 Plate {
                     ForEach($shots) { $shot in
                         ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
@@ -63,12 +64,13 @@ struct TextEditView: View {
                     }
                     // Read here, on the main actor: the picker's label is built off it.
                     let reading = importing
-                    PhotosPicker(selection: $picked, matching: .images) {
-                        CommandRow(reading ? "Reading…" : "Add pictures", symbol: "photo.on.rectangle", busy: reading)
+                    PhotosPicker(selection: $picked, matching: .any(of: [.images, .videos])) {
+                        CommandRow(reading ? "Reading…" : "Add a picture or video", symbol: "photo.on.rectangle", busy: reading)
                     }
                     .buttonStyle(PressStyle())
                     .disabled(importing || !entry.editable)
                 }
+                DeliveryNote(shots: shots, textBytes: text.utf8.count, maxMb: maxMb)
 
                 Button {
                     if dropped.isEmpty { Task { await save() } } else { confirmingLoss = true }
@@ -77,7 +79,12 @@ struct TextEditView: View {
                                  busy: saving)
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .disabled(saving || importing || !entry.editable || text == entry.text)
+                .confirmationDialog("Pictures the text no longer names are deleted from the blog: \(dropped.joined(separator: ", ")). Save anyway?",
+                                    isPresented: $confirmingLoss, titleVisibility: .visible) {
+                    Button("Save and delete them", role: .destructive) { Task { await save() } }
+                }
+                .disabled(saving || importing || !entry.editable || text == entry.text
+                          || Delivery.over(shots: shots, textBytes: text.utf8.count, maxMb: maxMb))
                 .padding(.top, 22)
                 if let problem {
                     ProblemLine(text: problem)
@@ -107,12 +114,7 @@ struct TextEditView: View {
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
-        .confirmationDialog("Pictures the text no longer names are deleted from the blog: \(dropped.joined(separator: ", ")). Save anyway?",
-                            isPresented: $confirmingLoss, titleVisibility: .visible) {
-            Button("Save and delete them", role: .destructive) { Task { await save() } }
-        }
     }
-
 
     private var isDraft: Bool {
         guard let entry else { return true }
@@ -139,12 +141,13 @@ struct TextEditView: View {
         guard !items.isEmpty else { return }
         importing = true
         defer { importing = false; picked = [] }
-        var taken = (entry?.media ?? []) + shots.map(\.name)
-        for (index, item) in items.enumerated() {
-            guard let data = try? await item.loadTransferable(type: Data.self), let shrunk = Pictures.shrink(data) else { continue }
-            let name = Pictures.freeName(Pictures.safeName(item.itemIdentifier, index: taken.count + index + 1), taken: taken)
-            taken.append(name)
-            shots.append(Shot(name: name, data: shrunk.data, width: shrunk.width, height: shrunk.height))
+        for item in items {
+            let taken = (entry?.media ?? []) + shots.map(\.name)
+            guard let shot = await Media.shot(from: item, index: taken.count + 1, taken: taken) else {
+                problem = String(localized: "One picture could not be read.")
+                continue
+            }
+            shots.append(shot)
         }
     }
 
@@ -159,8 +162,8 @@ struct TextEditView: View {
         guard let entry else { return text }
         var marked = text
         for shot in shots {
-            marked = marked.replacingOccurrences(of: #"!\[[^\]]*\]\(\#(NSRegularExpression.escapedPattern(for: shot.name))\)"#,
-                                                 with: shot.mark, options: .regularExpression)
+            marked = marked.replacingOccurrences(of: shot.markPattern,
+                                                 with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
         }
         let lines = "edits: \(entry.slug)\nbase: \(entry.base)\n"
         if marked.hasPrefix("---\n") {
