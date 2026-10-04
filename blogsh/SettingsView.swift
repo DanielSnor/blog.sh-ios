@@ -106,7 +106,7 @@ struct SettingsView: View {
                 Plate {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(verbatim: "./blog.sh \(answer.engine)").font(.mono(13))
-                        Text(verbatim: answer.site.claim.isEmpty ? answer.site.name : "\(answer.site.name) — \(answer.site.claim)")
+                        Text(verbatim: answer.site.claim.isEmpty ? answer.site.name : "\(answer.site.name) — \(answer.site.claim.replacingOccurrences(of: "\n", with: " "))")
                             .font(.ui(15))
                         Text(verbatim: answer.site.url).font(.mono(12, bold: false)).foregroundStyle(Theme.muted)
                     }

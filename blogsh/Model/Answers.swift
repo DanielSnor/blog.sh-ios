@@ -39,6 +39,31 @@ nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
         let locales: [String]
         /// The palette's accent, per scheme; nil from an engine before it said so.
         let accent: Accent?
+
+        enum CodingKeys: String, CodingKey {
+            case name, claim, url, lang, locales, accent
+        }
+
+        /// The claim is markdown in the site's configuration, and a blog may
+        /// break it over two lines the markdown way -- a backslash, or two
+        /// spaces, at the end of the first. Here it is the lines themselves.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            name = try c.decode(String.self, forKey: .name)
+            url = try c.decode(String.self, forKey: .url)
+            lang = try c.decode(String.self, forKey: .lang)
+            locales = try c.decode([String].self, forKey: .locales)
+            accent = try c.decodeIfPresent(Accent.self, forKey: .accent)
+            claim = try c.decode(String.self, forKey: .claim)
+                .split(separator: "\n", omittingEmptySubsequences: true)
+                .map { line in
+                    var line = line.trimmingCharacters(in: .whitespaces)
+                    if line.hasSuffix("\\") { line = String(line.dropLast()).trimmingCharacters(in: .whitespaces) }
+                    return line
+                }
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n")
+        }
     }
 
     struct Accent: Decodable, Equatable, Sendable {
