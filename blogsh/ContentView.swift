@@ -261,7 +261,18 @@ struct HomeView: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.6)
                                 .accessibilityAddTraits(.isHeader)
-                            if !claim.isEmpty {
+                            // A claim the blog broke into lines keeps them: each
+                            // gives a little rather than break again beside the mark.
+                            let lines = claim.split(separator: "\n").map(String.init)
+                            if lines.count > 1 {
+                                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                                    Text(verbatim: line)
+                                        .font(.ui(15))
+                                        .foregroundStyle(Theme.muted)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                }
+                            } else if !claim.isEmpty {
                                 Text(verbatim: claim)
                                     .font(.ui(15))
                                     .foregroundStyle(Theme.muted)
