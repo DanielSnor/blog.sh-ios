@@ -121,6 +121,25 @@ Open `blogsh.xcodeproj` in Xcode 26 or later and run the `blogsh` scheme
 on a simulator or a device of your own. The one dependency, Citadel for
 SSH, is fetched by Xcode.
 
+## Tests
+
+What the app works out by itself is tested: the marks over the text,
+against the `/write/` page's own answers on some fifteen hundred cases;
+the line for `authorized_keys`; the icon nearest an accent; the engine's
+answers as they are read; the blogs as they are written down, and taken
+over from the settings of a build that had only one; a post's file, its
+pictures' names, and the weight of a delivery against the server's limit.
+The screens are not -- they are looked at.
+
+```
+xcodebuild test -project blogsh.xcodeproj -scheme blogsh \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+```
+
+The tests run inside the app, which stays idle while it hosts them: no
+screen, and no connection to anybody's blog. What the engine answers is
+its own to test, and it does, in its own suite.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). The typefaces in `blogsh/Fonts/` are their
