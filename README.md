@@ -63,6 +63,14 @@ accent, what waits in the queue.
 | Trash | what is in it, a row restoring its post |
 | The site | rebuild and deploy, with the two switches the command has |
 
+A picture or a video goes with a post only when the text names it: one
+picked and never put into the text stays on the device, and its card says
+so. On a site of more than one language a post not written in all of them
+is asked about before it is published or scheduled, the way the terminal
+wants `--allow-partial` typed. What an action has to say and what it has
+to ask next come as one message -- a post deleted says so, asks about the
+rebuild, and its screens are left.
+
 Where the terminal asks a question, the app asks it too; where it
 rebuilds without asking, so does the app; where it asks whether to
 rebuild now, the app asks.
