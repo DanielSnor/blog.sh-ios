@@ -501,13 +501,16 @@ struct EmptyNote: View {
     let symbol: String
     let title: LocalizedStringKey
     var detail: LocalizedStringKey?
+    /// Where the note has a whole column to itself -- beside the menu on a
+    /// wide screen -- it is drawn to the size of that room.
+    var large = false
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: large ? 22 : 8) {
             Image(systemName: symbol)
-                .font(.system(size: 26, weight: .light))
+                .font(.system(size: large ? 104 : 26, weight: large ? .thin : .light))
                 .foregroundStyle(Theme.muted)
-            Text(title).font(.ui(16, weight: .medium)).foregroundStyle(Theme.ink)
+            Text(title).font(.ui(large ? 21 : 16, weight: .medium)).foregroundStyle(Theme.ink)
             if let detail {
                 Text(detail).font(.ui(14)).foregroundStyle(Theme.muted)
             }

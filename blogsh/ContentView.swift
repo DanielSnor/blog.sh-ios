@@ -104,7 +104,7 @@ struct ContentView: View {
                         if single {
                             home(roomy: true)
                         } else {
-                            EmptyNote(symbol: "terminal", title: "What do you want to do?")
+                            EmptyNote(symbol: "terminal", title: "What do you want to do?", large: true)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(Theme.paper.ignoresSafeArea())
                         }
