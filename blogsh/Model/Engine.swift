@@ -25,6 +25,10 @@ nonisolated enum EngineError: Error, LocalizedError {
             String(localized: "The server does not know this blog's key. The line under the key in Settings belongs in ~/.ssh/authorized_keys on the server.")
         case .hostKeyChanged(let fingerprint):
             String(localized: "The server's key changed (\(fingerprint)). If the server was reinstalled, forget the old key in Settings.")
+        // The engine's own sentence here speaks of --yes and of a screen the
+        // terminal has; on a phone neither is anything one can do.
+        case .refused(let refusal) where refusal.error == "ambiguous_slug":
+            String(localized: "Two posts in different years share this slug, and the app cannot say which of them is meant. At the desk, ./blog.sh props asks which.")
         case .refused(let refusal): refusal.message
         case .unreadable(let text): String(localized: "The engine did not answer as data: \(text)")
         case .stage(let stage, let error): "\(stage): \(error)"

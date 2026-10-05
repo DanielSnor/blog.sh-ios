@@ -262,6 +262,16 @@
         }
       }
     },
+    "Both are for good. Older versions are what a post said before its recent saves; each post keeps its newest.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obojí je nadobro. Starší verze jsou to, co příspěvek říkal před posledními uloženími; každému zůstane ta nejnovější."
+          }
+        }
+      }
+    },
     "Build every page again": {
       "localizations": {
         "cs": {
@@ -332,6 +342,16 @@
         }
       }
     },
+    "Clearing out": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "úklid"
+          }
+        }
+      }
+    },
     "Code": {
       "localizations": {
         "cs": {
@@ -388,6 +408,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smazat"
+          }
+        }
+      }
+    },
+    "Delete %lld item(s) from the trash for good, freeing %@? This cannot be undone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysypat koš nadobro — položek: %1$lld, uvolní se %2$@? Tohle vzít zpět nejde."
           }
         }
       }
@@ -498,6 +528,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Co upravit?"
+          }
+        }
+      }
+    },
+    "Empty the trash": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysypat koš"
+          }
+        }
+      }
+    },
+    "Empty the trash — %lld item(s), %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysypat koš — položek: %1$lld, %2$@"
           }
         }
       }
@@ -838,6 +888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Staré odkazy"
+          }
+        }
+      }
+    },
+    "Older versions removed: %lld, %@ freed. Every post kept its newest.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starších verzí odstraněno: %1$lld, uvolněno %2$@. Každý příspěvek si nechal tu nejnovější."
           }
         }
       }
@@ -1212,12 +1272,42 @@
         }
       }
     },
+    "Remove %lld older version(s), freeing %@? Every post keeps its newest one. This cannot be undone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat starší verze — souborů: %1$lld, uvolní se %2$@? Nejnovější verze každého příspěvku zůstane. Tohle vzít zpět nejde."
+          }
+        }
+      }
+    },
     "Remove '%@' from the app? Its key is deleted with it; the blog itself is not touched.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Odebrat „%@“ z appky? Smaže se i jeho klíč; samotného blogu se to nedotkne."
+          }
+        }
+      }
+    },
+    "Remove older versions": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat starší verze"
+          }
+        }
+      }
+    },
+    "Remove older versions — %lld file(s), %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat starší verze — souborů: %1$lld, %2$@"
           }
         }
       }
@@ -1952,12 +2042,32 @@
         }
       }
     },
+    "Trash emptied: %lld item(s), %@ freed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koš vysypán: položek %1$lld, uvolněno %2$@."
+          }
+        }
+      }
+    },
     "Trash is empty": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Koš je prázdný"
+          }
+        }
+      }
+    },
+    "Two posts in different years share this slug, and the app cannot say which of them is meant. At the desk, ./blog.sh props asks which.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenhle slug mají dva příspěvky v různých letech a appka neumí říct, který z nich myslíš. U stolu se na to zeptá ./blog.sh props."
           }
         }
       }

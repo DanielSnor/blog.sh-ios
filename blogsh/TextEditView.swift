@@ -122,7 +122,7 @@ struct TextEditView: View {
                             ? String(localized: "saved.published", defaultValue: "published")
                             : String(localized: "saved.draft", defaultValue: "draft")))
                             .font(.ui(15)).foregroundStyle(Theme.ink)
-                        if let warnings = saved.warnings {
+                        if let warnings = saved.warnings?.plain {
                             ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
                         }
                         // The editor closes on a save; here the way back is a key.

@@ -5,6 +5,9 @@ import SwiftUI
 struct ScheduleSheet: View {
     let slug: String
     let offered: String?
+    /// When the post is planned for now: rescheduling starts from there,
+    /// an hour or a day away from it, not from an hour from now.
+    var current: String? = nil
     let scheduled: Bool
     let done: () async -> Void
     @Environment(\.dismiss) private var dismiss
@@ -44,7 +47,9 @@ struct ScheduleSheet: View {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
         }
         .onAppear {
-            if let offered, let slot = ISO8601DateFormatter.engine.date(from: offered), slot > Date() {
+            if let current, let planned = ISO8601DateFormatter.engine.date(from: current), planned > Date() {
+                date = planned
+            } else if let offered, let slot = ISO8601DateFormatter.engine.date(from: offered), slot > Date() {
                 date = slot
             }
         }

@@ -228,6 +228,8 @@ nonisolated struct StatsAnswer: Decodable, Sendable {
 nonisolated struct HeldAnswer: Decodable, Sendable {
     let count: Int
     let bytes: Int
+    /// With `--yes`: whether anything was removed.
+    var emptied: Bool? = nil
 }
 
 /// `props <slug> --versions --json`.
@@ -365,4 +367,41 @@ nonisolated extension PostRow {
         PostRow(slug: "pripnuty", year: "2025", date: "2025-03-01T10:00:00+01:00", title: "Připnutý",
                 type: "image", tags: [], state: .published, scheduled: false, series: nil, pinned: true),
     ]
+}
+
+/// The engine says what it did in the terminal's words, and at the desk
+/// those name a file where it lies -- "Restored: /srv/blog/content.nosync/
+/// posts/2026/venku.json". On a phone that is a line of somebody's server
+/// with the one useful word at its far end; here the word stays and the
+/// way to it goes.
+nonisolated enum ServerPaths {
+    /// The directories only the engine's own files live under.
+    private static let homes = ["/content.nosync/", "/media.nosync/", "/public.nosync/", "/trash/", "/incoming/"]
+    // An absolute path of two parts or more: not one begun inside a word or
+    // an address (https://…), and ended by a space or the punctuation of a sentence.
+    private static let path = try! NSRegularExpression(pattern: #"(?<![\w:/.])/(?:[^\s/:,;)]+/)+[^\s:,;)]*"#)
+
+    static func plain(_ line: String) -> String {
+        let ns = line as NSString
+        var out = ""
+        var from = 0
+        for match in path.matches(in: line, range: NSRange(location: 0, length: ns.length)) {
+            var token = ns.substring(with: match.range)
+            out += ns.substring(with: NSRange(location: from, length: match.range.location - from))
+            from = match.range.location + match.range.length
+            guard homes.contains(where: { (token + "/").contains($0) }) else { out += token; continue }
+            // A full stop after the path is the sentence's, not the file's.
+            var tail = ""
+            if token.hasSuffix(".") { token.removeLast(); tail = "." }
+            var name = token.split(separator: "/").last.map(String.init) ?? token
+            if name.hasSuffix(".json") { name.removeLast(5) }
+            out += name + tail
+        }
+        return out + ns.substring(from: from)
+    }
+}
+
+extension Array where Element == String {
+    /// The engine's lines without the server's paths in them.
+    nonisolated var plain: [String] { map(ServerPaths.plain) }
 }

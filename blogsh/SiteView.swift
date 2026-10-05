@@ -35,7 +35,7 @@ struct SiteView: View {
                 Plate {
                     Text(result.deploy == "done" ? "Rebuilt and deployed." : "Rebuilt; the deploy is owed to the next scheduled run.")
                         .font(.ui(15)).foregroundStyle(Theme.ink)
-                    ForEach(result.warnings, id: \.self) { line in
+                    ForEach(result.warnings.plain, id: \.self) { line in
                         Text(verbatim: line).font(.ui(13)).foregroundStyle(Theme.muted)
                     }
                 }

@@ -82,7 +82,7 @@ struct ComposeView: View {
                 SectionLabel("Done")
                 Plate {
                     Text("Draft written: \(made.slug)").font(.ui(15)).foregroundStyle(Theme.ink)
-                    if let warnings = made.warnings {
+                    if let warnings = made.warnings?.plain {
                         ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
                     }
                     if let url = made.url, !url.isEmpty, let link = URL(string: url) {

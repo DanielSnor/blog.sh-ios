@@ -97,6 +97,47 @@ import Testing
         }
     }
 
+    // MARK: the server's paths
+
+    /// What the engine says after a restore names a file on the server;
+    /// the name is what a phone can use.
+    @Test func aFileOnTheServerIsCalledByItsName() {
+        #expect(ServerPaths.plain("Obnoveno: /app/data/sean.cz/content.nosync/posts/2026/venku.json") == "Obnoveno: venku")
+        #expect(ServerPaths.plain("Smazáno (v koši): /srv/blog/trash/2026/smazat") == "Smazáno (v koši): smazat")
+        #expect(ServerPaths.plain("Kept /srv/blog/media.nosync/2026/venku/01.jpg, dropped the rest.") == "Kept 01.jpg, dropped the rest.")
+        #expect(ServerPaths.plain("Moved to /srv/blog/trash/2026/smazat.") == "Moved to smazat.")
+    }
+
+    /// An address, a preview path, a command: none of them is a file of the engine's.
+    @Test func whatIsNotTheEnginesFileIsLeftAsItIs() {
+        for line in ["Publikováno: https://sean.cz/posts/2026/venku/",
+                     "Náhled: /draft/9d7e7bbcce6f229e/venku/",
+                     "obnovíš přes ./blog.sh restore venku",
+                     "Fronta posunuta: každý následující příspěvek převzal dřívější slot.",
+                     "see https://example.com/trash/2026/x for more", ""] {
+            #expect(ServerPaths.plain(line) == line)
+        }
+        #expect(["a /srv/b/trash/x", "plain"].plain == ["a x", "plain"])
+    }
+
+    /// `empty trash --yes --json`: how much went.
+    @Test func whatWasClearedOutIsRead() throws {
+        let json = #"{"ok":true,"what":"trash","count":2,"bytes":536,"size":"536 B","emptied":true}"#
+        let held: HeldAnswer = try Engine.decode(Data(json.utf8))
+        #expect(held.count == 2 && held.bytes == 536 && held.emptied == true)
+    }
+
+    /// The engine's sentence about a slug two posts share speaks of --yes
+    /// and of a screen the terminal has; the app says what a phone can do.
+    @Test func aSlugTwoPostsShareIsSaidInTheAppsWords() throws {
+        let refusal = Refusal(ok: false, error: "ambiguous_slug", message: "Slug x je ve víc než jednom roce a --yes se nemá koho zeptat.")
+        let said = try #require(EngineError.refused(refusal).errorDescription)
+        #expect(!said.contains("--yes"))
+        #expect(said.contains("./blog.sh props"))
+        let other = Refusal(ok: false, error: "not_found", message: "Příspěvek nenalezen.")
+        #expect(EngineError.refused(other).errorDescription == "Příspěvek nenalezen.")
+    }
+
     @Test func noAnswerAtAllIsSaidSo() {
         do {
             let _: VersionAnswer = try Engine.decode(Data())

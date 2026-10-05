@@ -127,7 +127,7 @@ struct QueueView: View {
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $rescheduling) { row in
-            NavigationStack { ScheduleSheet(slug: row.slug, offered: nil, scheduled: true) { await changed() } }
+            NavigationStack { ScheduleSheet(slug: row.slug, offered: nil, current: row.date, scheduled: true) { await changed() } }
         }
         .alert("Carry to which position?", isPresented: Binding(get: { carrying != nil }, set: { if !$0 { carrying = nil } })) {
             TextField("Position, 1 to \(rows.count)", value: $carryTo, format: .number)
@@ -211,7 +211,7 @@ struct QueueView: View {
             // the screen's lines); the app adds only the address a publish gave.
             var said: [String] = []
             if leaving.publish { said.append(String(localized: "Published: \(answer.url ?? leaving.row.slug)")) }
-            if let warnings = answer.warnings, !warnings.isEmpty { said.append(contentsOf: warnings) }
+            if let warnings = answer.warnings?.plain, !warnings.isEmpty { said.append(contentsOf: warnings) }
             if !said.isEmpty { notice = said.joined(separator: "\n") }
             // Publishing rebuilds by itself; a plan cancelled leaves the preview behind.
             if !leaving.publish { dirty = true }

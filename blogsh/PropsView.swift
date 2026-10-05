@@ -77,7 +77,8 @@ struct PropsView: View {
         .task { await load() }
         .refreshable { await load() }
         .sheet(isPresented: $scheduling) {
-            NavigationStack { ScheduleSheet(slug: slug, offered: props?.slot, scheduled: props?.scheduled == true) { await load() } }
+            NavigationStack { ScheduleSheet(slug: slug, offered: props?.slot, current: props?.scheduled == true ? props?.date : nil,
+                                            scheduled: props?.scheduled == true) { await load() } }
         }
         .sheet(isPresented: $editingProperties) {
             if let props {
@@ -280,12 +281,12 @@ struct PropsView: View {
 
     /// The engine's own lines about what it did, when it had any.
     private func tell(_ lines: [String]?) {
-        if let lines, !lines.isEmpty { said = Said(text: lines.joined(separator: "\n")) }
+        if let lines = lines?.plain, !lines.isEmpty { said = Said(text: lines.joined(separator: "\n")) }
     }
 
     /// The question the terminal asks after a change the site does not show yet.
     private func askRebuild(saying lines: [String]? = nil) {
-        said = Said(title: String(localized: "Rebuild and deploy the site now?"), text: (lines ?? []).joined(separator: "\n"),
+        said = Said(title: String(localized: "Rebuild and deploy the site now?"), text: (lines ?? []).plain.joined(separator: "\n"),
                     ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild() })
     }
 
