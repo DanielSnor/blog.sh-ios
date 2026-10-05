@@ -177,12 +177,37 @@ nonisolated enum Preview {
                 flush()
                 if glued {
                     html.append(box(words.glued(m[2])))
-                } else if let shown = shots[m[2]] {
-                    html.append("<figure><img src=\"" + escape(shown.source) + "\" alt=\"" + escape(m[1]) + "\"></figure>")
-                } else {
-                    html.append(box(words.missing(m[2])))
+                    i += 1; continue
                 }
-                i += 1; continue
+                func figure(_ m: [String]) -> String {
+                    if let shown = shots[m[2]] {
+                        return "<figure><img src=\"" + escape(shown.source) + "\" alt=\"" + escape(m[1]) + "\"></figure>"
+                    }
+                    return box(words.missing(m[2]))
+                }
+                // The second place this leaves the page's rendering, and
+                // follows the blog's: pictures in a row, with nothing but
+                // blank lines between them, are a gallery there -- two side
+                // by side, an odd last one across both -- in the markup the
+                // engine writes (build/blocks.rb, render_photo_grid).
+                var row = [figure(m)]
+                var next = i + 1
+                while true {
+                    var k = next
+                    while k < lines.count, blank(k) { k += 1 }
+                    guard k < lines.count, let more = groups(picture, lines[k]), k + 1 >= lines.count || blank(k + 1) else { break }
+                    row.append(figure(more))
+                    next = k + 1
+                }
+                if row.count > 1 {
+                    if row.count % 2 == 1, let range = row[row.count - 1].range(of: "<figure>") {
+                        row[row.count - 1].replaceSubrange(range, with: "<figure class=\"span-2\">")
+                    }
+                    html.append("<div class=\"photo-grid\">" + row.joined() + "</div>")
+                } else {
+                    html.append(row[0])
+                }
+                i = next; continue
             }
             if has(quoted, line) {
                 flush()
@@ -217,18 +242,32 @@ nonisolated enum Preview {
 
     /// A whole page wearing the stylesheets a post page wears -- the same
     /// paths, resolved against the site, so the preview changes when the
-    /// skin does.
+    /// skin does -- and built the way the engine's own post page is
+    /// (templates/post.html.erb): a card, in it the header, in the header
+    /// the body with the title over the content. The nesting is what the
+    /// stylesheet is written for: the header's negative margins are the
+    /// card's padding taken back, and without the card around it the title
+    /// stood outside the window; the text's own headings are sized as
+    /// `.content` sizes them, not as a card's.
     static func document(title: String, body: String, lang: String, stylesheets: [String] = Preview.stylesheets) -> String {
         let links = stylesheets.map { "<link rel=\"stylesheet\" href=\"" + escape($0) + "\">" }.joined()
         let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let heading = name.isEmpty ? "" : "<h1>" + escape(name) + "</h1>"
         return "<!doctype html><html lang=\"" + escape(lang) + "\"><head><meta charset=\"utf-8\">"
-            + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><base href=\"/\">" + links
-            + "<style>body{margin:0;padding:1rem}figure{margin:1rem 0}figure img,figure video{max-width:100%;height:auto}"
+            + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><base href=\"/\">"
+            // The gallery as the engine's own stylesheet lays it out, said
+            // before that stylesheet so the blog's -- or a skin's -- wins:
+            // it holds where the blog cannot be reached.
+            + "<style>.photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin:1rem 0}"
+            + ".photo-grid figure{margin:0;display:flex;flex-direction:column}"
+            + ".photo-grid img{width:100%;flex:1 1 auto;min-height:0;object-fit:cover;display:block}"
+            + ".photo-grid .span-2{grid-column:1/-1}</style>" + links
+            + "<style>body{margin:0;padding:1rem;background:var(--card-bg,transparent)}"
+            + "figure{margin:1rem 0}figure img,figure video{max-width:100%;height:auto}"
             + ".no-preview{padding:1rem;border:1px dashed currentColor;opacity:.6;font-size:.9em}"
             + "hr.teaser-end{border:0;border-top:1px solid currentColor;opacity:.3;margin:1.5rem 0}</style></head>"
-            + "<body><main><article><div class=\"post-header\">" + heading + "</div><div class=\"post-body\">"
-            + body + "</div></article></main></body></html>"
+            + "<body><main><div class=\"card\"><article><div class=\"post-header\"><div class=\"post-body\">" + heading
+            + "<div class=\"content\">" + body + "</div></div></div></article></div></main></body></html>"
     }
 
     /// What the names of a form's own shots stand for: a picture rides in

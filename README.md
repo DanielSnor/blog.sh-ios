@@ -74,8 +74,10 @@ of a new post, of a post being edited, of a translation -- is the post as
 the blog would show it, near enough: the text rendered the way the
 `/write/` page renders it -- the same markdown, the same boxes where a
 picture is missing or not on a line of its own -- in the blog's own
-stylesheets. One thing it draws its own way: the line `//--more--//`,
-which cuts a post in two, is a hairline here, not words. And a picture chosen for a post is a key: behind it the
+stylesheets. Two things it draws the blog's way rather than that page's:
+the line `//--more--//`, which cuts a post in two, is a hairline, not
+words; and pictures in a row are the gallery they are on the site -- two
+side by side, an odd last one across both. And a picture chosen for a post is a key: behind it the
 shots stand one to a page and large, each with the line that describes it
 under it, to be written while looking at what it describes.
 

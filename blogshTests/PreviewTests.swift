@@ -40,6 +40,65 @@ import Testing
         #expect(Preview.document(title: "", body: "", lang: "en").contains("hr.teaser-end{"))
     }
 
+    // MARK: pictures in a row
+
+    private let three: [String: Preview.Shown] = ["a.jpg": .picture("A"), "b.jpg": .picture("B"), "c.jpg": .picture("C"),
+                                                   "clip.mp4": .video("V")]
+    private func fig(_ source: String, _ alt: String = "", span: Bool = false) -> String {
+        "<figure\(span ? " class=\"span-2\"" : "")><img src=\"\(source)\" alt=\"\(alt)\"></figure>"
+    }
+
+    /// The second departure from the page, and toward the blog: pictures
+    /// in a row are a gallery, in the markup the engine writes.
+    @Test func twoPicturesInARowAreAGallery() {
+        #expect(Preview.render("![x](a.jpg)\n\n![y](b.jpg)", shots: three)
+                == "<div class=\"photo-grid\">" + fig("A", "x") + fig("B", "y") + "</div>")
+    }
+
+    @Test func anOddLastPictureSpansBothColumns() {
+        #expect(Preview.render("![](a.jpg)\n\n![](b.jpg)\n\n\n![](c.jpg)\n", shots: three)
+                == "<div class=\"photo-grid\">" + fig("A") + fig("B") + fig("C", span: true) + "</div>")
+    }
+
+    @Test func onePictureAloneIsNoGallery() {
+        #expect(Preview.render("![](a.jpg)", shots: three) == fig("A"))
+        #expect(Preview.render("text\n\n![](a.jpg)\n\ntext", shots: three) == "<p>text</p>\n" + fig("A") + "\n<p>text</p>")
+    }
+
+    /// Text between two pictures keeps them one under another, as the
+    /// engine's cheat sheet says; so does a video, which is no picture.
+    @Test func textOrAVideoBetweenPicturesBreaksTheRow() {
+        #expect(Preview.render("![](a.jpg)\n\ntext\n\n![](b.jpg)", shots: three) == fig("A") + "\n<p>text</p>\n" + fig("B"))
+        let withClip = Preview.render("![](a.jpg)\n\n!![](clip.mp4)\n\n![](b.jpg)", shots: three)
+        #expect(!withClip.contains("photo-grid"))
+        #expect(withClip.contains("<video"))
+    }
+
+    @Test func twoGalleriesStayTwo() {
+        let html = Preview.render("![](a.jpg)\n\n![](b.jpg)\n\n## h\n\n![](c.jpg)\n\n![](a.jpg)", shots: three)
+        #expect(html == "<div class=\"photo-grid\">" + fig("A") + fig("B") + "</div>\n<h3>h</h3>\n<div class=\"photo-grid\">" + fig("C") + fig("A") + "</div>")
+    }
+
+    /// A picture the device cannot show still holds its place in the row;
+    /// one glued to a line of text is no part of it -- the blog would
+    /// refuse that post, and the box says so.
+    @Test func aMissingPictureHoldsItsPlaceAGluedOneDoesNot() {
+        let missing = Preview.render("![](a.jpg)\n\n![](nowhere.jpg)", shots: three)
+        #expect(missing.hasPrefix("<div class=\"photo-grid\">" + fig("A") + "<figure><div class=\"no-preview\">"))
+        let glued = Preview.render("![](a.jpg)\n\n![](b.jpg)\ntext", shots: three)
+        #expect(!glued.contains("photo-grid"))
+        #expect(glued.hasPrefix(fig("A") + "\n<figure><div class=\"no-preview\">b.jpg: a picture has to stand"))
+    }
+
+    @Test func thePageKnowsHowToLayAGalleryOutWithoutTheBlog() {
+        let page = Preview.document(title: "", body: "", lang: "en")
+        let own = try! #require(page.range(of: ".photo-grid{display:grid"))
+        let blogs = try! #require(page.range(of: "<link rel=\"stylesheet\""))
+        // Before the blog's stylesheets, so theirs has the last word.
+        #expect(own.lowerBound < blogs.lowerBound)
+        #expect(page.contains(".photo-grid .span-2{grid-column:1/-1}"))
+    }
+
     @Test func whatWasTypedCannotBecomeMarkup() {
         #expect(Preview.render("<script>alert(1)</script>") == "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>")
         #expect(!Preview.render("[x](javascript:alert(1))").contains("href"))
@@ -72,7 +131,9 @@ import Testing
         #expect(page.contains("<html lang=\"cs\">"))
         #expect(page.contains("<base href=\"/\">"))
         #expect(page.contains("<link rel=\"stylesheet\" href=\"/assets/css/colors.css\"><link rel=\"stylesheet\" href=\"/assets/css/site.css\">"))
-        #expect(page.contains("<div class=\"post-header\"><h1>A &lt;Title&gt;</h1></div><div class=\"post-body\"><p>x</p></div>"))
+        // Nested as the engine's post page is: the stylesheet's margins count on it.
+        #expect(page.contains("<main><div class=\"card\"><article><div class=\"post-header\"><div class=\"post-body\">"
+                              + "<h1>A &lt;Title&gt;</h1><div class=\"content\"><p>x</p></div></div></div></article></div></main>"))
         #expect(!Preview.document(title: "  ", body: "", lang: "en").contains("<h1>"))
     }
 
