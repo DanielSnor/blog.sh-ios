@@ -573,7 +573,17 @@ extension View {
               isPresented: Binding(get: { said.wrappedValue != nil }, set: { if !$0 { said.wrappedValue = nil } }),
               presenting: said.wrappedValue) { one in
             if let ask = one.ask {
-                Button(ask.button) { Task { await ask.run() } }
+                Button(ask.button) {
+                    Task {
+                        // The alert this key sits in is still on its way out,
+                        // and what the action says next is said through the
+                        // same place: an answer that came at once -- a
+                        // refusal, a quick rebuild -- was wiped by the alert
+                        // closing. So the action waits until the place is free.
+                        try? await Task.sleep(for: .milliseconds(450))
+                        await ask.run()
+                    }
+                }
                 Button(ask.cancel, role: .cancel) { one.after?() }
             } else {
                 Button("OK") { one.after?() }
