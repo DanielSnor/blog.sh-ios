@@ -84,6 +84,44 @@ import Testing
         #expect(!found("![a cat](catxjpg)"))
     }
 
+    // MARK: what an edit may do to a post's pictures
+
+    /// The engine refuses an edit from the app that leaves a post with
+    /// fewer pictures than it had; the app says so before the save.
+    @Test func takingAPictureOutIsFewer() {
+        let media = ["01.jpg", "02.jpg"]
+        #expect(!Kept.fewer(media: media, shots: [], text: "![a](01.jpg) ![b](02.jpg)"))
+        #expect(Kept.fewer(media: media, shots: [], text: "![a](01.jpg)"))
+        #expect(Kept.fewer(media: media, shots: [], text: "no pictures at all"))
+        #expect(Kept.dropped(media: media, text: "![a](01.jpg)") == ["02.jpg"])
+    }
+
+    @Test func oneOutAndAnotherInIsAsManyAsBefore() {
+        let new = shot("photo-3.jpg")
+        #expect(!Kept.fewer(media: ["01.jpg", "02.jpg"], shots: [new], text: "![a](01.jpg) ![c](photo-3.jpg)"))
+    }
+
+    /// A picture chosen but not put into the text is not in the post.
+    @Test func aNewPictureCountsOnlyOnceItIsNamed() {
+        let new = shot("photo-3.jpg")
+        #expect(Kept.fewer(media: ["01.jpg", "02.jpg"], shots: [new], text: "![a](01.jpg)"))
+    }
+
+    /// The engine counts pictures and videos apart: a picture does not
+    /// stand in for a video taken out.
+    @Test func aPictureDoesNotStandInForAVideo() {
+        let picture = shot("photo-2.jpg")
+        let video = shot("clip.mp4", kind: .video)
+        #expect(Kept.fewer(media: ["01.mov"], shots: [picture], text: "![a](photo-2.jpg)"))
+        #expect(!Kept.fewer(media: ["01.mov"], shots: [video], text: "!![a](clip.mp4)"))
+        #expect(Kept.isVideo("01.MOV") && Kept.isVideo("a.mp4") && !Kept.isVideo("a.jpg") && !Kept.isVideo("mov"))
+    }
+
+    @Test func aPostWithoutPicturesHasNothingToLose() {
+        #expect(!Kept.fewer(media: [], shots: [], text: "text"))
+        #expect(Kept.dropped(media: [], text: "text").isEmpty)
+    }
+
     // MARK: the weight of a delivery
 
     @Test func base64IsAThirdLargerAndCountsItsLineBreaks() {

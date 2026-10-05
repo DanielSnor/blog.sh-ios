@@ -120,6 +120,40 @@ nonisolated enum Markdown {
     }
 }
 
+/// What an edit sent from the app may do to a post's pictures. The engine
+/// asks before a save that would lose something, and a file has nobody to
+/// answer: it refuses one that leaves the post with fewer pictures, or
+/// fewer videos, than it had. One taken out and another put in is as many
+/// as before, and that it takes.
+nonisolated enum Kept {
+    private static let videoEndings: Set<String> = ["mov", "mp4", "m4v", "webm", "mkv", "avi"]
+
+    static func isVideo(_ name: String) -> Bool {
+        videoEndings.contains((name as NSString).pathExtension.lowercased())
+    }
+
+    static func named(_ name: String, in text: String) -> Bool { text.contains("(\(name))") }
+
+    /// The post's own media the text has stopped naming.
+    static func dropped(media: [String], text: String) -> [String] {
+        media.filter { !named($0, in: text) }
+    }
+
+    /// True when the text names fewer pictures, or fewer videos, than the
+    /// post has -- counting what it has and still names, and what is new
+    /// and named. That save the engine refuses.
+    static func fewer(media: [String], shots: [Shot], text: String) -> Bool {
+        func count(video: Bool) -> (before: Int, after: Int) {
+            let had = media.filter { isVideo($0) == video }
+            let kept = had.filter { named($0, in: text) }.count
+            let new = shots.filter { ($0.kind == .video) == video && named($0.name, in: text) }.count
+            return (had.count, kept + new)
+        }
+        let pictures = count(video: false), videos = count(video: true)
+        return pictures.after < pictures.before || videos.after < videos.before
+    }
+}
+
 /// How much a delivery weighs on the wire: base64 is a third larger, and
 /// the receiver measures the encoded stream.
 nonisolated func encodedSize(_ bytes: Int) -> Int { (bytes + 2) / 3 * 4 + bytes / 57 + 1 }

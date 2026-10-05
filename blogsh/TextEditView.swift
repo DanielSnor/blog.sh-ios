@@ -44,13 +44,20 @@ struct TextEditView: View {
                             HStack(alignment: .firstTextBaseline, spacing: 10) {
                                 Text(verbatim: name).font(.mono(13, bold: false)).foregroundStyle(Theme.ink)
                                 Spacer(minLength: 8)
-                                if text.contains("(\(name))") {
+                                if Kept.named(name, in: text) {
                                     Text("in the text").font(.ui(13)).foregroundStyle(Theme.muted)
+                                } else if fewer {
+                                    // Not a promise the blog would not keep: see the hint under the list.
+                                    Text("not in the text").font(.ui(13)).foregroundStyle(Theme.danger)
                                 } else {
                                     Text("not named — deleted on save").font(.ui(13)).foregroundStyle(Theme.danger)
                                 }
                             }
                         }
+                    }
+                    // Said before the save, not after it: what the blog will answer.
+                    if fewer {
+                        Hint(verbatim: String(localized: "The text names fewer pictures than the post has. From the app a picture can be swapped for another, not taken out: the blog refuses a save that would leave the post with fewer. Taking pictures out is done at the desk, with ./blog.sh edit."))
                     }
                 }
 
@@ -74,7 +81,10 @@ struct TextEditView: View {
                 DeliveryNote(shots: shots, textBytes: text.utf8.count, maxMb: maxMb)
 
                 Button {
-                    if dropped.isEmpty { Task { await save() } } else { confirmingLoss = true }
+                    // The question is asked where the answer counts: a swap deletes
+                    // the picture it replaces. Fewer than before is the blog's to
+                    // refuse, and the hint above has said so.
+                    if dropped.isEmpty || fewer { Task { await save() } } else { confirmingLoss = true }
                 } label: {
                     PrimaryLabel(label: saving ? "Saving…" : (entry.scheduled || isDraft ? "Save the draft" : "Save and publish the change"),
                                  busy: saving)
@@ -124,7 +134,12 @@ struct TextEditView: View {
 
     /// Pictures the post has that the text stops naming.
     private var dropped: [String] {
-        (entry?.media ?? []).filter { !text.contains("(\($0))") }
+        Kept.dropped(media: entry?.media ?? [], text: text)
+    }
+
+    /// The save would leave the post with fewer pictures than it had.
+    private var fewer: Bool {
+        Kept.fewer(media: entry?.media ?? [], shots: shots, text: text)
     }
 
     private func load() async {
