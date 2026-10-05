@@ -35,7 +35,8 @@ nonisolated enum Media {
         }
         guard let data = try? await item.loadTransferable(type: Data.self), let shrunk = Pictures.shrink(data) else { return nil }
         let name = Pictures.freeName(Pictures.safeName(item.itemIdentifier, index: index), taken: taken)
-        return Shot(name: name, data: shrunk.data, width: shrunk.width, height: shrunk.height)
+        return Shot(name: name, data: shrunk.data, width: shrunk.width, height: shrunk.height,
+                    thumb: Pictures.thumbnail(shrunk.data))
     }
 
     @concurrent private static func video(from item: PhotosPickerItem, index: Int, taken: [String]) async -> Shot? {

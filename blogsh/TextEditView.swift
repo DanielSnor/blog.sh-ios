@@ -21,6 +21,8 @@ struct TextEditView: View {
     @State private var problem: String?
     @State private var saved: ActionAnswer?
     @State private var confirmingLoss = false
+    @State private var previewing = false
+    @State private var looking: Looked?
 
     var body: some View {
         PaperScreen {
@@ -36,6 +38,10 @@ struct TextEditView: View {
                 }
                 .padding(.top, 14)
                 Hint("The header and the text, as the editor opens them. A picture is named by its file name.")
+                Plate {
+                    Command("Preview", symbol: "eye") { previewing = true }
+                }
+                .padding(.top, 10)
 
                 if !entry.media.isEmpty {
                     SectionLabel("Pictures on the blog")
@@ -68,6 +74,8 @@ struct TextEditView: View {
                             insert(shot)
                         } remove: {
                             shots.removeAll { $0.id == shot.id }
+                        } look: {
+                            looking = Looked(id: shot.id)
                         }
                     }
                     // Read here, on the main actor: the picker's label is built off it.
@@ -125,6 +133,17 @@ struct TextEditView: View {
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
+        .sheet(isPresented: $previewing) {
+            // The post's own media from beside its page on the blog; what
+            // was picked here from the device.
+            let parts = Preview.parts(of: described(text))
+            let own = Preview.shown(media: entry?.media ?? [], beside: entry?.preview ?? "/")
+            PreviewSheet(title: parts.title, markdown: parts.body,
+                         shown: own.merging(Preview.shown(for: shots)) { _, new in new })
+        }
+        .fullScreenCover(item: $looking) { one in
+            ShotsViewer(shots: $shots, current: one.id)
+        }
     }
 
     private var isDraft: Bool {
@@ -173,14 +192,20 @@ struct TextEditView: View {
         text = kept + "\n\n" + shot.mark + "\n"
     }
 
-    /// The header gets the two lines of the delivery: which post, which version.
-    private func fileText() -> String {
-        guard let entry else { return text }
+    /// The text with every new shot's mark carrying its description as it stands now.
+    private func described(_ text: String) -> String {
         var marked = text
         for shot in shots {
             marked = marked.replacingOccurrences(of: shot.markPattern,
                                                  with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
         }
+        return marked
+    }
+
+    /// The header gets the two lines of the delivery: which post, which version.
+    private func fileText() -> String {
+        guard let entry else { return text }
+        let marked = described(text)
         let lines = "edits: \(entry.slug)\nbase: \(entry.base)\n"
         if marked.hasPrefix("---\n") {
             return "---\n" + lines + marked.dropFirst(4)

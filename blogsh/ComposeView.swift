@@ -18,6 +18,8 @@ struct ComposeView: View {
     @State private var sending = false
     @State private var problem: String?
     @State private var made: ActionAnswer?
+    @State private var previewing = false
+    @State private var looking: Looked?
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
@@ -38,6 +40,10 @@ struct ComposeView: View {
             .padding(.top, 14)
             // Said as it is typed: the marks in the sentence are examples, not marks.
             Hint(verbatim: String(localized: "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) -- the bare name, no path."))
+            Plate {
+                Command("Preview", symbol: "eye") { previewing = true }
+            }
+            .padding(.top, 10)
 
             SectionLabel("Pictures and video")
             Plate {
@@ -46,6 +52,8 @@ struct ComposeView: View {
                         insert(shot)
                     } remove: {
                         remove(shot)
+                    } look: {
+                        looking = Looked(id: shot.id)
                     }
                 }
                 // Read here, on the main actor: the picker's label is built off it.
@@ -92,6 +100,12 @@ struct ComposeView: View {
         .onChange(of: picked) { _, items in
             Task { await load(items) }
         }
+        .sheet(isPresented: $previewing) {
+            PreviewSheet(title: title, markdown: described(text), shown: Preview.shown(for: shots))
+        }
+        .fullScreenCover(item: $looking) { one in
+            ShotsViewer(shots: $shots, current: one.id)
+        }
     }
 
     // MARK: - Pictures
@@ -124,6 +138,17 @@ struct ComposeView: View {
 
     private var overweight: Bool { Delivery.over(shots: shots, textBytes: text.utf8.count, maxMb: maxMb) }
 
+    /// The text with every shot's mark carrying its description as it
+    /// stands now: what will be sent, and what the preview shows.
+    private func described(_ text: String) -> String {
+        var marked = text
+        for shot in shots {
+            marked = marked.replacingOccurrences(of: shot.markPattern,
+                                                 with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
+        }
+        return marked
+    }
+
     // MARK: - Sending
 
     private func send() async {
@@ -131,12 +156,7 @@ struct ComposeView: View {
         defer { sending = false }
         problem = nil
         // The descriptions follow the marks already in the text.
-        var marked = text
-        for shot in shots {
-            marked = marked.replacingOccurrences(of: shot.markPattern,
-                                                 with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
-        }
-        let markdown = Markdown.file(title: title, tags: tags, body: marked)
+        let markdown = Markdown.file(title: title, tags: tags, body: described(text))
         var files = shots.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
@@ -157,6 +177,11 @@ struct ComposeView: View {
     }
 }
 
+/// Which shot the viewer opens on.
+struct Looked: Identifiable {
+    let id: UUID
+}
+
 /// One shot's card: what it looks like, its name as the text names it
 /// and what it weighs, its description, and the way into the text.
 struct ShotCard: View {
@@ -164,31 +189,47 @@ struct ShotCard: View {
     let inText: Bool
     let insert: () -> Void
     let remove: () -> Void
+    /// The shot large, with its description under it.
+    var look: () -> Void = {}
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            if let image = UIImage(data: shot.kind == .video ? (shot.poster ?? Data()) : shot.data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 64, height: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(alignment: .bottomLeading) {
-                        if shot.kind == .video {
-                            Image(systemName: "play.fill")
-                                .font(.system(size: 10))
+            // The small picture is a key: behind it the shot is large enough
+            // to tell from the next one, and to describe.
+            Button(action: look) {
+                if let image = UIImage(data: shot.thumb ?? (shot.kind == .video ? (shot.poster ?? Data()) : shot.data)) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 84, height: 84)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(alignment: .bottomLeading) {
+                            if shot.kind == .video {
+                                Image(systemName: "play.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.white)
+                                    .padding(5)
+                                    .background(.black.opacity(0.55), in: Circle())
+                                    .padding(4)
+                            }
+                        }
+                        .overlay(alignment: .bottomTrailing) {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(5)
                                 .background(.black.opacity(0.55), in: Circle())
                                 .padding(4)
                         }
-                    }
-            } else if shot.kind == .video {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(Theme.line, lineWidth: 1)
-                    .frame(width: 64, height: 64)
-                    .overlay(Image(systemName: "film").foregroundStyle(Theme.muted))
+                } else {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Theme.line, lineWidth: 1)
+                        .frame(width: 84, height: 84)
+                        .overlay(Image(systemName: shot.kind == .video ? "film" : "photo").foregroundStyle(Theme.muted))
+                }
             }
+            .buttonStyle(PressStyle())
+            .accessibilityLabel(Text("Look at the picture"))
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(verbatim: shot.name).font(.mono(12, bold: false)).foregroundStyle(Theme.muted).lineLimit(1)

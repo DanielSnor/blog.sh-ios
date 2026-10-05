@@ -20,6 +20,9 @@ nonisolated struct Shot: Identifiable, Sendable {
     var poster: Data?
     /// False for a video that could not be converted and goes as it came.
     var converted = true
+    /// The shot small, for its card: drawn again with every letter typed
+    /// beside it, which the whole picture is too heavy for.
+    var thumb: Data?
 
     /// The shot as a line of markdown, a paragraph of its own. One mark or
     /// two: a picture is ![…](name), a video !![…](name).
@@ -51,6 +54,21 @@ nonisolated enum Pictures {
         CGImageDestinationAddImage(sink, image, [kCGImageDestinationLossyCompressionQuality: quality] as CFDictionary)
         guard CGImageDestinationFinalize(sink) else { return nil }
         return (out as Data, image.width, image.height)
+    }
+
+    /// The picture small, as JPEG: what a card shows.
+    static func thumbnail(_ original: Data, edge: Int = 480) -> Data? {
+        guard let source = CGImageSourceCreateWithData(original as CFData, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceThumbnailMaxPixelSize: edge,
+            kCGImageSourceCreateThumbnailWithTransform: true
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        let out = NSMutableData()
+        guard let sink = CGImageDestinationCreateWithData(out, UTType.jpeg.identifier as CFString, 1, nil) else { return nil }
+        CGImageDestinationAddImage(sink, image, [kCGImageDestinationLossyCompressionQuality: 0.75] as CFDictionary)
+        return CGImageDestinationFinalize(sink) ? out as Data : nil
     }
 
     /// A file name the receiver takes and a reader recognises: the

@@ -56,7 +56,7 @@ accent, what waits in the queue.
 
 | the wizard says | the app |
 |---|---|
-| New post | a title, the text with the marks `/write/` offers over it and a key that opens it over the whole screen for writing, the tags, pictures and video with their descriptions -- sent as one delivery, the post arrives as a draft |
+| New post | a title, the text with the marks `/write/` offers over it, a key that opens it over the whole screen for writing and a preview of the post as the blog would show it, the tags, pictures and video with their descriptions -- sent as one delivery, the post arrives as a draft |
 | A post -- edit the text, its properties and the actions on it | the last fifty posts, then the crossroads: the text, a language, the properties with every key of that screen |
 | The scheduled-post queue | the rows in publish order; up, down, carry to a position -- by its number or by dragging the row there -- publish now, another time, return to drafts |
 | The archive | newest first, with the type, state and tag filters, the search, and a post opening to its crossroads |
@@ -66,6 +66,16 @@ accent, what waits in the queue.
 Where the terminal asks a question, the app asks it too; where it
 rebuilds without asking, so does the app; where it asks whether to
 rebuild now, the app asks.
+
+## Looking before sending
+
+Two looks, before anything leaves the device. The preview is the post as
+the blog would show it, near enough: the text rendered the way the
+`/write/` page renders it -- the same markdown, the same boxes where a
+picture is missing or not on a line of its own -- in the blog's own
+stylesheets. And a picture chosen for a post is a key: behind it the
+shots stand one to a page and large, each with the line that describes it
+under it, to be written while looking at what it describes.
 
 ## What travels
 
@@ -125,6 +135,7 @@ SSH, is fetched by Xcode.
 
 What the app works out by itself is tested: the marks over the text,
 against the `/write/` page's own answers on some fifteen hundred cases;
+the preview, against what that page's own JavaScript renders;
 the line for `authorized_keys`; the icon nearest an accent; the engine's
 answers as they are read; the blogs as they are written down, and taken
 over from the settings of a build that had only one; a post's file, its

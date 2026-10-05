@@ -32,6 +32,16 @@
         }
       }
     },
+    "%@: a picture has to stand on a line of its own, with a blank line before it and after it -- the blog refuses the post otherwise": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: obrázek musí stát na vlastním řádku s prázdným řádkem před sebou i za sebou -- jinak blog příspěvek odmítne"
+          }
+        }
+      }
+    },
     "%@: the %@ text": {
       "localizations": {
         "cs": {
@@ -622,6 +632,16 @@
         }
       }
     },
+    "Look at the picture": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohlédnout obrázek"
+          }
+        }
+      }
+    },
     "Make a new key": {
       "localizations": {
         "cs": {
@@ -658,6 +678,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Markdown. Obrázek se vkládá jako ![popis](foto.jpg), video jako !![popis](klip.mp4) — jenom jméno, bez cesty."
+          }
+        }
+      }
+    },
+    "Near enough, not exact: the blog itself renders the post, and the draft's preview after sending is the real thing.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přibližně, ne přesně: příspěvek vykresluje až blog a skutečný náhled je náhled konceptu po odeslání."
           }
         }
       }
@@ -858,6 +888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevřít náhled"
+          }
+        }
+      }
+    },
+    "Picture %@ -- no preview on this device": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázek %@ -- v tomto zařízení bez náhledu"
           }
         }
       }
