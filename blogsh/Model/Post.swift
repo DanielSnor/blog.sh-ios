@@ -152,6 +152,13 @@ nonisolated enum Kept {
 
     static func named(_ name: String, in text: String) -> Bool { text.contains("(\(name))") }
 
+    /// What travels with the text: the shots it names. One picked and
+    /// never put into the text would arrive, stand in no post and lie in
+    /// the blog's incoming/ for good.
+    static func sent(_ shots: [Shot], text: String) -> [Shot] {
+        shots.filter { named($0.name, in: text) }
+    }
+
     /// The post's own media the text has stopped naming.
     static func dropped(media: [String], text: String) -> [String] {
         media.filter { !named($0, in: text) }

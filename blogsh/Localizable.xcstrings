@@ -392,12 +392,12 @@
         }
       }
     },
-    "Deleted (in trash, restore from Trash): %@": {
+    "Deleted": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Smazáno (je v koši, obnovíš ho z Koše): %@"
+            "value": "Smazáno"
           }
         }
       }
@@ -772,6 +772,16 @@
         }
       }
     },
+    "Not in the text — it will not be sent with the post.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Není v textu — s příspěvkem se neodešle."
+          }
+        }
+      }
+    },
     "Not now": {
       "localizations": {
         "cs": {
@@ -1038,6 +1048,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publikovat „%@“ teď?"
+          }
+        }
+      }
+    },
+    "Publish anyway": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikovat přesto"
           }
         }
       }
@@ -1402,6 +1422,16 @@
         }
       }
     },
+    "Schedule anyway": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naplánovat přesto"
+          }
+        }
+      }
+    },
     "Scheduled": {
       "localizations": {
         "cs": {
@@ -1672,6 +1702,16 @@
         }
       }
     },
+    "The post is in the trash and can be restored from there.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek je v koši a dá se odtud obnovit."
+          }
+        }
+      }
+    },
     "The post is live: saving rebuilds and deploys the site.": {
       "localizations": {
         "cs": {
@@ -1878,6 +1918,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tenhle příspěvek nemá staré adresy."
+          }
+        }
+      }
+    },
+    "This site publishes in more than one language and this post is not written in all of them yet: it would go out in one language only.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web vychází ve více jazycích a tenhle příspěvek ještě není napsaný ve všech: vyšel by jen v jednom."
           }
         }
       }

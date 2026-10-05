@@ -20,14 +20,8 @@ struct PropsView: View {
     @State private var newSlug = ""
     @State private var showingAddresses = false
     @State private var showingVersions = false
-    @State private var askingRebuild = false
-    @State private var notice: Notice?
-    @State private var announceAnyway = false
-
-    struct Notice: Identifiable {
-        let id = UUID()
-        let text: String
-    }
+    /// What the screen says after an action -- one thing, its question in it.
+    @State private var said: Said?
 
     var body: some View {
         PaperScreen {
@@ -106,19 +100,7 @@ struct PropsView: View {
                  ? "A draft has no public address yet; only its preview address changes."
                  : "The old address keeps answering: it redirects to the new one.")
         }
-        .alert("Rebuild and deploy the site now?", isPresented: $askingRebuild) {
-            Button("Rebuild") { Task { await rebuild() } }
-            Button("Not now", role: .cancel) {}
-        }
-        .alert(item: $notice) { notice in
-            if announceAnyway {
-                Alert(title: Text("Announce"), message: Text(notice.text),
-                      primaryButton: .default(Text("Announce anyway")) { Task { await announce(force: true) } },
-                      secondaryButton: .cancel())
-            } else {
-                Alert(title: Text(""), message: Text(notice.text), dismissButton: .default(Text("OK")))
-            }
-        }
+        .says($said)
     }
 
     // MARK: - The screen
@@ -250,38 +232,68 @@ struct PropsView: View {
     private func perform(_ action: PostAction) async {
         switch action {
         case .publish:
-            if await run(["publish", slug, "--yes"]) != nil { await load() }
+            await publish(anyway: false)
         case .unschedule:
-            if await run(["schedule", slug, "--cancel"]) != nil { await load() }
+            if let answer = await run(["schedule", slug, "--cancel"]) { await load(); tell(answer.warnings) }
         case .unpublish:
-            if await run(["unpublish", slug, "--yes"]) != nil { await load() }
+            if let answer = await run(["unpublish", slug, "--yes"]) { await load(); tell(answer.warnings) }
         case .announce:
             await announce(force: false)
         case .delete:
-            if let answer = await run(["delete", slug, "--yes"]) {
-                notice = Notice(text: String(localized: "Deleted (in trash, restore from Trash): \(answer.trash ?? "")"))
-                askingRebuild = true
+            if await run(["delete", slug, "--yes"]) != nil {
+                // The post is out of this screen's reach now. Said once, with
+                // the question the terminal asks next -- and whichever way
+                // that is answered, the screen is left: its keys would act
+                // on a post that is not there.
+                said = Said(title: String(localized: "Deleted"),
+                            text: String(localized: "The post is in the trash and can be restored from there.")
+                                + "\n\n" + String(localized: "Rebuild and deploy the site now?"),
+                            ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild(leaving: true) },
+                            after: { dismiss() })
             }
         default:
             break
         }
     }
 
+    /// [p]. On a site of more than one language the engine refuses a post
+    /// without words in one of them; the refusal is asked as a question,
+    /// and the answer is the flag the terminal would have been given.
+    private func publish(anyway: Bool) async {
+        var args = ["publish", slug, "--yes"]
+        if anyway { args.append("--allow-partial") }
+        let ask = Said.Ask(button: String(localized: "Publish anyway")) { await publish(anyway: true) }
+        if let answer = await run(args, anyway: anyway ? nil : ask) {
+            await load()
+            tell(answer.warnings)
+        }
+    }
+
+    /// The engine's own lines about what it did, when it had any.
+    private func tell(_ lines: [String]?) {
+        if let lines, !lines.isEmpty { said = Said(text: lines.joined(separator: "\n")) }
+    }
+
+    /// The question the terminal asks after a change the site does not show yet.
+    private func askRebuild(saying lines: [String]? = nil) {
+        said = Said(title: String(localized: "Rebuild and deploy the site now?"), text: (lines ?? []).joined(separator: "\n"),
+                    ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild() })
+    }
+
     private func announce(force: Bool) async {
-        announceAnyway = false
         var args = [props?.network == "bluesky" ? "bluesky" : "toot", slug]
         if force { args.append("--force") }
         do {
             busy = true
             defer { busy = false }
             let answer: ActionAnswer = try await Engine.shared.call(args)
-            notice = Notice(text: String(localized: "Announced: \(answer.url ?? "")"))
             await load()
+            said = Said(text: String(localized: "Announced: \(answer.url ?? "")"))
         } catch EngineError.refused(let refusal) where refusal.error == "outside_window" {
-            announceAnyway = true
-            notice = Notice(text: refusal.message)
+            said = Said(title: String(localized: "Announce"), text: refusal.message,
+                        ask: Said.Ask(button: String(localized: "Announce anyway")) { await announce(force: true) })
         } catch {
-            notice = Notice(text: error.localizedDescription)
+            said = Said(text: error.localizedDescription)
         }
     }
 
@@ -297,33 +309,38 @@ struct PropsView: View {
             let wasDraft = props?.state == .draft
             slug = answer.slug
             props = answer
-            if !wasDraft { askingRebuild = true }
+            if wasDraft { tell(answer.warnings) } else { askRebuild(saying: answer.warnings) }
         }
     }
 
-    private func rebuild() async {
+    /// `leaving`: the post this screen was about is gone, so once the
+    /// rebuild has said how it went, the screen goes too.
+    private func rebuild(leaving: Bool = false) async {
         busy = true
         defer { busy = false }
+        let then: (() -> Void)? = leaving ? { dismiss() } : nil
         do {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            notice = Notice(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."))
+            said = Said(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."),
+                        after: then)
         } catch {
-            notice = Notice(text: error.localizedDescription)
+            said = Said(text: error.localizedDescription, after: then)
         }
     }
 
-    /// Runs an action and hands back its answer, or shows why it was refused.
-    private func run(_ args: [String]) async -> ActionAnswer? {
+    /// Runs an action and hands back its answer, or says why it was
+    /// refused. `anyway`: what to offer when the refusal is the one a
+    /// second word overrides -- a post not written in every language.
+    private func run(_ args: [String], anyway: Said.Ask? = nil) async -> ActionAnswer? {
         busy = true
         defer { busy = false }
         do {
-            let answer: ActionAnswer = try await Engine.shared.call(args)
-            if let warnings = answer.warnings, !warnings.isEmpty {
-                notice = Notice(text: warnings.joined(separator: "\n"))
-            }
-            return answer
+            return try await Engine.shared.call(args)
+        } catch EngineError.refused(let refusal) where refusal.error == Partial.code && anyway != nil {
+            said = Said(text: Partial.words, ask: anyway)
+            return nil
         } catch {
-            notice = Notice(text: error.localizedDescription)
+            said = Said(text: error.localizedDescription)
             return nil
         }
     }
@@ -333,13 +350,9 @@ struct PropsView: View {
         busy = true
         defer { busy = false }
         do {
-            let answer: PropsAnswer = try await Engine.shared.call(args)
-            if let warnings = answer.warnings, !warnings.isEmpty {
-                notice = Notice(text: warnings.joined(separator: "\n"))
-            }
-            return answer
+            return try await Engine.shared.call(args)
         } catch {
-            notice = Notice(text: error.localizedDescription)
+            said = Said(text: error.localizedDescription)
             return nil
         }
     }
@@ -347,13 +360,13 @@ struct PropsView: View {
     private func write(_ args: [String], rebuildAsk: Bool) async {
         if let answer = await writeProps(args) {
             props = answer
-            if rebuildAsk { askingRebuild = true }
+            if rebuildAsk { askRebuild(saying: answer.warnings) } else { tell(answer.warnings) }
         }
     }
 
     private func afterWrite(rebuildAsk: Bool) async {
         await load()
-        if rebuildAsk { askingRebuild = true }
+        if rebuildAsk { askRebuild() }
     }
 
     private func load() async {

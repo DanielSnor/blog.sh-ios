@@ -117,6 +117,16 @@ import Testing
         #expect(Kept.isVideo("01.MOV") && Kept.isVideo("a.mp4") && !Kept.isVideo("a.jpg") && !Kept.isVideo("mov"))
     }
 
+    /// A shot picked and never put into the text would arrive, stand in no
+    /// post and lie in the blog's incoming/ for good: it does not go.
+    @Test func onlyTheShotsTheTextNamesAreSent() {
+        let a = shot("photo-1.jpg"), b = shot("photo-2.jpg"), clip = shot("video-3.mp4", kind: .video)
+        #expect(Kept.sent([a, b, clip], text: "![x](photo-2.jpg)\n\n!![y](video-3.mp4)").map(\.name) == ["photo-2.jpg", "video-3.mp4"])
+        #expect(Kept.sent([a, b], text: "no marks").isEmpty)
+        // The name has to be the whole of what the mark names.
+        #expect(Kept.sent([a], text: "![x](other-photo-1.jpg)").isEmpty)
+    }
+
     @Test func aPostWithoutPicturesHasNothingToLose() {
         #expect(!Kept.fewer(media: [], shots: [], text: "text"))
         #expect(Kept.dropped(media: [], text: "text").isEmpty)

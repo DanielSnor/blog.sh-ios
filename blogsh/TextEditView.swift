@@ -90,7 +90,7 @@ struct TextEditView: View {
                     .buttonStyle(PressStyle())
                     .disabled(importing || !entry.editable)
                 }
-                DeliveryNote(shots: shots, textBytes: text.utf8.count, maxMb: maxMb)
+                DeliveryNote(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb)
 
                 Button {
                     // The question is asked where the answer counts: a swap deletes
@@ -107,7 +107,7 @@ struct TextEditView: View {
                     Button("Save and delete them", role: .destructive) { Task { await save() } }
                 }
                 .disabled(saving || importing || !entry.editable || text == entry.text
-                          || Delivery.over(shots: shots, textBytes: text.utf8.count, maxMb: maxMb))
+                          || Delivery.over(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb))
                 .padding(.top, 22)
                 if let problem {
                     ProblemLine(text: problem)
@@ -229,7 +229,7 @@ struct TextEditView: View {
         saving = true
         defer { saving = false }
         problem = nil
-        var files = shots.map { DeliveryFile(name: $0.name, data: $0.data) }
+        var files = Kept.sent(shots, text: text).map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: "\(slug).md", data: Data(fileText().utf8)))
         do {
             let answers = try await Engine.shared.deliver(files)

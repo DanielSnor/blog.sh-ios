@@ -548,6 +548,53 @@ struct EmptyNote: View {
     }
 }
 
+/// What a screen has to say after an action, and what it may ask with it:
+/// one thing at a time. Two alerts raised together show one and lose the
+/// other -- a post was deleted, and the screen only asked about a rebuild
+/// -- so what follows an action is said as one, its question in it.
+struct Said: Identifiable {
+    struct Ask {
+        let button: String
+        var cancel: String = String(localized: "Cancel")
+        let run: () async -> Void
+    }
+
+    let id = UUID()
+    var title = ""
+    var text = ""
+    var ask: Ask?
+    /// When it is put away without acting on it.
+    var after: (() -> Void)?
+}
+
+extension View {
+    func says(_ said: Binding<Said?>) -> some View {
+        alert(said.wrappedValue?.title ?? "",
+              isPresented: Binding(get: { said.wrappedValue != nil }, set: { if !$0 { said.wrappedValue = nil } }),
+              presenting: said.wrappedValue) { one in
+            if let ask = one.ask {
+                Button(ask.button) { Task { await ask.run() } }
+                Button(ask.cancel, role: .cancel) { one.after?() }
+            } else {
+                Button("OK") { one.after?() }
+            }
+        } message: { one in
+            Text(verbatim: one.text)
+        }
+    }
+}
+
+/// A site that publishes in more than one language refuses to publish or
+/// schedule a post that has no words in one of them, unless it is told to
+/// (`--allow-partial`). At the desk that is a flag typed after reading the
+/// refusal; here it is the question the refusal becomes.
+enum Partial {
+    static let code = "partial_translation"
+    static var words: String {
+        String(localized: "This site publishes in more than one language and this post is not written in all of them yet: it would go out in one language only.")
+    }
+}
+
 /// A command row that is a button: it dims under the finger and does its one thing.
 struct Command: View {
     let label: Text

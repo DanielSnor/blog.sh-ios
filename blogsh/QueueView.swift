@@ -20,6 +20,7 @@ struct QueueView: View {
     @State private var carrying: QueueRow?
     @State private var carryTo = 1
     @State private var notice: String?
+    @State private var said: Said?
     @State private var rebuilding = false
 
     /// A post about to leave the queue, and which way.
@@ -136,6 +137,7 @@ struct QueueView: View {
         } message: {
             Text("The posts in between step back one slot each; the same times stay occupied.")
         }
+        .says($said)
         .alert("", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
             Button("OK") {}
         } message: {
@@ -197,11 +199,12 @@ struct QueueView: View {
         }
     }
 
-    private func leave(_ leaving: Leaving, compact: Bool) async {
+    private func leave(_ leaving: Leaving, compact: Bool, anyway: Bool = false) async {
         busy = true
         defer { busy = false }
         var args = leaving.publish ? ["publish", leaving.row.slug, "--yes"] : ["schedule", leaving.row.slug, "--cancel"]
         if compact { args.append("--compact") }
+        if anyway { args.append("--allow-partial") }
         do {
             let answer: ActionAnswer = try await Engine.shared.call(args)
             // The engine says what it did in its own words (the warnings carry
@@ -213,6 +216,11 @@ struct QueueView: View {
             // Publishing rebuilds by itself; a plan cancelled leaves the preview behind.
             if !leaving.publish { dirty = true }
             await load()
+        } catch EngineError.refused(let refusal) where refusal.error == Partial.code && leaving.publish && !anyway {
+            // Not written in every language the site publishes: asked, as the properties screen asks it.
+            said = Said(text: Partial.words, ask: Said.Ask(button: String(localized: "Publish anyway")) {
+                await leave(leaving, compact: compact, anyway: true)
+            })
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
         }

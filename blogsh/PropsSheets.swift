@@ -11,6 +11,7 @@ struct ScheduleSheet: View {
     @State private var date: Date = Date().addingTimeInterval(3600)
     @State private var problem: String?
     @State private var busy = false
+    @State private var said: Said?
 
     var body: some View {
         PaperScreen {
@@ -38,6 +39,7 @@ struct ScheduleSheet: View {
             }
         }
         .navigationTitle(scheduled ? "Reschedule" : "Schedule")
+        .says($said)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
         }
@@ -48,13 +50,19 @@ struct ScheduleSheet: View {
         }
     }
 
-    private func schedule() async {
+    /// `anyway`: on a site of more than one language, a post not written
+    /// in all of them is scheduled only when told to be.
+    private func schedule(anyway: Bool = false) async {
         busy = true
         defer { busy = false }
+        var args = ["schedule", slug, "--at", ISO8601DateFormatter.engine.string(from: date)]
+        if anyway { args.append("--allow-partial") }
         do {
-            let _: ActionAnswer = try await Engine.shared.call(["schedule", slug, "--at", ISO8601DateFormatter.engine.string(from: date)])
+            let _: ActionAnswer = try await Engine.shared.call(args)
             await done()
             dismiss()
+        } catch EngineError.refused(let refusal) where refusal.error == Partial.code && !anyway {
+            said = Said(text: Partial.words, ask: Said.Ask(button: String(localized: "Schedule anyway")) { await schedule(anyway: true) })
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
         }

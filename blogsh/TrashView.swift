@@ -11,8 +11,8 @@ struct TrashView: View {
     @State private var loading = false
     @State private var busy = false
     @State private var restoring: TrashRow?
-    @State private var askingRebuild = false
-    @State private var notice: String?
+    /// What the screen says after a restore -- one thing, its question in it.
+    @State private var said: Said?
 
     var body: some View {
         List {
@@ -56,15 +56,7 @@ struct TrashView: View {
         .navigationTitle("Trash")
         .task { await load() }
         .refreshable { await load() }
-        .alert("Rebuild and deploy the site now?", isPresented: $askingRebuild) {
-            Button("Rebuild") { Task { await rebuild() } }
-            Button("Not now", role: .cancel) {}
-        }
-        .alert("", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
-            Button("OK") {}
-        } message: {
-            Text(notice ?? "")
-        }
+        .says($said)
     }
 
     private func asking(_ row: TrashRow) -> Binding<Bool> {
@@ -82,12 +74,19 @@ struct TrashView: View {
             let args = ["restore", row.slug] + (row.state == "draft" ? ["--rebuild"] : [])
             let answer: ActionAnswer = try await Engine.shared.call(args)
             // The engine's own lines say it; the address only when it said nothing.
-            let said = answer.warnings ?? []
-            notice = said.isEmpty ? String(localized: "Restored: \(answer.url ?? row.slug)") : said.joined(separator: "\n")
+            let lines = answer.warnings ?? []
+            let words = lines.isEmpty ? String(localized: "Restored: \(answer.url ?? row.slug)") : lines.joined(separator: "\n")
             await load()
-            if answer.state == .published { askingRebuild = true }
+            // A published post is back in the archive and not yet on the site:
+            // that it is back, and the question about the site, as one.
+            if answer.state == .published {
+                said = Said(title: String(localized: "Rebuild and deploy the site now?"), text: words,
+                            ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild() })
+            } else {
+                said = Said(text: words)
+            }
         } catch {
-            notice = error.isCalledOff ? notice : error.localizedDescription
+            if !error.isCalledOff { said = Said(text: error.localizedDescription) }
         }
     }
 
@@ -96,9 +95,9 @@ struct TrashView: View {
         defer { busy = false }
         do {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            notice = answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run.")
+            said = Said(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."))
         } catch {
-            notice = error.isCalledOff ? notice : error.localizedDescription
+            if !error.isCalledOff { said = Said(text: error.localizedDescription) }
         }
     }
 

@@ -64,7 +64,7 @@ struct ComposeView: View {
                 .buttonStyle(PressStyle())
                 .disabled(importing)
             }
-            DeliveryNote(shots: shots, textBytes: text.utf8.count, maxMb: maxMb)
+            DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb)
 
             Button {
                 Task { await send() }
@@ -136,7 +136,10 @@ struct ComposeView: View {
         text = text.replacingOccurrences(of: #"\n*"# + shot.markPattern + #"\n*"#, with: "\n\n", options: .regularExpression)
     }
 
-    private var overweight: Bool { Delivery.over(shots: shots, textBytes: text.utf8.count, maxMb: maxMb) }
+    private var overweight: Bool { Delivery.over(shots: sent, textBytes: text.utf8.count, maxMb: maxMb) }
+
+    /// The shots the text names: only those go.
+    private var sent: [Shot] { Kept.sent(shots, text: text) }
 
     /// The text with every shot's mark carrying its description as it
     /// stands now: what will be sent, and what the preview shows.
@@ -157,7 +160,7 @@ struct ComposeView: View {
         problem = nil
         // The descriptions follow the marks already in the text.
         let markdown = Markdown.file(title: title, tags: tags, body: described(text))
-        var files = shots.map { DeliveryFile(name: $0.name, data: $0.data) }
+        var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
             let answers = try await Engine.shared.deliver(files)
@@ -253,6 +256,14 @@ struct ShotCard: View {
                         .foregroundStyle(Theme.danger)
                 }
                 .buttonStyle(PressStyle())
+                // Said on the card, before the post goes: what the text
+                // does not name stays behind.
+                if !inText {
+                    Text("Not in the text — it will not be sent with the post.")
+                        .font(.ui(12))
+                        .foregroundStyle(Theme.danger)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
