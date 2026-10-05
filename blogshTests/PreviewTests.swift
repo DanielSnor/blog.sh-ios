@@ -149,3 +149,53 @@ import Testing
         #expect(Preview.parts(of: "---\nnever closed").body == "---\nnever closed")
     }
 }
+
+/// How a post begins, where a post is picked.
+@Suite struct LedeTests {
+    @Test func upToTheCutTheAuthorMade() {
+        let lede = Lede.of("---\ntitle: T\n---\n\nFirst.\n\nSecond.\n\n//--more--//\n\nThird.")
+        #expect(lede.words == "First.\n\nSecond.")
+    }
+
+    @Test func withoutACutTheFirstParagraph() {
+        #expect(Lede.of("First line\nstill first.\n\nSecond.").words == "First line still first.")
+    }
+
+    @Test func theMarksAreTakenOff() {
+        let lede = Lede.of("## A **bold** [link](https://x.cz/a_(b)) with `code`, *em* and ~~gone~~\n\nrest")
+        #expect(lede.words == "A bold link with code, em and gone")
+        #expect(Lede.of("> quoted words").words == "quoted words")
+    }
+
+    /// A post that opens with its picture begins with its words all the
+    /// same; one that is only a picture is known by the description.
+    @Test func aPictureIsNotWordsButItsDescriptionIsKept() {
+        let both = Lede.of("![a cat](cat.jpg)\n\nThe words.")
+        #expect(both.words == "The words.")
+        #expect(both.picture == "a cat")
+        let only = Lede.of("---\ntags: x\n---\n\n![](one.jpg)\n\n!![the waterfall](clip.mp4)\n")
+        #expect(only.words == "")
+        #expect(only.picture == "the waterfall")
+    }
+
+    @Test func aPostWithNothingHasNothing() {
+        #expect(Lede.of("---\ntitle: T\n---\n\n") == Lede(words: "", picture: nil))
+        #expect(Lede.of("![](one.jpg)") == Lede(words: "", picture: nil))
+    }
+
+    @Test func codeIsNotHowAPostBegins() {
+        #expect(Lede.of("```\nputs 1\n```\n\nThen the words.").words == "Then the words.")
+    }
+
+    /// A cut on the first line leaves nothing above it: the post begins after it.
+    @Test func aCutAtTheVeryTopIsStepedOver() {
+        #expect(Lede.of("//--more--//\n\nAfter the cut.\n\nMore.").words == "After the cut.")
+    }
+
+    @Test func aLongBeginningEndsOnAWord() {
+        let long = Array(repeating: "slovo", count: 300).joined(separator: " ")
+        let words = Lede.of(long).words
+        #expect(words.count <= Lede.limit + 1)
+        #expect(words.hasSuffix("slovo…"))
+    }
+}

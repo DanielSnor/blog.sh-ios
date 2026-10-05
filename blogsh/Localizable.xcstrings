@@ -902,6 +902,16 @@
         }
       }
     },
+    "Picture: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázek: %@"
+          }
+        }
+      }
+    },
     "Pictures and video": {
       "localizations": {
         "cs": {
@@ -1412,6 +1422,16 @@
         }
       }
     },
+    "Search the archive.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledej v archivu."
+          }
+        }
+      }
+    },
     "Send to the blog as a draft": {
       "localizations": {
         "cs": {
@@ -1588,6 +1608,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klíč vzniká na tomhle zařízení a nikdy ho neopustí. Řádek výše dej na serveru do ~/.ssh/authorized_keys; forced command před ním je vše, co klíč smí spustit."
+          }
+        }
+      }
+    },
+    "The last %@ posts of %@, as ./blog.sh offers them. Looking for an older one?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posledních %1$@ příspěvků z %2$@, stejně jako v ./blog.sh. Hledáš starší?"
           }
         }
       }

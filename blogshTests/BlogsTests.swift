@@ -8,7 +8,13 @@ import Testing
     private func shelf(_ body: (UserDefaults) throws -> Void) rethrows {
         let name = "blogsh-tests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
-        defer { defaults.removePersistentDomain(forName: name) }
+        defer {
+            defaults.removePersistentDomain(forName: name)
+            // Emptying the domain leaves its file behind, one a test.
+            if let library = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
+                try? FileManager.default.removeItem(at: library.appendingPathComponent("Preferences/\(name).plist"))
+            }
+        }
         try body(defaults)
     }
 

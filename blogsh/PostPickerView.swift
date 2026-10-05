@@ -7,6 +7,8 @@ struct PostPickerView: View {
     /// The languages the site publishes beyond its own, for the crossroads.
     var languages: [String] = []
     @State private var posts: [PostRow] = []
+    /// How many the blog has in all: the list is only its newest.
+    @State private var total = 0
     @State private var problem: String?
     @State private var loading = false
 
@@ -27,6 +29,24 @@ struct PostPickerView: View {
                 }
                 .navigationLinkIndicatorVisibility(.hidden)
                 .paperRow()
+            }
+            // Why the list ends here, and where the rest is: said once
+            // there is a rest. The whole of it is the way to the archive,
+            // with its search already open.
+            if total > posts.count {
+                NavigationLink {
+                    ArchiveView(languages: languages, baseURL: Blogs.shared.current?.url ?? "", searching: true)
+                } label: {
+                    (Text("The last \(String(posts.count)) posts of \(total.formatted()), as ./blog.sh offers them. Looking for an older one?")
+                        .foregroundStyle(Theme.muted)
+                     + Text(verbatim: " ")
+                     + Text("Search the archive.").foregroundStyle(.tint))
+                        .font(.ui(13))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 14)
+                }
+                .navigationLinkIndicatorVisibility(.hidden)
+                .paperRow(rule: false)
             }
         }
         .paperList()
@@ -51,6 +71,7 @@ struct PostPickerView: View {
         do {
             let answer: ListAnswer = try await Engine.shared.call(["list"])
             posts = Array(answer.posts.prefix(Self.recentCount))
+            total = answer.posts.count
             problem = nil
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
@@ -67,16 +88,53 @@ struct PostCrossroadsView: View {
     @Environment(\.openURL) private var openURL
     @State private var looking = false
     @State private var problem: String?
+    /// The post's text as the editor would open it: where the lede is read
+    /// from, and handed on to the editor so it need not ask again.
+    @State private var entry: EditEntry?
+    @State private var reading = false
 
     var body: some View {
         PaperScreen {
             PostHeading(title: post.title ?? post.slug, detail: post.slug)
+            // Which post this is, before anything is done to it: when it is
+            // from, what state it is in, and how it begins.
+            HStack(spacing: 8) {
+                if let day = post.day {
+                    Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
+                        .font(.mono(12, bold: post.scheduled))
+                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
+                }
+                StateBadge(post: post)
+                Text(verbatim: post.tags.isEmpty ? post.type : post.tags.joined(separator: ", "))
+                    .font(.ui(13))
+                    .foregroundStyle(Theme.muted)
+                    .lineLimit(1)
+            }
+            .padding(.top, 10)
+            Group {
+                if let text = entry?.text {
+                    let lede = Lede.of(text)
+                    if !lede.words.isEmpty {
+                        Text(verbatim: lede.words).foregroundStyle(Theme.ink).lineLimit(9)
+                    } else if let picture = lede.picture {
+                        Text("Picture: \(picture)").foregroundStyle(Theme.muted)
+                    } else {
+                        Text("(the post has no text)").foregroundStyle(Theme.muted)
+                    }
+                } else if reading {
+                    ProgressView()
+                }
+            }
+            .font(.ui(15))
+            .lineSpacing(3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
             // The prompt's words: "Edit what? [Enter] the text  [v] properties and
             // actions". The text is the editor's and comes with it.
             SectionLabel("Edit what?")
             Plate {
                 NavigationLink {
-                    TextEditView(slug: post.slug)
+                    TextEditView(slug: post.slug, loaded: entry)
                 } label: {
                     CommandRow("the text", symbol: "text.alignleft", leads: true)
                 }
@@ -113,8 +171,22 @@ struct PostCrossroadsView: View {
             }
         }
         .navigationTitle(post.title ?? post.slug)
+        // Every time the screen is come to, not once: on the way back from
+        // the editor the text may be another, and so is the version a save
+        // has to name.
+        .task { await read() }
     }
 
+    /// `edit <slug> --json`: the text handed out, nothing written. A
+    /// failure costs the lede and nothing else -- the keys below ask for
+    /// themselves.
+    private func read() async {
+        reading = true
+        defer { reading = false }
+        if let answer: EditAnswer = try? await Engine.shared.call(["edit", post.slug]) {
+            entry = answer.post
+        }
+    }
 
     /// The address is the engine's to say: a post can carry one of its own.
     private func show() async {

@@ -318,3 +318,85 @@ nonisolated enum Preview {
         return (title, String(text[end.upperBound...]))
     }
 }
+
+/// How a post begins, in plain words: what stands under its title where a
+/// post is picked, to tell it from the one beside it. The part before the
+/// line that cuts the post in two, where it has one; its first paragraph
+/// where it has none. The marks are taken off -- this is read, not
+/// rendered -- and a post that is only a picture is known by the
+/// picture's description.
+nonisolated struct Lede: Equatable, Sendable {
+    /// The words, or nothing when the post has none of its own.
+    let words: String
+    /// The first picture's or video's description, for a post without words.
+    let picture: String?
+
+    static let limit = 600
+
+    private static func regex(_ pattern: String) -> NSRegularExpression { try! NSRegularExpression(pattern: pattern) }
+    private static let cut = regex(#"^[ \t]*//--more--//[ \t]*$"#)
+    private static let media = regex(#"^!{1,2}\[([^\n]*)\]\(([^)\s]+)\)\s*$"#)
+    private static let fence = regex("^```")
+    private static let labelled = regex(#"!{0,2}\[([^\]]*)\]\((?:\([^()\s]*\)|[^)\s])+\)"#)
+    private static let lead = regex(#"^\s*(?:#{1,6}\s+|>\s?)"#)
+    private static let emphasis = regex(#"(^|[^*])\*([^*\n]+)\*(?!\*)"#)
+
+    private static func has(_ re: NSRegularExpression, _ line: String) -> Bool {
+        re.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) != nil
+    }
+
+    private static func sub(_ re: NSRegularExpression, _ text: String, _ template: String) -> String {
+        re.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: template)
+    }
+
+    /// A line of the text as words: a link is its label, a heading or a
+    /// quote its text, and what was bold or struck is just said.
+    static func plain(_ line: String) -> String {
+        var out = sub(lead, line, "")
+        out = sub(labelled, out, "$1")
+        out = out.replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "~~", with: "")
+        out = sub(emphasis, out, "$1$2")
+        return out.replacingOccurrences(of: "`", with: "")
+    }
+
+    /// Of a text as the editor opens it, header and all.
+    static func of(_ text: String) -> Lede {
+        let body = Preview.parts(of: text).body.replacingOccurrences(of: "\r\n", with: "\n")
+        var lines = body.components(separatedBy: "\n")
+        let teaser = lines.firstIndex { has(cut, $0) }
+        if let teaser { lines = Array(lines[..<teaser]) }
+        var paragraphs: [String] = [], current: [String] = []
+        var picture: String?
+        var fenced = false
+        func close() {
+            if !current.isEmpty { paragraphs.append(current.joined(separator: " ")) }
+            current = []
+        }
+        for line in lines {
+            if has(fence, line) { close(); fenced.toggle(); continue }
+            if fenced { continue }
+            if let match = media.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) {
+                close()
+                let alt = Range(match.range(at: 1), in: line).map { String(line[$0]).trimmingCharacters(in: .whitespaces) } ?? ""
+                if picture == nil, !alt.isEmpty { picture = alt }
+                continue
+            }
+            let words = plain(line).trimmingCharacters(in: .whitespaces)
+            if words.isEmpty { close() } else { current.append(words) }
+        }
+        close()
+        // Up to the cut the author made, all of it; without one, the first paragraph.
+        var words = (teaser == nil ? paragraphs.first ?? "" : paragraphs.joined(separator: "\n\n"))
+        // A cut at the very top leaves nothing above it: then the post begins after it.
+        if words.isEmpty, teaser != nil {
+            let rest = Lede.of(body.components(separatedBy: "\n").filter { !has(cut, $0) }.joined(separator: "\n"))
+            return Lede(words: rest.words, picture: picture ?? rest.picture)
+        }
+        if words.count > limit {
+            let head = words.prefix(limit)
+            let end = head.lastIndex(where: { $0 == " " || $0 == "\n" }) ?? head.endIndex
+            words = head[..<end].trimmingCharacters(in: .whitespacesAndNewlines) + "…"
+        }
+        return Lede(words: words, picture: picture)
+    }
+}

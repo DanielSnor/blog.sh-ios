@@ -9,6 +9,10 @@ import PhotosUI
 /// gets its preview rebuilt; a published post is rebuilt and deployed.
 struct TextEditView: View {
     let slug: String
+    /// The text already handed out to the screen before this one, so the
+    /// first look need not ask the engine again.
+    var loaded: EditEntry?
+    @State private var tookLoaded = false
     /// The receiver's ceiling on one delivery, as the blog last said it.
     private var maxMb: Int { Blogs.shared.current?.maxMb ?? 24 }
     @Environment(\.dismiss) private var dismiss
@@ -162,6 +166,14 @@ struct TextEditView: View {
     }
 
     private func load() async {
+        // Once: after a save the text is asked for afresh, with its new version.
+        if let loaded, !tookLoaded, let handed = loaded.text {
+            tookLoaded = true
+            entry = loaded
+            text = handed
+            return
+        }
+        tookLoaded = true
         do {
             let answer: EditAnswer = try await Engine.shared.call(["edit", slug])
             entry = answer.post

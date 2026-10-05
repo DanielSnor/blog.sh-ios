@@ -57,7 +57,7 @@ accent, what waits in the queue.
 | the wizard says | the app |
 |---|---|
 | New post | a title, the text with the marks `/write/` offers over it, a key that opens it over the whole screen for writing and a preview of the post as the blog would show it, the tags, pictures and video with their descriptions -- sent as one delivery, the post arrives as a draft |
-| A post -- edit the text, its properties and the actions on it | the last fifty posts, then the crossroads: the text, a language, the properties with every key of that screen |
+| A post -- edit the text, its properties and the actions on it | the last fifty posts -- under them, that they are the last fifty and that the archive has the rest -- then the crossroads: how the post begins, to know it is the one meant, and under that the text, a language, the properties with every key of that screen |
 | The scheduled-post queue | the rows in publish order; up, down, carry to a position -- by its number or by dragging the row there -- publish now, another time, return to drafts |
 | The archive | newest first, with the type, state and tag filters, the search, and a post opening to its crossroads |
 | Trash | what is in it, a row restoring its post |
