@@ -274,7 +274,8 @@ struct PropsView: View {
 
     /// Away from a post that is no longer there -- this screen, and the one before it when that is the post's too.
     private func leave() {
-        if let gone { gone() } else { dismiss() }
+        gone?()
+        dismiss()
     }
 
     /// The engine's own lines about what it did, when it had any.

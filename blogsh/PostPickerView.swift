@@ -95,6 +95,10 @@ struct PostCrossroadsView: View {
     /// from, and handed on to the editor so it need not ask again.
     @State private var entry: EditEntry?
     @State private var reading = false
+    /// The post was deleted from its properties: this screen is about a
+    /// post that is not there, and leaves once it is in front again -- a
+    /// screen under another cannot be left.
+    @State private var deleted = false
 
     var body: some View {
         PaperScreen {
@@ -153,8 +157,8 @@ struct PostCrossroadsView: View {
                 }
                 NavigationLink {
                     // A post deleted from its properties takes this screen with
-                    // it: both are left, and the list reads itself again.
-                    PropsView(slug: post.slug, gone: { gone?(); dismiss() })
+                    // it, and the list reads itself again.
+                    PropsView(slug: post.slug, gone: { deleted = true })
                 } label: {
                     CommandRow("properties and actions", symbol: "slider.horizontal.3", leads: true)
                 }
@@ -186,6 +190,13 @@ struct PostCrossroadsView: View {
     /// failure costs the lede and nothing else -- the keys below ask for
     /// themselves.
     private func read() async {
+        if deleted {
+            // Back in front, on the way out: after the screen above has gone.
+            try? await Task.sleep(for: .milliseconds(500))
+            gone?()
+            dismiss()
+            return
+        }
         reading = true
         defer { reading = false }
         if let answer: EditAnswer = try? await Engine.shared.call(["edit", post.slug]) {
