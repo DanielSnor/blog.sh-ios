@@ -7,6 +7,9 @@ import SwiftUI
 /// command the key calls, then reads the screen again.
 struct PropsView: View {
     @State var slug: String
+    /// Said to the screen this one was opened from, once the post is
+    /// deleted: that screen is about the same post, and leaves with it.
+    var gone: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     @State private var props: PropsAnswer?
     @State private var problem: String?
@@ -249,7 +252,7 @@ struct PropsView: View {
                             text: String(localized: "The post is in the trash and can be restored from there.")
                                 + "\n\n" + String(localized: "Rebuild and deploy the site now?"),
                             ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild(leaving: true) },
-                            after: { dismiss() })
+                            after: { leave() })
             }
         default:
             break
@@ -267,6 +270,11 @@ struct PropsView: View {
             await load()
             tell(answer.warnings)
         }
+    }
+
+    /// Away from a post that is no longer there -- this screen, and the one before it when that is the post's too.
+    private func leave() {
+        if let gone { gone() } else { dismiss() }
     }
 
     /// The engine's own lines about what it did, when it had any.
@@ -318,7 +326,7 @@ struct PropsView: View {
     private func rebuild(leaving: Bool = false) async {
         busy = true
         defer { busy = false }
-        let then: (() -> Void)? = leaving ? { dismiss() } : nil
+        let then: (() -> Void)? = leaving ? { leave() } : nil
         do {
             let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
             said = Said(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."),

@@ -113,7 +113,7 @@ struct ArchiveView: View {
         }
         .paperList()
         .navigationDestination(for: PostRow.self) { post in
-            PostCrossroadsView(post: post, languages: languages)
+            PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
         }
         .sheet(item: $previewing) { post in
             NavigationStack { PostPreviewView(post: post, baseURL: baseURL) }

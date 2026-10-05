@@ -51,7 +51,7 @@ struct PostPickerView: View {
         }
         .paperList()
         .navigationDestination(for: PostRow.self) { post in
-            PostCrossroadsView(post: post, languages: languages)
+            PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
         }
         .overlay {
             if loading && posts.isEmpty {
@@ -85,7 +85,10 @@ struct PostPickerView: View {
 struct PostCrossroadsView: View {
     let post: PostRow
     var languages: [String] = []
+    /// Said to the list the post was picked from, when the post is deleted.
+    var gone: (() -> Void)?
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
     @State private var looking = false
     @State private var problem: String?
     /// The post's text as the editor would open it: where the lede is read
@@ -149,7 +152,9 @@ struct PostCrossroadsView: View {
                     }
                 }
                 NavigationLink {
-                    PropsView(slug: post.slug)
+                    // A post deleted from its properties takes this screen with
+                    // it: both are left, and the list reads itself again.
+                    PropsView(slug: post.slug, gone: { gone?(); dismiss() })
                 } label: {
                     CommandRow("properties and actions", symbol: "slider.horizontal.3", leads: true)
                 }
