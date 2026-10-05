@@ -3,18 +3,16 @@ import Testing
 @testable import blogsh
 
 /// The blogs the app holds, and how they are written down.
-@Suite struct BlogsTests {
-    /// Defaults of the test's own, gone when it is over.
+@Suite(.serialized) struct BlogsTests {
+    /// Defaults of the tests' own, empty before a test and after it. One
+    /// name for all of them: the system leaves a file behind for every
+    /// domain it has ever been asked for, and a name a test would leave a
+    /// file a test. That is also why the suite runs one test at a time.
     private func shelf(_ body: (UserDefaults) throws -> Void) rethrows {
-        let name = "blogsh-tests-\(UUID().uuidString)"
+        let name = "app.blogsh.ios.tests"
         let defaults = UserDefaults(suiteName: name)!
-        defer {
-            defaults.removePersistentDomain(forName: name)
-            // Emptying the domain leaves its file behind, one a test.
-            if let library = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
-                try? FileManager.default.removeItem(at: library.appendingPathComponent("Preferences/\(name).plist"))
-            }
-        }
+        defaults.removePersistentDomain(forName: name)
+        defer { defaults.removePersistentDomain(forName: name) }
         try body(defaults)
     }
 
