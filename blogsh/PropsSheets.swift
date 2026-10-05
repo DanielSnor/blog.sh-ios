@@ -227,7 +227,7 @@ struct AddressesSheet: View {
         }
         .paperList()
         .overlay {
-            if addresses.isEmpty { EmptyNote(symbol: "link", title: "This post has no old addresses.") }
+            if addresses.isEmpty { EmptyNote(symbol: "link", title: "This post has no old addresses.", room: .part) }
         }
         .navigationTitle("Old links")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
@@ -293,7 +293,7 @@ struct VersionsSheet: View {
         }
         .paperList()
         .overlay {
-            if loaded && versions.isEmpty { EmptyNote(symbol: "clock.arrow.circlepath", title: "No earlier versions yet") }
+            if loaded && versions.isEmpty { EmptyNote(symbol: "clock.arrow.circlepath", title: "No earlier versions yet", room: .part) }
         }
         .navigationTitle("Earlier versions")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }

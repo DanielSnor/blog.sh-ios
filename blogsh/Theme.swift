@@ -496,23 +496,51 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// A screen with nothing to show says so, quietly, where the rows would be.
+/// A screen with nothing to show says so where the rows would be -- as
+/// loudly as the room it stands in is large, and no louder. Three rooms:
+/// the column beside the menu, where the note is an invitation and the
+/// whole of what is there; a screen of its own -- an empty queue, an empty
+/// trash -- where it fills the place without outweighing the screen's
+/// name, a little larger where the screen is wide; and a part of a
+/// screen -- a sheet's list, a search that found nothing with the keyboard
+/// up -- where it stays the small remark it was.
 struct EmptyNote: View {
+    enum Room { case welcome, screen, part }
+
     let symbol: String
     let title: LocalizedStringKey
     var detail: LocalizedStringKey?
-    /// Where the note has a whole column to itself -- beside the menu on a
-    /// wide screen -- it is drawn to the size of that room.
-    var large = false
+    /// A screen of its own unless it is said otherwise.
+    var room: Room = .screen
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private var wide: Bool { sizeClass == .regular }
+
+    private var mark: CGFloat {
+        switch room {
+        case .welcome: 104
+        case .screen: wide ? 64 : 46
+        case .part: 26
+        }
+    }
+
+    private var words: CGFloat {
+        switch room {
+        case .welcome: 21
+        case .screen: wide ? 19 : 17
+        case .part: 16
+        }
+    }
 
     var body: some View {
-        VStack(spacing: large ? 22 : 8) {
+        VStack(spacing: room == .welcome ? 22 : room == .screen ? 14 : 8) {
             Image(systemName: symbol)
-                .font(.system(size: large ? 104 : 26, weight: large ? .thin : .light))
+                .font(.system(size: mark, weight: room == .part ? .light : .thin))
                 .foregroundStyle(Theme.muted)
-            Text(title).font(.ui(large ? 21 : 16, weight: .medium)).foregroundStyle(Theme.ink)
+            Text(title).font(.ui(words, weight: .medium)).foregroundStyle(Theme.ink)
             if let detail {
-                Text(detail).font(.ui(14)).foregroundStyle(Theme.muted)
+                Text(detail).font(.ui(room == .part ? 14 : 15)).foregroundStyle(Theme.muted)
+                    .frame(maxWidth: 420)
             }
         }
         .multilineTextAlignment(.center)

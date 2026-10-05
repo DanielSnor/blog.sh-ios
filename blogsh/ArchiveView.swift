@@ -123,7 +123,9 @@ struct ArchiveView: View {
             if loading && posts.isEmpty {
                 ProgressView()
             } else if !loading && shown.isEmpty && problem == nil && searchingFor == nil {
-                EmptyNote(symbol: "tray", title: posts.isEmpty ? "No posts" : "Nothing matches")
+                // An archive with nothing in it is the screen; a search or a filter
+                // that left nothing is a remark under the pills, the keyboard maybe up.
+                EmptyNote(symbol: "tray", title: posts.isEmpty ? "No posts" : "Nothing matches", room: posts.isEmpty ? .screen : .part)
             }
         }
         .navigationTitle("The archive")
