@@ -116,7 +116,7 @@ struct QueueView: View {
             if loading && rows.isEmpty {
                 ProgressView()
             } else if !loading && rows.isEmpty && problem == nil {
-                EmptyNote(symbol: "calendar.badge.clock", title: "The queue is empty",
+                EmptyNote(symbol: "calendar", title: "The queue is empty",
                           detail: "A draft is scheduled from its properties, or with ./blog.sh schedule.")
             }
         }
