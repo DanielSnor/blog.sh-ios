@@ -74,7 +74,7 @@ struct TrashView: View {
                                 }
                         }
                     }
-                    Hint("Both are for good. Older versions are what a post said before its recent saves; each post keeps its newest.")
+                    Hint("What is cleared out is gone for good. Older versions are what a post said before its recent saves; each post keeps its newest.")
                 }
                 .padding(.bottom, 18)
                 .paperRow(rule: false)

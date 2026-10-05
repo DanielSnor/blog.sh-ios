@@ -262,16 +262,6 @@
         }
       }
     },
-    "Both are for good. Older versions are what a post said before its recent saves; each post keeps its newest.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Obojí je nadobro. Starší verze jsou to, co příspěvek říkal před posledními uloženími; každému zůstane ta nejnovější."
-          }
-        }
-      }
-    },
     "Build every page again": {
       "localizations": {
         "cs": {
@@ -2128,6 +2118,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Co chceš dělat?"
+          }
+        }
+      }
+    },
+    "What is cleared out is gone for good. Older versions are what a post said before its recent saves; each post keeps its newest.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co se uklidí, je pryč nadobro. Starší verze jsou to, co příspěvek říkal před posledními uloženími; každému zůstane ta nejnovější."
           }
         }
       }
