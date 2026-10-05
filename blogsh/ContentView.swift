@@ -411,7 +411,12 @@ struct HomeView: View {
 
                 Button { open(.browse, nil, true) } label: {
                     Card(capsule: true) {
-                        Text(verbatim: "/").font(.mono(13 * k)).foregroundStyle(.tint)
+                        // A glass, not the terminal's own key for it: a slash says
+                        // "search" only to somebody who knows the terminal.
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 13 * k, weight: .semibold))
+                            .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
                         Text("Search the archive").engineLabel(12 * k).foregroundStyle(Theme.muted)
                     }
                 }
