@@ -69,7 +69,8 @@ rebuild now, the app asks.
 
 ## Looking before sending
 
-Two looks, before anything leaves the device. The preview is the post as
+Two looks, before anything leaves the device. The preview -- under the text
+of a new post, of a post being edited, of a translation -- is the post as
 the blog would show it, near enough: the text rendered the way the
 `/write/` page renders it -- the same markdown, the same boxes where a
 picture is missing or not on a line of its own -- in the blog's own

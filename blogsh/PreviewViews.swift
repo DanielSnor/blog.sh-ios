@@ -9,11 +9,13 @@ struct PreviewSheet: View {
     let title: String
     let markdown: String
     let shown: [String: Preview.Shown]
+    /// The language the text is in, when it is not the reader's own: a translation's.
+    var lang: String?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         let site = Blogs.shared.current?.url ?? ""
-        let lang = Locale.current.language.languageCode?.identifier ?? "en"
+        let lang = lang ?? Locale.current.language.languageCode?.identifier ?? "en"
         let page = Preview.document(title: title, body: Preview.render(markdown, shots: shown, words: Preview.spoken), lang: lang)
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {

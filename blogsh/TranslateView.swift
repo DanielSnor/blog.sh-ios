@@ -17,6 +17,7 @@ struct TranslateView: View {
     @State private var problem: String?
     @State private var saved: ActionAnswer?
     @State private var confirmingRemoval = false
+    @State private var previewing = false
 
     private var languageName: String { Locale.current.localizedString(forLanguageCode: lang) ?? lang }
 
@@ -46,6 +47,10 @@ struct TranslateView: View {
                 Plate {
                     PaperEditor(text: $text, minHeight: 280)
                 }
+                Plate {
+                    Command("Preview", symbol: "eye") { previewing = true }
+                }
+                .padding(.top, 10)
 
                 Button {
                     Task { await save(text) }
@@ -87,6 +92,13 @@ struct TranslateView: View {
         .overlay { if entry == nil && problem == nil { ProgressView() } }
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
+        .sheet(isPresented: $previewing) {
+            // The translation's own title, or the post's while it has none;
+            // the pictures are the post's, from beside its page on the blog.
+            let parts = Preview.parts(of: text)
+            PreviewSheet(title: parts.title.isEmpty ? (entry?.title ?? "") : parts.title, markdown: parts.body,
+                         shown: Preview.shown(media: entry?.media ?? [], beside: entry?.preview ?? "/"), lang: lang)
+        }
     }
 
     private func load() async {
