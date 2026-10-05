@@ -95,6 +95,9 @@ nonisolated enum Preview {
     // MARK: - blocks
 
     private static let fence = regex("^```")
+    /// The line that splits a post in two -- what a list of posts shows of
+    /// it, and the rest -- as the engine reads it: alone on its line.
+    private static let teaserEnd = regex(#"^[ \t]*//--more--//[ \t]*$"#)
     private static let heading = regex(#"^(#{1,3})\s+(.+)$"#)
     private static let clip = regex(#"^!!\[([^\n]*)\]\(([^)\s]+)\)\s*$"#)
     private static let picture = regex(#"^!\[([^\n]*)\]\(([^)\s]+)\)\s*$"#)
@@ -135,6 +138,15 @@ nonisolated enum Preview {
                 i += 1
                 html.append("<pre class=\"code-block\"><code>" + escape(code.joined(separator: "\n")) + "</code></pre>")
                 continue
+            }
+            // The one place this leaves the page's own rendering: there the
+            // line is printed as words. Here it is what it means on the
+            // blog -- nothing to read, a place where the post is cut -- so
+            // it is drawn as a hairline.
+            if has(teaserEnd, line) {
+                flush()
+                html.append("<hr class=\"teaser-end\">")
+                i += 1; continue
             }
             if let m = groups(heading, line) {
                 flush()
@@ -213,7 +225,8 @@ nonisolated enum Preview {
         return "<!doctype html><html lang=\"" + escape(lang) + "\"><head><meta charset=\"utf-8\">"
             + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><base href=\"/\">" + links
             + "<style>body{margin:0;padding:1rem}figure{margin:1rem 0}figure img,figure video{max-width:100%;height:auto}"
-            + ".no-preview{padding:1rem;border:1px dashed currentColor;opacity:.6;font-size:.9em}</style></head>"
+            + ".no-preview{padding:1rem;border:1px dashed currentColor;opacity:.6;font-size:.9em}"
+            + "hr.teaser-end{border:0;border-top:1px solid currentColor;opacity:.3;margin:1.5rem 0}</style></head>"
             + "<body><main><article><div class=\"post-header\">" + heading + "</div><div class=\"post-body\">"
             + body + "</div></article></main></body></html>"
     }

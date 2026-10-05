@@ -26,6 +26,20 @@ import Testing
         }
     }
 
+    /// The one departure from the page: the line that cuts a post in two
+    /// is drawn as a hairline, not printed as words.
+    @Test func theLineThatCutsAPostIsAHairline() {
+        #expect(Preview.render("Intro.\n\n//--more--//\n\nRest.") == "<p>Intro.</p>\n<hr class=\"teaser-end\">\n<p>Rest.</p>")
+        // Alone on its line is enough, as the engine reads it: no blank lines needed, spaces around it allowed.
+        #expect(Preview.render("Intro.\n  //--more--//\t\nRest.") == "<p>Intro.</p>\n<hr class=\"teaser-end\">\n<p>Rest.</p>")
+    }
+
+    @Test func theSameWordsElsewhereStayWords() {
+        #expect(Preview.render("see //--more--// here") == "<p>see //--more--// here</p>")
+        #expect(Preview.render("```\n//--more--//\n```") == "<pre class=\"code-block\"><code>//--more--//</code></pre>")
+        #expect(Preview.document(title: "", body: "", lang: "en").contains("hr.teaser-end{"))
+    }
+
     @Test func whatWasTypedCannotBecomeMarkup() {
         #expect(Preview.render("<script>alert(1)</script>") == "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>")
         #expect(!Preview.render("[x](javascript:alert(1))").contains("href"))
