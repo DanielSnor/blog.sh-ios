@@ -84,6 +84,7 @@ struct ContentView: View {
         NavigationSplitView(columnVisibility: $columns, preferredCompactColumn: $column) {
             home(roomy: false)
                 .toolbar(removing: single ? .sidebarToggle : nil)
+                .modifier(ColumnForType())
         } detail: {
             // A stack of its own: the screens push further screens (a post,
             // then its properties), and the split view's detail column does
@@ -659,6 +660,18 @@ struct FactLine: View {
 
 /// Two thirds of the screen's width, in its middle: the first screen as a
 /// page of its own on a wide screen held upright.
+/// Type the app enlarges by its own hand needs a wider column to stand
+/// in; where the system enlarges it, the column is the system's too.
+private struct ColumnForType: ViewModifier {
+    func body(content: Content) -> some View {
+        if TypeScale.ownHand {
+            content.navigationSplitViewColumnWidth(ideal: 320 * (1 + (TypeScale.shared.factor - 1) * 0.6))
+        } else {
+            content
+        }
+    }
+}
+
 private struct TwoThirds: ViewModifier {
     let on: Bool
 

@@ -12,7 +12,6 @@ struct PreviewSheet: View {
     /// The language the text is in, when it is not the reader's own: a translation's.
     var lang: String?
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(TextSize.key) private var kept = TextSize.system.rawValue
 
     var body: some View {
         let site = Blogs.shared.current?.url ?? ""
@@ -28,7 +27,7 @@ struct PreviewSheet: View {
             .padding(.horizontal, Theme.gutter)
             .padding(.top, 18)
             Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 10)
-            WebPage(html: page, base: URL(string: site), zoom: TextSize(kept: kept).zoom)
+            WebPage(html: page, base: URL(string: site), zoom: TypeScale.shared.size.zoom)
             Rectangle().fill(Theme.line).frame(height: 1)
             Hint("Near enough, not exact: the blog itself renders the post, and the draft's preview after sending is the real thing.")
                 .padding(.horizontal, Theme.gutter)

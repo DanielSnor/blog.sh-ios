@@ -72,22 +72,62 @@ nonisolated enum Typeface {
     }
 }
 
+/// The size of the type where the app sets it by its own hand: an iPad
+/// app on a Mac, which the system gives one size of type and no way to
+/// another. Everywhere else the system enlarges the faces itself, and
+/// this only keeps what was chosen.
+@Observable final class TypeScale {
+    static let shared = TypeScale()
+
+    /// The system has no larger type to give here. (The flag is for
+    /// seeing the Mac's way in a simulator.)
+    static let ownHand: Bool = {
+        #if TYPE_BY_OWN_HAND
+        true
+        #else
+        ProcessInfo.processInfo.isiOSAppOnMac
+        #endif
+    }()
+
+    var size: TextSize {
+        didSet { UserDefaults.standard.set(size.rawValue, forKey: TextSize.key) }
+    }
+
+    private init() {
+        size = TextSize(kept: UserDefaults.standard.integer(forKey: TextSize.key))
+    }
+
+    /// How much larger every face is drawn by the app itself.
+    var factor: CGFloat { Self.ownHand ? size.zoom : 1 }
+
+    /// Type so large that a name and its value no longer share a row --
+    /// what the system calls an accessibility size where it has one.
+    var crowded: Bool { Self.ownHand && size == .four }
+}
+
 extension Font {
     /// What a screen is: its name, the blog's name.
     static func display(_ size: CGFloat) -> Font {
-        if let name = Typeface.display { return .custom(name, size: size, relativeTo: .largeTitle) }
-        return .system(size: size, weight: .medium, design: .monospaced)
+        if let name = Typeface.display { return face(name, size, .largeTitle) }
+        return .system(size: size * TypeScale.shared.factor, weight: .medium, design: .monospaced)
     }
 
     /// What a screen holds.
     static func ui(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        if let name = Typeface.sans(weight) { return .custom(name, size: size, relativeTo: .body) }
-        return .system(size: size, weight: weight)
+        if let name = Typeface.sans(weight) { return face(name, size, .body) }
+        return .system(size: size * TypeScale.shared.factor, weight: weight)
     }
 
     /// What the engine says.
     static func mono(_ size: CGFloat, bold: Bool = true) -> Font {
-        .custom(bold ? "CourierNewPS-BoldMT" : "CourierNewPSMT", size: size, relativeTo: .caption)
+        face(bold ? "CourierNewPS-BoldMT" : "CourierNewPSMT", size, .caption)
+    }
+
+    /// A face at a size the system enlarges with its own scale -- or,
+    /// where it has none to enlarge with, at the size the app works out.
+    private static func face(_ name: String, _ size: CGFloat, _ style: Font.TextStyle) -> Font {
+        if TypeScale.ownHand { return .custom(name, fixedSize: size * TypeScale.shared.factor) }
+        return .custom(name, size: size, relativeTo: style)
     }
 }
 
@@ -110,10 +150,9 @@ extension EnvironmentValues {
 /// window and not inside the screen under it, so a size set on that
 /// screen alone would stop at the sheet's edge.
 struct TextSized: ViewModifier {
-    @AppStorage(TextSize.key) private var kept = TextSize.system.rawValue
-
     func body(content: Content) -> some View {
-        content.background(WindowType(size: TextSize(kept: kept)))
+        // Where the app enlarges its own type there is nothing to ask of the window.
+        content.background(WindowType(size: TypeScale.ownHand ? .system : TypeScale.shared.size))
     }
 }
 
@@ -158,17 +197,17 @@ private struct WindowType: UIViewRepresentable {
 /// of them the system's own. The letters keep their sizes whatever is
 /// chosen -- they are the scale, not what is measured on it.
 struct TextSizePicker: View {
-    @AppStorage(TextSize.key) private var kept = TextSize.system.rawValue
+    private var scale = TypeScale.shared
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
         HStack(spacing: 0) {
             ForEach(TextSize.allCases) { size in
-                let chosen = size.rawValue == kept
+                let chosen = size == scale.size
                 if size != .system {
                     Rectangle().fill(Theme.line).frame(width: 1)
                 }
-                Button { kept = size.rawValue } label: {
+                Button { scale.size = size } label: {
                     Text(verbatim: "Aa")
                         .font(.custom(Typeface.sans(.medium) ?? "Helvetica Neue", fixedSize: size.sample))
                         .foregroundStyle(chosen ? Theme.onInk : Theme.ink)
@@ -475,7 +514,7 @@ struct InfoRow: View {
         if let value, !value.isEmpty {
             // At the largest sizes the two do not share a row: the value
             // stands under its name and has the whole width.
-            if size.isAccessibilitySize {
+            if size.isAccessibilitySize || TypeScale.shared.crowded {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(label).engineLabel().foregroundStyle(Theme.muted)
                     words(value, .leading)
@@ -517,7 +556,7 @@ struct FieldRow: View {
     var body: some View {
         // At the largest sizes a column for the name leaves the field too
         // little of the row: the name stands over it instead.
-        if size.isAccessibilitySize {
+        if size.isAccessibilitySize || TypeScale.shared.crowded {
             VStack(alignment: .leading, spacing: 6) {
                 Text(label).engineLabel().foregroundStyle(Theme.muted)
                 field
@@ -525,7 +564,7 @@ struct FieldRow: View {
         } else {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(label).engineLabel().foregroundStyle(Theme.muted)
-                    .frame(width: labelWidth * grown / 100, alignment: .leading)
+                    .frame(width: labelWidth * grown / 100 * TypeScale.shared.factor, alignment: .leading)
                 field
             }
         }
@@ -774,7 +813,7 @@ struct ChoiceRow<Selection: Hashable, Options: View>: View {
     var body: some View {
         // At the largest sizes the choice would be cut short beside its
         // name: it stands under it, and may take a second line.
-        if size.isAccessibilitySize {
+        if size.isAccessibilitySize || TypeScale.shared.crowded {
             VStack(alignment: .leading, spacing: 6) {
                 Text(label).engineLabel().foregroundStyle(Theme.muted)
                 choice(lines: 2)
