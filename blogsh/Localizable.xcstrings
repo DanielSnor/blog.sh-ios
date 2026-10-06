@@ -594,6 +594,22 @@
         }
       }
     },
+    "Colours": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barvy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farben"
+          }
+        }
+      }
+    },
     "Comma separated.": {
       "localizations": {
         "cs": {
@@ -2786,6 +2802,22 @@
         }
       }
     },
+    "The app wears the colours of the blog that is open. With this on it keeps to its own, the same for every blog.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appka nosí barvy blogu, který je právě otevřený. Se zapnutou volbou drží svoje vlastní, stejné pro každý blog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App trägt die Farben des Blogs, das gerade geöffnet ist. Ist das eingeschaltet, bleibt sie bei ihren eigenen, für jedes Blog denselben."
+          }
+        }
+      }
+    },
     "The archive": {
       "localizations": {
         "cs": {
@@ -3502,6 +3534,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hoch — einen Slot früher"
+          }
+        }
+      }
+    },
+    "Use the default colour scheme": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Používat výchozí barevné schéma"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardfarbschema verwenden"
           }
         }
       }

@@ -2,29 +2,49 @@ import SwiftUI
 import UIKit
 import CoreText
 
-/// How the app looks: paper and ink by day, ink and paper on black by
-/// night, one accent -- the blog's own -- and three voices of type: a
-/// display serif set in lower case for what a screen is, a plain sans for
-/// what it holds, and a typewriter face for what the engine says (a
-/// version, a count, a date, a key).
+/// How the app looks: a ground and the ink on it, by day and by night,
+/// and one accent -- all of them the open blog's own, as its pages have
+/// them, or the app's own -- and three voices of type: a terminal's face
+/// set in lower case for what a screen is, a plain sans for what it
+/// holds, and a typewriter face for what the engine says (a version, a
+/// count, a date, a key).
 nonisolated enum Theme {
     /// The ground everything sits on.
-    static let paper = dynamic(light: 0xEAE9E3, dark: 0x000000)
+    @MainActor static var paper: Color {
+        let worn = Look.shared.worn
+        return dynamic(light: worn.light.bg, dark: worn.dark.bg)
+    }
     /// What is written on it.
-    static let ink = dynamic(light: 0x1E1D1C, dark: 0xEAE9E3)
+    @MainActor static var ink: Color {
+        let worn = Look.shared.worn
+        return dynamic(light: worn.light.text, dark: worn.dark.text)
+    }
     /// What is written beside it: tags, dates, hints.
-    static let muted = dynamic(light: 0x6B6862, dark: 0x9A9993)
+    @MainActor static var muted: Color {
+        let worn = Look.shared.worn
+        return dynamic(light: worn.light.metaText, dark: worn.dark.metaText)
+    }
     /// A hairline: the edge of a card, the rule between two rows.
-    static let line = dynamic(light: 0x1E1D1C, dark: 0xEAE9E3, lightAlpha: 0.18, darkAlpha: 0.16)
+    @MainActor static var line: Color {
+        let worn = Look.shared.worn
+        return dynamic(light: worn.light.border, dark: worn.dark.border)
+    }
     /// The inside of a card, barely off the ground.
-    static let card = dynamic(light: 0x1E1D1C, dark: 0xEAE9E3, lightAlpha: 0.03, darkAlpha: 0.05)
-    /// Text on a pill filled with ink.
-    static let onInk = dynamic(light: 0xEAE9E3, dark: 0x14110F)
+    @MainActor static var card: Color {
+        let worn = Look.shared.worn
+        return dynamic(light: worn.light.text, dark: worn.dark.text, lightAlpha: 0.03, darkAlpha: 0.05)
+    }
+    /// Text on a pill filled with ink: the ground's own colour.
+    @MainActor static var onInk: Color {
+        let worn = Look.shared.worn
+        return dynamic(light: worn.light.bg, dark: worn.dark.bg)
+    }
     /// What cannot be taken back: a delete, a refusal. The one colour
     /// beside the accent, and never a fill.
     static let danger = dynamic(light: 0xA81800, dark: 0xFF7A5C)
-    /// The accent before a blog has said its own.
-    static let ember = Color(.sRGB, red: 1, green: 0x2E / 255.0, blue: 0)
+    /// The accent before a blog has said its own, and the app's own when
+    /// it keeps to its own colours.
+    static let accent = dynamic(light: Tones.ownAccent.light, dark: Tones.ownAccent.dark)
 
     /// The engine's voice and the names of screens are set in lower case
     /// -- except in German, which reads its nouns by their capitals: there
@@ -43,6 +63,31 @@ nonisolated enum Theme {
                            blue: CGFloat(value & 0xff) / 255,
                            alpha: dim ? darkAlpha : lightAlpha)
         })
+    }
+}
+
+/// Whose colours the app wears: the open blog's -- its ground, its ink,
+/// its rules, as its pages have them -- or its own, when the blog has
+/// said none or when it is asked to keep to its own. The last is for eyes
+/// that a blog's palette does not serve: the app's own are always the
+/// same, whatever a blog chose.
+@Observable final class Look {
+    static let shared = Look()
+    static let key = "ownColours"
+
+    /// Keep to the app's own colours, the accent included.
+    var own: Bool {
+        didSet { UserDefaults.standard.set(own, forKey: Self.key) }
+    }
+
+    private init() {
+        own = UserDefaults.standard.bool(forKey: Self.key)
+    }
+
+    /// The two schemes everything is drawn in now.
+    var worn: (light: Tones.Scheme, dark: Tones.Scheme) {
+        let blog = Blogs.shared.current
+        return Tones.worn(own: own, light: blog?.tonesLight, dark: blog?.tonesDark)
     }
 }
 

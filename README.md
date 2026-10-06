@@ -54,7 +54,8 @@ accent, what waits in the queue.
 
 What is the app's own and no blog's is under the gear; a blog's settings
 -- where it is, its key -- are behind the key at the end of its row in
-the list of blogs. The app's own are two. The size of the type: the
+the list of blogs. The app's own are three: the colours (under *How it
+looks*), and these two. The size of the type: the
 app follows the size the system has, and under **Text size**
 it can be set one to four steps above that. On a Mac, where the system
 gives an iPad app one size of type and no way to another, the app
@@ -114,9 +115,15 @@ refuses to send what the server would refuse.
 
 ## How it looks
 
-Paper and ink by day, ink on black by night, and one accent: the blog's
-own, which the engine says with its identity (`version --json`), the way
-`/write/` wears it -- with the blog's favicon beside its name. The first screen is the blog at one glance -- what
+A ground and the ink on it, by day and by night, and one accent: the
+open blog's own. The engine says them with its identity (`version
+--json`: `site.accent` and `site.palette`, the ground, the text, the text
+beside it and the rules, for light and for dark), so each blog looks in
+the app as its pages do -- with its favicon beside its name. A blog whose
+engine says no palette yet, and the app before any blog, wear the app's
+own: the blue the engine ships with. **Use the default colour scheme** in
+Settings keeps the app to its own whatever blog is open -- for eyes a
+blog's palette does not serve. The first screen is the blog at one glance -- what
 waits in the queue, how many drafts are in progress -- over the six
 entries of the menu; a list is a name, a count, its filters as pills and
 its rows; every other screen is plates on paper -- rows that belong

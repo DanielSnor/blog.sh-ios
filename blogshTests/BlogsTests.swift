@@ -115,6 +115,17 @@ import Testing
         #expect(blogs[0].claim == "")
         #expect(blogs[0].maxMb == 24)
         #expect(blogs[0].facts == nil)
+        #expect(blogs[0].tonesLight == nil)
+        #expect(blogs[0].tonesDark == nil)
+    }
+
+    /// A blog's palette is written down with it and read back as it was.
+    @Test func aBlogKeepsItsPalette() throws {
+        var blog = Blog()
+        blog.tonesLight = Tones(bg: "#fff7eb", text: "#1e1d1c", metaText: "#6b6862", border: "#d7d0c6")
+        blog.tonesDark = Tones(bg: "#000000", text: "#e6dccb", metaText: "#a1988a", border: "#3c3935")
+        let back = try JSONDecoder().decode(Blog.self, from: JSONEncoder().encode(blog))
+        #expect(back == blog)
     }
 
     /// What a blog is called in the list: its own name; before it has said

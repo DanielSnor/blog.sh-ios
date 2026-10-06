@@ -134,7 +134,8 @@ struct ContentView: View {
         // The blog's own accent, as /write/ wears it: every control of the
         // app, the sheets included. Until a blog has said its own, the
         // look's.
-        .tint(Color(hex: (colorScheme == .dark ? blogs.current?.accentDark : blogs.current?.accentLight) ?? "") ?? Theme.ember)
+        .tint(Look.shared.own ? Theme.accent
+              : Color(hex: (colorScheme == .dark ? blogs.current?.accentDark : blogs.current?.accentLight) ?? "") ?? Theme.accent)
         // The icon on the home screen wears the accent of the blog the app
         // was last opened with: it is set when the app comes to the front,
         // never while one is switching blogs inside it -- the system says
@@ -251,6 +252,10 @@ struct ContentView: View {
                 if let accent = answer.site.accent {
                     blog.accentLight = accent.light
                     blog.accentDark = accent.dark
+                }
+                if let palette = answer.site.palette {
+                    blog.tonesLight = palette.light
+                    blog.tonesDark = palette.dark
                 }
             }
             glance = Self.glance(queue: answers[1], drafts: answers[2])

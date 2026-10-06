@@ -5,6 +5,57 @@ import SwiftUI
 /// screen opens as that blog, in its colour, before the server has
 /// answered. A key belongs to one blog: on the server a key runs one
 /// forced command, and that command is one blog's `scripts/remote.sh`.
+/// The colours a blog's pages are set in, for one scheme: the ground,
+/// what is written on it, what is written beside it, and its rules. As
+/// the blog's config names them, in hex.
+nonisolated struct Tones: Codable, Equatable, Sendable {
+    var bg: String
+    var text: String
+    var metaText: String
+    var border: String
+
+    enum CodingKeys: String, CodingKey {
+        case bg, text, border
+        case metaText = "meta_text"
+    }
+
+    /// A colour as a number, the way a palette writes one -- `#fff7eb`,
+    /// `#fc0` -- or nothing when the word is not that.
+    static func value(_ hex: String) -> UInt32? {
+        var word = hex.trimmingCharacters(in: .whitespaces)
+        guard word.hasPrefix("#") else { return nil }
+        word.removeFirst()
+        if word.count == 3 { word = word.map { "\($0)\($0)" }.joined() }
+        guard word.count == 6, word.allSatisfy(\.isHexDigit) else { return nil }
+        return UInt32(word, radix: 16)
+    }
+
+    typealias Scheme = (bg: UInt32, text: UInt32, metaText: UInt32, border: UInt32)
+
+    /// The four as numbers -- all of them or none: a palette with one
+    /// colour unreadable is not worn at all, rather than half worn.
+    var values: Scheme? {
+        guard let bg = Self.value(bg), let text = Self.value(text),
+              let metaText = Self.value(metaText), let border = Self.value(border) else { return nil }
+        return (bg, text, metaText, border)
+    }
+
+    // The app's own colours: the palette the engine ships with, the blue
+    // one -- what a blog looks like before anybody chose its colours, and
+    // so what the app looks like before a blog has said its own.
+    static let ownLight: Scheme = (0xF5F8FA, 0x444A5A, 0x657784, 0xE1E8ED)
+    static let ownDark: Scheme = (0x111111, 0xFFFFFF, 0x6A7F8C, 0x263340)
+    static let ownAccent: (light: UInt32, dark: UInt32) = (0x1DA1F2, 0x4AB3F4)
+
+    /// The two schemes the app is drawn in: the blog's, when it has said
+    /// both and both read whole and the app is not asked to keep to its
+    /// own; the app's own otherwise.
+    static func worn(own: Bool, light: Tones?, dark: Tones?) -> (light: Scheme, dark: Scheme) {
+        if !own, let light = light?.values, let dark = dark?.values { return (light, dark) }
+        return (ownLight, ownDark)
+    }
+}
+
 nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
     var id = UUID()
     var host = ""
@@ -22,6 +73,9 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
     var url = ""
     var accentLight = ""
     var accentDark = ""
+    /// The rest of its palette, per scheme; nil until it has said it.
+    var tonesLight: Tones?
+    var tonesDark: Tones?
     var maxMb = 24
     /// What it counted last: `stats`, the trash, the versions.
     var facts: Facts?
@@ -49,6 +103,8 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         url = try c.decodeIfPresent(String.self, forKey: .url) ?? ""
         accentLight = try c.decodeIfPresent(String.self, forKey: .accentLight) ?? ""
         accentDark = try c.decodeIfPresent(String.self, forKey: .accentDark) ?? ""
+        tonesLight = try c.decodeIfPresent(Tones.self, forKey: .tonesLight)
+        tonesDark = try c.decodeIfPresent(Tones.self, forKey: .tonesDark)
         maxMb = try c.decodeIfPresent(Int.self, forKey: .maxMb) ?? 24
         facts = try c.decodeIfPresent(Facts.self, forKey: .facts)
     }

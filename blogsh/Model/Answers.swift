@@ -39,9 +39,11 @@ nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
         let locales: [String]
         /// The palette's accent, per scheme; nil from an engine before it said so.
         let accent: Accent?
+        /// The rest of the palette, per scheme; nil from an engine before it said so.
+        let palette: Palette?
 
         enum CodingKeys: String, CodingKey {
-            case name, claim, url, lang, locales, accent
+            case name, claim, url, lang, locales, accent, palette
         }
 
         /// The claim is markdown in the site's configuration, and a blog may
@@ -54,6 +56,7 @@ nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
             lang = try c.decode(String.self, forKey: .lang)
             locales = try c.decode([String].self, forKey: .locales)
             accent = try c.decodeIfPresent(Accent.self, forKey: .accent)
+            palette = try c.decodeIfPresent(Palette.self, forKey: .palette)
             claim = try c.decode(String.self, forKey: .claim)
                 .split(separator: "\n", omittingEmptySubsequences: true)
                 .map { line in
@@ -69,6 +72,11 @@ nonisolated struct VersionAnswer: Decodable, Equatable, Sendable {
     struct Accent: Decodable, Equatable, Sendable {
         let light: String
         let dark: String
+    }
+
+    struct Palette: Decodable, Equatable, Sendable {
+        let light: Tones
+        let dark: Tones
     }
 }
 

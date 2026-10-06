@@ -5,9 +5,12 @@ import Testing
 /// What the engine answers, read: the shapes are its contract
 /// (`--json`), and the app must take them as they come.
 @Suite struct AnswersTests {
-    private func version(claim: String, accent: Bool = true) -> Data {
+    private func version(claim: String, accent: Bool = true, palette: Bool = false) -> Data {
         // Two pounds: a colour's own "#" would end a string fenced with one.
-        let colours = accent ? ##","accent":{"light":"#1da1f2","dark":"#4ab3f4"}"## : ""
+        var colours = accent ? ##","accent":{"light":"#1da1f2","dark":"#4ab3f4"}"## : ""
+        if palette {
+            colours += ##","palette":{"light":{"bg":"#fff7eb","text":"#1e1d1c","meta_text":"#6b6862","border":"#d7d0c6"},"dark":{"bg":"#000000","text":"#e6dccb","meta_text":"#a1988a","border":"#3c3935"}}"##
+        }
         return Data(#"{"ok":true,"engine":"1.10.pre","max_mb":24,"site":{"name":"./blog.sh","claim":"\#(claim)","url":"https://blogsh.app","lang":"en","locales":["en","cs"]\#(colours)}}"#.utf8)
     }
 
@@ -43,6 +46,20 @@ import Testing
     @Test func anEngineWithoutAnAccentIsStillRead() throws {
         let answer: VersionAnswer = try Engine.decode(version(claim: "x", accent: false))
         #expect(answer.site.accent == nil)
+    }
+
+    /// The rest of the palette, as the engine names its colours.
+    @Test func thePaletteIsRead() throws {
+        let answer: VersionAnswer = try Engine.decode(version(claim: "x", palette: true))
+        #expect(answer.site.palette?.light == Tones(bg: "#fff7eb", text: "#1e1d1c", metaText: "#6b6862", border: "#d7d0c6"))
+        #expect(answer.site.palette?.dark == Tones(bg: "#000000", text: "#e6dccb", metaText: "#a1988a", border: "#3c3935"))
+    }
+
+    /// An engine from before it said its palette: the accent is still its own.
+    @Test func anEngineWithoutAPaletteIsStillRead() throws {
+        let answer: VersionAnswer = try Engine.decode(version(claim: "x"))
+        #expect(answer.site.palette == nil)
+        #expect(answer.site.accent?.light == "#1da1f2")
     }
 
     /// `stats --json` has no `ok` of its own and far more than the first

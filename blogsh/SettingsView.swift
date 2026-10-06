@@ -6,6 +6,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var language = AppLanguage.read()
+    private var look = Look.shared
 
     var body: some View {
         PaperScreen {
@@ -14,6 +15,12 @@ struct SettingsView: View {
             SectionLabel("Text size")
             TextSizePicker()
             Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")
+
+            SectionLabel("Colours")
+            Plate {
+                SwitchRow(label: "Use the default colour scheme", isOn: Binding(get: { look.own }, set: { look.own = $0 }))
+            }
+            Hint("The app wears the colours of the blog that is open. With this on it keeps to its own, the same for every blog.")
 
             SectionLabel("Language")
             Plate {
