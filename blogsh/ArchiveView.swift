@@ -281,7 +281,7 @@ struct StateBadge: View {
 private extension Text {
     func stateMark(filled: Bool) -> some View {
         font(.mono(11, bold: filled))
-            .textCase(.lowercase)
+            .textCase(Theme.voiceCase)
             .foregroundStyle(filled ? AnyShapeStyle(.white) : AnyShapeStyle(Theme.muted))
             .padding(.horizontal, 8)
             .padding(.vertical, 2)

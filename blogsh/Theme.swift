@@ -26,6 +26,11 @@ nonisolated enum Theme {
     /// The accent before a blog has said its own.
     static let ember = Color(.sRGB, red: 1, green: 0x2E / 255.0, blue: 0)
 
+    /// The engine's voice and the names of screens are set in lower case
+    /// -- except in German, which reads its nouns by their capitals: there
+    /// the words stand as they are written.
+    static let voiceCase: Text.Case? = Bundle.main.preferredLocalizations.first == "de" ? nil : .lowercase
+
     static let corner: CGFloat = 14
     static let gutter: CGFloat = 20
 
@@ -135,7 +140,7 @@ extension Text {
     /// A line in the engine's voice: typewriter, lower case, a little air
     /// between the letters.
     func engineLabel(_ size: CGFloat = 12, bold: Bool = true) -> some View {
-        font(.mono(size, bold: bold)).tracking(size * 0.06).textCase(.lowercase)
+        font(.mono(size, bold: bold)).tracking(size * 0.06).textCase(Theme.voiceCase)
     }
 }
 
@@ -292,7 +297,7 @@ struct FilterPill: View {
         Text(verbatim: label)
             .font(.mono(11, bold: selected))
             .tracking(0.6)
-            .textCase(.lowercase)
+            .textCase(Theme.voiceCase)
             .lineLimit(1)
             .foregroundStyle(selected ? Theme.onInk : Theme.muted)
             .padding(.horizontal, 10)
@@ -313,7 +318,7 @@ struct ScreenHeader: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text(verbatim: title)
                 .font(.display(29))
-                .textCase(.lowercase)
+                .textCase(Theme.voiceCase)
                 .foregroundStyle(Theme.ink)
             if let count {
                 Text(verbatim: count)
@@ -645,7 +650,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             configuration.label
                 .font(.mono(13))
                 .tracking(0.8)
-                .textCase(.lowercase)
+                .textCase(Theme.voiceCase)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
