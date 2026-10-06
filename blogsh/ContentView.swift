@@ -170,6 +170,18 @@ struct ContentView: View {
             upright = now
             columns = now ? .detailOnly : .all
         }
+        // ...and it stays one, whoever asks for two. Said once, at the turn,
+        // it did not hold: the system finishes its own turning after this
+        // one, and with a screen open it now and then put the menu back
+        // beside it -- a narrow menu next to the menu as a page. A swipe
+        // from the edge pulls the menu out the same way. So the one column
+        // is kept, not only set.
+        .onChange(of: columns) { _, now in
+            if single, now != .detailOnly { columns = .detailOnly }
+        }
+        .onChange(of: single) { _, now in
+            if now, columns != .detailOnly { columns = .detailOnly }
+        }
         // What changed on the way back is on the first screen again.
         .onChange(of: column) { _, now in
             if now == .sidebar { Task { await loadGlance() } }
