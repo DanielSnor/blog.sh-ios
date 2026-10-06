@@ -132,6 +132,11 @@ struct SettingsView: View {
                 .padding(.top, 12)
             }
 
+            // The one setting that is the device's and not the blog's.
+            SectionLabel("Text size")
+            TextSizePicker()
+            Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")
+
             // The blog leaves the app; nothing on the server is touched.
             if let blog = blogs.current {
                 Plate {

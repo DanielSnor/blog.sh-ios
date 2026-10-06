@@ -52,6 +52,13 @@ on the server is then yours to delete.
 Switching changes everything the screen wears: the name, the favicon, the
 accent, what waits in the queue.
 
+One setting is the device's and not a blog's: the size of the type. The
+app follows the size the system has, and under **Text size** in Settings
+it can be set one to four steps above that -- which is the only way to
+larger type where the system offers none, an iPad app on a Mac. Rows that
+hold a name beside a value put the value under the name at the largest
+sizes, and the preview of a post is enlarged with the rest.
+
 ## What is where
 
 | the wizard says | the app |

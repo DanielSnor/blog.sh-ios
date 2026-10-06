@@ -12,6 +12,7 @@ struct PreviewSheet: View {
     /// The language the text is in, when it is not the reader's own: a translation's.
     var lang: String?
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(TextSize.key) private var kept = TextSize.system.rawValue
 
     var body: some View {
         let site = Blogs.shared.current?.url ?? ""
@@ -27,7 +28,7 @@ struct PreviewSheet: View {
             .padding(.horizontal, Theme.gutter)
             .padding(.top, 18)
             Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 10)
-            WebPage(html: page, base: URL(string: site))
+            WebPage(html: page, base: URL(string: site), zoom: TextSize(kept: kept).zoom)
             Rectangle().fill(Theme.line).frame(height: 1)
             Hint("Near enough, not exact: the blog itself renders the post, and the draft's preview after sending is the real thing.")
                 .padding(.horizontal, Theme.gutter)
@@ -42,11 +43,21 @@ struct PreviewSheet: View {
 private struct WebPage: UIViewRepresentable {
     let html: String
     let base: URL?
+    /// The page enlarged as the app's own type is.
+    var zoom: CGFloat = 1
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> WKWebView {
-        let view = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        let configuration = WKWebViewConfiguration()
+        if zoom != 1 {
+            // Enlarged inside the page, which then breaks its lines again to
+            // the same width; enlarging the view itself would push the ends
+            // of the lines off the screen.
+            configuration.userContentController.addUserScript(
+                WKUserScript(source: "document.body.style.zoom = '\(zoom)';", injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
+        let view = WKWebView(frame: .zero, configuration: configuration)
         view.navigationDelegate = context.coordinator
         view.isOpaque = false
         view.backgroundColor = .clear

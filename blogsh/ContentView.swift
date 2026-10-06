@@ -206,6 +206,9 @@ struct ContentView: View {
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
                 }
             }
+            // The menu has no bar over it, only the two keys: under a mouse
+            // the bar's own ground and rule would light up above the name.
+            .toolbarBackground(.hidden, for: .navigationBar)
             .refreshable { await load() }
     }
 
@@ -627,19 +630,30 @@ struct FactLine: View {
         }
     }
 
+    /// The number and what is said to it on one line; where large type
+    /// leaves the line too short for both, the second under the first.
     private func words(tappable: Bool) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 0) {
-            Text(verbatim: value)
-                .font(.mono(12 * scale))
-                .foregroundStyle(tappable ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.ink))
-            if let detail {
-                Text(verbatim: " · " + detail)
-                    .font(.mono(12 * scale, bold: false))
-                    .foregroundStyle(Theme.muted)
+        let number = Text(verbatim: value)
+            .font(.mono(12 * scale))
+            .foregroundStyle(tappable ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.ink))
+        return ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                number
+                if let detail { said(" · " + detail) }
+            }
+            VStack(alignment: .leading, spacing: 1) {
+                number
+                if let detail { said(detail) }
             }
         }
         .lineLimit(1)
         .contentShape(Rectangle())
+    }
+
+    private func said(_ words: String) -> some View {
+        Text(verbatim: words)
+            .font(.mono(12 * scale, bold: false))
+            .foregroundStyle(Theme.muted)
     }
 }
 

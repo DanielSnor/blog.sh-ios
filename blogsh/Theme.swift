@@ -105,6 +105,98 @@ extension EnvironmentValues {
     @Entry var scale: CGFloat = 1
 }
 
+/// The type as large as was chosen in the settings: the system's size and
+/// the steps above it. Set once, on the window -- a sheet is drawn in the
+/// window and not inside the screen under it, so a size set on that
+/// screen alone would stop at the sheet's edge.
+struct TextSized: ViewModifier {
+    @AppStorage(TextSize.key) private var kept = TextSize.system.rawValue
+
+    func body(content: Content) -> some View {
+        content.background(WindowType(size: TextSize(kept: kept)))
+    }
+}
+
+private struct WindowType: UIViewRepresentable {
+    let size: TextSize
+
+    func makeUIView(context: Context) -> Anchor { Anchor() }
+    func updateUIView(_ view: Anchor, context: Context) { view.size = size }
+
+    /// Nothing to see: only a place in the window, to reach it from.
+    final class Anchor: UIView {
+        var size = TextSize.system { didSet { apply() } }
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            isHidden = true
+            // The steps stand on the system's size: when that moves, so do they.
+            NotificationCenter.default.addObserver(self, selector: #selector(apply),
+                                                   name: UIContentSizeCategory.didChangeNotification, object: nil)
+        }
+
+        required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            apply()
+        }
+
+        @objc private func apply() {
+            guard let window else { return }
+            guard size != .system else {
+                window.traitOverrides.remove(UITraitPreferredContentSizeCategory.self)
+                return
+            }
+            let system = DynamicTypeSize(UIApplication.shared.preferredContentSizeCategory) ?? .large
+            window.traitOverrides.preferredContentSizeCategory = UIContentSizeCategory(size.applied(to: system))
+        }
+    }
+}
+
+/// How large the type is: the same two letters in five sizes, the first
+/// of them the system's own. The letters keep their sizes whatever is
+/// chosen -- they are the scale, not what is measured on it.
+struct TextSizePicker: View {
+    @AppStorage(TextSize.key) private var kept = TextSize.system.rawValue
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+        HStack(spacing: 0) {
+            ForEach(TextSize.allCases) { size in
+                let chosen = size.rawValue == kept
+                if size != .system {
+                    Rectangle().fill(Theme.line).frame(width: 1)
+                }
+                Button { kept = size.rawValue } label: {
+                    Text(verbatim: "Aa")
+                        .font(.custom(Typeface.sans(.medium) ?? "Helvetica Neue", fixedSize: size.sample))
+                        .foregroundStyle(chosen ? Theme.onInk : Theme.ink)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(chosen ? Theme.ink : .clear)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(PressStyle())
+                .accessibilityLabel(Self.name(size))
+                .accessibilityAddTraits(chosen ? .isSelected : [])
+            }
+        }
+        .background(shape.fill(Theme.card))
+        .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+        .clipShape(shape)
+    }
+
+    private static func name(_ size: TextSize) -> Text {
+        switch size {
+        case .system: Text("As the system has it")
+        case .one: Text("One step larger")
+        case .two: Text("Two steps larger")
+        case .three: Text("Three steps larger")
+        case .four: Text("Four steps larger")
+        }
+    }
+}
+
 /// A row of its own on the ground: a hairline around, a large corner.
 struct Card<Content: View>: View {
     var highlighted = false
@@ -377,23 +469,36 @@ struct InfoRow: View {
     let label: LocalizedStringKey
     let value: String?
     var mono = false
+    @Environment(\.dynamicTypeSize) private var size
 
     var body: some View {
         if let value, !value.isEmpty {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(label).engineLabel().foregroundStyle(Theme.muted).fixedSize()
-                Spacer(minLength: 8)
-                // The value has the row: it wraps rather than being cut, and the
-                // label keeps to its own width.
-                Text(verbatim: value)
-                    .font(mono ? .mono(13, bold: false) : .ui(15))
-                    .foregroundStyle(Theme.ink)
-                    .multilineTextAlignment(.trailing)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .layoutPriority(1)
-                    .textSelection(.enabled)
+            // At the largest sizes the two do not share a row: the value
+            // stands under its name and has the whole width.
+            if size.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(label).engineLabel().foregroundStyle(Theme.muted)
+                    words(value, .leading)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(label).engineLabel().foregroundStyle(Theme.muted).fixedSize()
+                    Spacer(minLength: 8)
+                    // The value has the row: it wraps rather than being cut, and the
+                    // label keeps to its own width.
+                    words(value, .trailing).layoutPriority(1)
+                }
             }
         }
+    }
+
+    private func words(_ value: String, _ side: TextAlignment) -> some View {
+        Text(verbatim: value)
+            .font(mono ? .mono(13, bold: false) : .ui(15))
+            .foregroundStyle(Theme.ink)
+            .multilineTextAlignment(side)
+            .fixedSize(horizontal: false, vertical: true)
+            .textSelection(.enabled)
     }
 }
 
@@ -405,15 +510,31 @@ struct FieldRow: View {
     var mono = false
     /// The width the labels of one plate share, so their fields line up.
     var labelWidth: CGFloat = 72
+    @Environment(\.dynamicTypeSize) private var size
+    /// How much the label's type has grown, in hundredths: its column grows with it.
+    @ScaledMetric(relativeTo: .caption) private var grown: CGFloat = 100
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).engineLabel().foregroundStyle(Theme.muted)
-                .frame(width: labelWidth, alignment: .leading)
-            TextField("", text: $text, prompt: Text(verbatim: prompt).foregroundStyle(Theme.muted))
-                .font(mono ? .mono(15, bold: false) : .ui(16))
-                .foregroundStyle(Theme.ink)
+        // At the largest sizes a column for the name leaves the field too
+        // little of the row: the name stands over it instead.
+        if size.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(label).engineLabel().foregroundStyle(Theme.muted)
+                field
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(label).engineLabel().foregroundStyle(Theme.muted)
+                    .frame(width: labelWidth * grown / 100, alignment: .leading)
+                field
+            }
         }
+    }
+
+    private var field: some View {
+        TextField("", text: $text, prompt: Text(verbatim: prompt).foregroundStyle(Theme.muted))
+            .font(mono ? .mono(15, bold: false) : .ui(16))
+            .foregroundStyle(Theme.ink)
     }
 }
 
@@ -487,8 +608,11 @@ struct PrimaryButtonStyle: ButtonStyle {
                 .tracking(0.8)
                 .textCase(.lowercase)
                 .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
+                // Large type fills the row: the words keep off the round ends.
+                .padding(.horizontal, 18)
                 .background(.tint, in: Capsule())
                 .opacity(enabled ? (configuration.isPressed ? 0.7 : 1) : 0.35)
                 .contentShape(Capsule())
@@ -645,25 +769,40 @@ struct ChoiceRow<Selection: Hashable, Options: View>: View {
     let chosen: String
     @Binding var selection: Selection
     @ViewBuilder var options: Options
+    @Environment(\.dynamicTypeSize) private var size
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(label).engineLabel().foregroundStyle(Theme.muted).fixedSize()
-            Spacer(minLength: 8)
-            Menu {
-                Picker(label, selection: $selection) { options }
-            } label: {
-                HStack(spacing: 6) {
-                    Text(verbatim: chosen)
-                        .font(.ui(15))
-                        .foregroundStyle(Theme.ink)
-                        .lineLimit(1)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.tint)
-                }
-                .contentShape(Rectangle())
+        // At the largest sizes the choice would be cut short beside its
+        // name: it stands under it, and may take a second line.
+        if size.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(label).engineLabel().foregroundStyle(Theme.muted)
+                choice(lines: 2)
             }
+        } else {
+            HStack(spacing: 12) {
+                Text(label).engineLabel().foregroundStyle(Theme.muted).fixedSize()
+                Spacer(minLength: 8)
+                choice(lines: 1)
+            }
+        }
+    }
+
+    private func choice(lines: Int) -> some View {
+        Menu {
+            Picker(label, selection: $selection) { options }
+        } label: {
+            HStack(spacing: 6) {
+                Text(verbatim: chosen)
+                    .font(.ui(15))
+                    .foregroundStyle(Theme.ink)
+                    .lineLimit(lines)
+                    .multilineTextAlignment(.leading)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.tint)
+            }
+            .contentShape(Rectangle())
         }
     }
 }

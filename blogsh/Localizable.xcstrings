@@ -232,6 +232,16 @@
         }
       }
     },
+    "As the system has it": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podle systému"
+          }
+        }
+      }
+    },
     "Back to the post": {
       "localizations": {
         "cs": {
@@ -548,6 +558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zapomenout klíč serveru"
+          }
+        }
+      }
+    },
+    "Four steps larger": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O čtyři stupně větší"
           }
         }
       }
@@ -908,6 +928,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jednu fotku nešlo přečíst."
+          }
+        }
+      }
+    },
+    "One step larger": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O stupeň větší"
           }
         }
       }
@@ -1672,6 +1702,16 @@
         }
       }
     },
+    "Text size": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost písma"
+          }
+        }
+      }
+    },
     "The app has no key yet.": {
       "localizations": {
         "cs": {
@@ -1698,6 +1738,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Engine neodpověděl daty: %@"
+          }
+        }
+      }
+    },
+    "The first is the size the system has; the others are steps above it. It holds on this device, for every blog.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První je velikost, jakou má systém; další jsou stupně nad ní. Platí na tomto zařízení a pro všechny blogy."
           }
         }
       }
@@ -2012,6 +2062,16 @@
         }
       }
     },
+    "Three steps larger": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O tři stupně větší"
+          }
+        }
+      }
+    },
     "Title": {
       "localizations": {
         "cs": {
@@ -2058,6 +2118,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tenhle slug mají dva příspěvky v různých letech a appka neumí říct, který z nich myslíš. U stolu se na to zeptá ./blog.sh props."
+          }
+        }
+      }
+    },
+    "Two steps larger": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O dva stupně větší"
           }
         }
       }

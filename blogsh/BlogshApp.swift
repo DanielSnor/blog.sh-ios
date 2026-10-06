@@ -14,7 +14,7 @@ struct BlogshApp: App {
             if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
                 Color.clear
             } else {
-                ContentView()
+                ContentView().modifier(TextSized())
             }
         }
     }
