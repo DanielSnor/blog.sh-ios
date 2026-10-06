@@ -70,8 +70,6 @@ struct ContentView: View {
     @State private var showingBlogs = false
     // One counting at a time: it is the slowest thing the first screen asks.
     @State private var counting = false
-    // After the blogs' sheet has closed: a blog just added goes to its settings.
-    @State private var settingsNext = false
     // The blogs, and the one that is open: its name, its colour and its limit
     // are kept from its last answer, so the app opens as that blog before
     // the server has said anything.
@@ -124,16 +122,13 @@ struct ContentView: View {
             }
             .id(visit)
         }
-        .sheet(isPresented: $showingSettings, onDismiss: { Task { await load() } }) {
+        .sheet(isPresented: $showingSettings) {
             NavigationStack { SettingsView() }
         }
-        .sheet(isPresented: $showingBlogs, onDismiss: {
-            if settingsNext {
-                settingsNext = false
-                showingSettings = true
-            }
-        }) {
-            NavigationStack { BlogsView(added: { settingsNext = true }) }
+        // A blog's settings are behind its row there: what was changed in
+        // them is asked of the server again when the list closes.
+        .sheet(isPresented: $showingBlogs, onDismiss: { Task { await load() } }) {
+            NavigationStack { BlogsView() }
         }
         .task { await load() }
         // The blog's own accent, as /write/ wears it: every control of the
@@ -265,7 +260,7 @@ struct ContentView: View {
         } catch EngineError.notConfigured {
             identity = nil
             glance = nil
-            identityProblem = String(localized: "No server yet — set one up under the gear.")
+            identityProblem = String(localized: "Nothing to connect to yet — the name above leads to the blogs and their settings.")
         } catch {
             // Called off, or another blog by now: the screen keeps what it shows.
             if error.isCalledOff || asked != blogs.currentID { return }

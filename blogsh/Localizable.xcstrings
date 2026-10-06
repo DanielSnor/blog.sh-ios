@@ -9,6 +9,12 @@
             "state": "translated",
             "value": "%@ (podle obsahu)"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (aus dem Inhalt)"
+          }
         }
       }
     },
@@ -18,6 +24,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "po zakódování %1$@, přes limit serveru %2$lld MB: odmítne to"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kodiert %1$@, über dem Limit des Servers von %2$lld MB: er lehnt das ab"
           }
         }
       }
@@ -29,6 +41,12 @@
             "state": "translated",
             "value": "%1$@, díl %2$@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, Teil %2$@"
+          }
         }
       }
     },
@@ -38,6 +56,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@: obrázek musí stát na vlastním řádku s prázdným řádkem před sebou i za sebou -- jinak blog příspěvek odmítne"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: ein Bild muss auf einer eigenen Zeile stehen, mit einer Leerzeile davor und danach -- sonst lehnt das Blog den Beitrag ab"
           }
         }
       }
@@ -49,6 +73,12 @@
             "state": "translated",
             "value": "%@: text v jazyce %@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: der Text auf %2$@"
+          }
         }
       }
     },
@@ -58,6 +88,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "adres, které sem pořád přesměrovávají: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Adresse(n) leiten noch hierher"
           }
         }
       }
@@ -69,6 +105,12 @@
             "state": "translated",
             "value": "%1$lld z %2$lld"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld von %2$lld"
+          }
         }
       }
     },
@@ -78,6 +120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "(příspěvek nemá text)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(der Beitrag hat keinen Text)"
           }
         }
       }
@@ -89,6 +137,12 @@
             "state": "translated",
             "value": "(jak to má web)"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(wie die Website)"
+          }
         }
       }
     },
@@ -98,6 +152,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "(čeká na cron)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(wartet auf den Cron)"
           }
         }
       }
@@ -109,6 +169,12 @@
             "state": "translated",
             "value": "Koncept ještě nemá veřejnou adresu, změní se jen adresa náhledu."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Entwurf hat noch keine öffentliche Adresse; es ändert sich nur die Adresse seiner Vorschau."
+          }
         }
       }
     },
@@ -118,6 +184,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Koncept naplánuješ z jeho vlastností, nebo přes ./blog.sh schedule."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Entwurf wird in seinen Eigenschaften geplant, oder mit ./blog.sh schedule."
           }
         }
       }
@@ -129,6 +201,12 @@
             "state": "translated",
             "value": "Nový blog"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein neues Blog"
+          }
         }
       }
     },
@@ -138,6 +216,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obrázek se před odesláním zmenší na %1$@ px po delší straně; video se převede na H.264 v 720p. Celý příspěvek — text, obrázky, video — se musí vejít do %2$lld MB, to je limit serveru; měří se zakódovaný přenos, který je o třetinu větší než soubory, takže na soubory zbývá zhruba %3$lld MB."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Bild wird vor dem Senden auf %1$@ px an der langen Kante verkleinert; ein Video wird in H.264 mit 720p umgewandelt. Der ganze Beitrag -- Text, Bilder, Video -- muss unter %2$lld MB bleiben, dem Limit des Servers; gemessen wird die kodierte Übertragung, ein Drittel größer als die Dateien: für die Dateien selbst bleiben etwa %3$lld MB."
           }
         }
       }
@@ -149,6 +233,12 @@
             "state": "translated",
             "value": "Příspěvek"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Beitrag"
+          }
         }
       }
     },
@@ -158,6 +248,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Akce"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktionen"
           }
         }
       }
@@ -169,6 +265,12 @@
             "state": "translated",
             "value": "Přidat blog"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog hinzufügen"
+          }
         }
       }
     },
@@ -178,6 +280,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přidat obrázek nebo video"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild oder Video hinzufügen"
           }
         }
       }
@@ -189,6 +297,12 @@
             "state": "translated",
             "value": "Oznámit"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ankündigen"
+          }
         }
       }
     },
@@ -198,6 +312,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oznámit „%@“?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ ankündigen?"
           }
         }
       }
@@ -209,6 +329,12 @@
             "state": "translated",
             "value": "Přesto oznámit"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trotzdem ankündigen"
+          }
         }
       }
     },
@@ -218,6 +344,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oznámeno: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angekündigt: %@"
           }
         }
       }
@@ -229,6 +361,12 @@
             "state": "translated",
             "value": "Jiný čas"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Zeit"
+          }
         }
       }
     },
@@ -238,6 +376,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Podle systému"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie das System"
           }
         }
       }
@@ -249,6 +393,12 @@
             "state": "translated",
             "value": "Zpět k příspěvku"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zum Beitrag"
+          }
         }
       }
     },
@@ -258,6 +408,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Blogy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blogs"
           }
         }
       }
@@ -269,6 +425,12 @@
             "state": "translated",
             "value": "Tučně"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fett"
+          }
         }
       }
     },
@@ -278,6 +440,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sestavit znovu každou stránku"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jede Seite neu bauen"
           }
         }
       }
@@ -289,6 +457,12 @@
             "state": "translated",
             "value": "Zrušit"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
         }
       }
     },
@@ -298,6 +472,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zrušit plán"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan aufheben"
           }
         }
       }
@@ -309,6 +489,12 @@
             "state": "translated",
             "value": "Zrušit plán příspěvku „%@“?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den Plan von „%@“ aufheben?"
+          }
         }
       }
     },
@@ -318,6 +504,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přenést"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tragen"
           }
         }
       }
@@ -329,6 +521,12 @@
             "state": "translated",
             "value": "Přenést na pozici…"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An eine Stelle tragen…"
+          }
         }
       }
     },
@@ -338,6 +536,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Na kterou pozici?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An welche Stelle?"
           }
         }
       }
@@ -349,6 +553,12 @@
             "state": "translated",
             "value": "úklid"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufräumen"
+          }
         }
       }
     },
@@ -358,6 +568,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kód"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code"
           }
         }
       }
@@ -369,6 +585,12 @@
             "state": "translated",
             "value": "Blok kódu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codeblock"
+          }
         }
       }
     },
@@ -378,6 +600,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oddělené čárkou."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Komma getrennt."
           }
         }
       }
@@ -389,6 +617,12 @@
             "state": "translated",
             "value": "Spojení"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung"
+          }
         }
       }
     },
@@ -398,6 +632,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zkopírovat řádek pro authorized_keys"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeile für authorized_keys kopieren"
           }
         }
       }
@@ -409,6 +649,12 @@
             "state": "translated",
             "value": "Smazat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
         }
       }
     },
@@ -418,6 +664,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vysypat koš nadobro — položek: %1$lld, uvolní se %2$@? Tohle vzít zpět nejde."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld Element(e) endgültig aus dem Papierkorb löschen und %2$@ freigeben? Das lässt sich nicht zurücknehmen."
           }
         }
       }
@@ -429,6 +681,12 @@
             "state": "translated",
             "value": "Smazáno"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht"
+          }
         }
       }
     },
@@ -438,6 +696,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hotovo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
           }
         }
       }
@@ -449,6 +713,12 @@
             "state": "translated",
             "value": "Dolů"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runter"
+          }
         }
       }
     },
@@ -458,6 +728,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dolů — o slot později"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runter — einen Slot später"
           }
         }
       }
@@ -469,6 +745,12 @@
             "state": "translated",
             "value": "Koncept"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf"
+          }
         }
       }
     },
@@ -478,6 +760,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Koncept zapsán: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf geschrieben: %@"
           }
         }
       }
@@ -489,6 +777,12 @@
             "state": "translated",
             "value": "Rozepsané koncepty"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwürfe in Arbeit"
+          }
         }
       }
     },
@@ -498,6 +792,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odebrat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufgeben"
           }
         }
       }
@@ -509,6 +809,12 @@
             "state": "translated",
             "value": "Odebrat %@? Přestane přesměrovávat."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ aufgeben? Sie leitet dann nirgendwo mehr hin."
+          }
         }
       }
     },
@@ -518,6 +824,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Starší verze"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frühere Fassungen"
           }
         }
       }
@@ -529,6 +841,12 @@
             "state": "translated",
             "value": "Co upravit?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was bearbeiten?"
+          }
         }
       }
     },
@@ -538,6 +856,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vysypat koš"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papierkorb leeren"
           }
         }
       }
@@ -549,6 +873,12 @@
             "state": "translated",
             "value": "Vysypat koš — položek: %1$lld, %2$@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papierkorb leeren — %1$lld Element(e), %2$@"
+          }
         }
       }
     },
@@ -558,6 +888,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zapomenout klíč serveru"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel des Servers vergessen"
           }
         }
       }
@@ -569,6 +905,12 @@
             "state": "translated",
             "value": "O čtyři stupně větší"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vier Stufen größer"
+          }
         }
       }
     },
@@ -578,6 +920,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nadpis"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überschrift"
           }
         }
       }
@@ -589,6 +937,12 @@
             "state": "translated",
             "value": "Skrýt originál"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original ausblenden"
+          }
         }
       }
     },
@@ -598,6 +952,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Server"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host"
           }
         }
       }
@@ -609,6 +969,12 @@
             "state": "translated",
             "value": "V jazyce %@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf %@"
+          }
         }
       }
     },
@@ -618,6 +984,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vložit do textu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In den Text einfügen"
           }
         }
       }
@@ -629,6 +1001,12 @@
             "state": "translated",
             "value": "Kurzíva"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kursiv"
+          }
         }
       }
     },
@@ -638,6 +1016,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smaže se i jeho oznámení; příspěvek si text nechá jako koncept."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch seine Ankündigung wird gelöscht; der Beitrag behält seinen Text als Entwurf."
           }
         }
       }
@@ -649,6 +1033,12 @@
             "state": "translated",
             "value": "Jeho vlastnosti a akce s ním"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seine Eigenschaften und die Aktionen dazu"
+          }
         }
       }
     },
@@ -658,6 +1048,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klíč"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jazyk"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
           }
         }
       }
@@ -669,6 +1081,12 @@
             "state": "translated",
             "value": "Pustit nasazení přes pojistky"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deploy an seinen Sicherungen vorbeilassen"
+          }
         }
       }
     },
@@ -678,6 +1096,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odkaz"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link"
           }
         }
       }
@@ -689,6 +1113,12 @@
             "state": "translated",
             "value": "Seznam"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liste"
+          }
         }
       }
     },
@@ -698,6 +1128,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prohlédnout obrázek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild ansehen"
           }
         }
       }
@@ -709,6 +1145,12 @@
             "state": "translated",
             "value": "Vytvořit nový klíč"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuen Schlüssel erzeugen"
+          }
         }
       }
     },
@@ -718,6 +1160,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vytvořit nový klíč? Server ho nebude znát, dokud jeho řádek znovu nedáš do authorized_keys."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuen Schlüssel erzeugen? Der Server kennt ihn erst, wenn seine Zeile wieder in authorized_keys steht."
           }
         }
       }
@@ -729,6 +1177,12 @@
             "state": "translated",
             "value": "Vytvořit klíč appky"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel der App erzeugen"
+          }
         }
       }
     },
@@ -738,6 +1192,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Markdown. Obrázek se vkládá jako ![popis](foto.jpg), video jako !![popis](klip.mp4) — jenom jméno, bez cesty."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown. Ein Bild kommt als ![Beschreibung](foto.jpg) hinein, ein Video als !![Beschreibung](clip.mp4) -- nur der Name, kein Pfad."
           }
         }
       }
@@ -749,6 +1209,12 @@
             "state": "translated",
             "value": "Přibližně, ne přesně: příspěvek vykresluje až blog a skutečný náhled je náhled konceptu po odeslání."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nah dran, nicht genau: den Beitrag rendert erst das Blog, und die echte Vorschau ist die des Entwurfs nach dem Senden."
+          }
         }
       }
     },
@@ -758,6 +1224,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nový příspěvek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Beitrag"
           }
         }
       }
@@ -769,6 +1241,12 @@
             "state": "translated",
             "value": "Nový slug"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Slug"
+          }
         }
       }
     },
@@ -778,6 +1256,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zatím bez popisu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch ohne Beschreibung"
           }
         }
       }
@@ -789,6 +1273,12 @@
             "state": "translated",
             "value": "Žádné rozepsané koncepty"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Entwürfe in Arbeit"
+          }
         }
       }
     },
@@ -798,6 +1288,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zatím žádné starší verze"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine früheren Fassungen"
           }
         }
       }
@@ -809,6 +1305,12 @@
             "state": "translated",
             "value": "Žádné příspěvky"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Beiträge"
+          }
         }
       }
     },
@@ -819,15 +1321,11 @@
             "state": "translated",
             "value": "Žádné příspěvky k výběru."
           }
-        }
-      }
-    },
-    "No server yet — set one up under the gear.": {
-      "localizations": {
-        "cs": {
+        },
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zatím žádný server — nastav ho pod ozubeným kolečkem."
+            "value": "Keine Beiträge zur Auswahl."
           }
         }
       }
@@ -839,6 +1337,12 @@
             "state": "translated",
             "value": "Není v textu — s příspěvkem se neodešle."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht im Text — es wird nicht mit dem Beitrag gesendet."
+          }
         }
       }
     },
@@ -848,6 +1352,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Teď ne"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht jetzt"
           }
         }
       }
@@ -859,6 +1369,12 @@
             "state": "translated",
             "value": "Nic neodpovídá"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts passt"
+          }
         }
       }
     },
@@ -868,6 +1384,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nic naplánovaného"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts geplant"
+          }
+        }
+      }
+    },
+    "Nothing to connect to yet — the name above leads to the blogs and their settings.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zatím se není kam připojit — přes název nahoře se jde k blogům a jejich nastavení."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nichts, womit sich die App verbinden könnte — der Name oben führt zu den Blogs und ihren Einstellungen."
           }
         }
       }
@@ -879,12 +1417,24 @@
             "state": "translated",
             "value": "Číslovaný seznam"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nummerierte Liste"
+          }
         }
       }
     },
     "OK": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "OK"
@@ -899,6 +1449,12 @@
             "state": "translated",
             "value": "Staré odkazy"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alte Links"
+          }
         }
       }
     },
@@ -908,6 +1464,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Starších verzí odstraněno: %1$lld, uvolněno %2$@. Každý příspěvek si nechal tu nejnovější."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ältere Fassungen entfernt: %1$lld, %2$@ freigegeben. Jeder Beitrag hat seine neueste behalten."
           }
         }
       }
@@ -919,6 +1481,12 @@
             "state": "translated",
             "value": "K odeslání: %@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu senden: %@"
+          }
         }
       }
     },
@@ -928,6 +1496,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jednu fotku nešlo přečíst."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Bild ließ sich nicht lesen."
           }
         }
       }
@@ -939,6 +1513,12 @@
             "state": "translated",
             "value": "O stupeň větší"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Stufe größer"
+          }
         }
       }
     },
@@ -948,6 +1528,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "V koši jsou pro tenhle příspěvek jen média, ta vrátí terminál."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Papierkorb liegen für diesen Beitrag nur Medien; die holt das Terminal zurück."
           }
         }
       }
@@ -959,6 +1545,12 @@
             "state": "translated",
             "value": "Překládají se jen slova. Datum, štítky, série a stav patří příspěvku a platí ve všech jazycích."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzt werden nur die Worte. Datum, Schlagwörter, Serie und Status gehören zum Beitrag selbst und gelten in jeder Sprache."
+          }
         }
       }
     },
@@ -968,6 +1560,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevřený"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geöffnet"
           }
         }
       }
@@ -979,6 +1577,12 @@
             "state": "translated",
             "value": "Otevřít náhled"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau öffnen"
+          }
         }
       }
     },
@@ -988,6 +1592,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obrázek %@ -- v tomto zařízení bez náhledu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild %@ -- auf diesem Gerät ohne Vorschau"
           }
         }
       }
@@ -999,6 +1609,12 @@
             "state": "translated",
             "value": "Obrázek: %@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild: %@"
+          }
         }
       }
     },
@@ -1008,6 +1624,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obrázky a video"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder und Video"
           }
         }
       }
@@ -1019,6 +1641,12 @@
             "state": "translated",
             "value": "Obrázky se neverzují; vrátí se jen text, titulek, štítky a typ."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder werden nicht versioniert; zurück kommen nur Text, Titel, Schlagwörter und Typ."
+          }
         }
       }
     },
@@ -1028,6 +1656,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fotky na blogu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder im Blog"
           }
         }
       }
@@ -1039,6 +1673,12 @@
             "state": "translated",
             "value": "Fotky, které text už nejmenuje, se z blogu smažou: %@. Přesto uložit?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder, die der Text nicht mehr nennt, werden aus dem Blog gelöscht: %@. Trotzdem speichern?"
+          }
         }
       }
     },
@@ -1049,12 +1689,24 @@
             "state": "translated",
             "value": "Připnuto"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angepinnt"
+          }
         }
       }
     },
     "Port": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Port"
+          }
+        },
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Port"
@@ -1069,6 +1721,12 @@
             "state": "translated",
             "value": "Pozice, 1 až %lld"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stelle, 1 bis %lld"
+          }
         }
       }
     },
@@ -1078,6 +1736,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Náhled"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau"
           }
         }
       }
@@ -1089,6 +1753,12 @@
             "state": "translated",
             "value": "Vlastnosti"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenschaften"
+          }
         }
       }
     },
@@ -1098,6 +1768,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlastnosti jsou to, čím příspěvek JE, ne co říká. Přepínače mají třetí stav: jak to dělá web."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenschaften sind, was der Beitrag IST, nicht was er sagt. Die Schalter haben einen dritten Zustand: wie es die Website hält."
           }
         }
       }
@@ -1109,6 +1785,12 @@
             "state": "translated",
             "value": "Publikovat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlichen"
+          }
         }
       }
     },
@@ -1118,6 +1800,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publikovat „%@“ teď?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ jetzt veröffentlichen?"
           }
         }
       }
@@ -1129,6 +1817,12 @@
             "state": "translated",
             "value": "Publikovat „%@“ teď?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ veröffentlichen?"
+          }
         }
       }
     },
@@ -1138,6 +1832,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publikovat přesto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trotzdem veröffentlichen"
           }
         }
       }
@@ -1149,6 +1849,12 @@
             "state": "translated",
             "value": "Publikovat hned"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sofort veröffentlichen"
+          }
         }
       }
     },
@@ -1158,6 +1864,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publikovat hned a posunout zbytek (%lld) o slot dřív"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sofort veröffentlichen und den Rest (%lld) einen Slot nach vorn rücken"
           }
         }
       }
@@ -1169,6 +1881,12 @@
             "state": "translated",
             "value": "Publikovat kdy?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlichen wann?"
+          }
         }
       }
     },
@@ -1178,6 +1896,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publikováno: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht: %@"
           }
         }
       }
@@ -1189,6 +1913,12 @@
             "state": "translated",
             "value": "Citát"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zitat"
+          }
         }
       }
     },
@@ -1198,6 +1928,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Načítám…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geladen…"
           }
         }
       }
@@ -1209,6 +1945,12 @@
             "state": "translated",
             "value": "Opravdu smazat „%@“?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ wirklich löschen?"
+          }
         }
       }
     },
@@ -1218,6 +1960,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opravdu vrátit „%@“ zpátky do konceptu?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ wirklich zurück auf Entwurf setzen?"
           }
         }
       }
@@ -1229,6 +1977,12 @@
             "state": "translated",
             "value": "Sestavit"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu bauen"
+          }
         }
       }
     },
@@ -1238,6 +1992,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sestavit a nasadit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu bauen und ausliefern"
           }
         }
       }
@@ -1249,6 +2009,12 @@
             "state": "translated",
             "value": "Znovu sestavit a nasadit web teď?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website jetzt neu bauen und ausliefern?"
+          }
         }
       }
     },
@@ -1258,6 +2024,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sestavuji…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gebaut…"
           }
         }
       }
@@ -1269,6 +2041,12 @@
             "state": "translated",
             "value": "Sestaveno a nasazeno."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebaut und ausgeliefert."
+          }
         }
       }
     },
@@ -1278,6 +2056,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sestaveno; nasazení dodělá příští plánovaný běh."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebaut; ausgeliefert wird beim nächsten geplanten Lauf."
           }
         }
       }
@@ -1289,6 +2073,12 @@
             "state": "translated",
             "value": "Odebrat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
         }
       }
     },
@@ -1298,6 +2088,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smazat starší verze — souborů: %1$lld, uvolní se %2$@? Nejnovější verze každého příspěvku zůstane. Tohle vzít zpět nejde."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld ältere Fassung(en) entfernen und %2$@ freigeben? Jeder Beitrag behält seine neueste. Das lässt sich nicht zurücknehmen."
           }
         }
       }
@@ -1309,6 +2105,12 @@
             "state": "translated",
             "value": "Odebrat „%@“ z appky? Smaže se i jeho klíč; samotného blogu se to nedotkne."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ aus der App entfernen? Sein Schlüssel wird mit gelöscht; das Blog selbst bleibt unberührt."
+          }
         }
       }
     },
@@ -1318,6 +2120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smazat starší verze"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ältere Fassungen entfernen"
           }
         }
       }
@@ -1329,6 +2137,12 @@
             "state": "translated",
             "value": "Smazat starší verze — souborů: %1$lld, %2$@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ältere Fassungen entfernen — %1$lld Datei(en), %2$@"
+          }
         }
       }
     },
@@ -1338,6 +2152,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odebrat tento blog"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Blog entfernen"
           }
         }
       }
@@ -1349,6 +2169,12 @@
             "state": "translated",
             "value": "Přejmenovat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen"
+          }
         }
       }
     },
@@ -1358,6 +2184,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přejmenovat slug"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slug umbenennen"
           }
         }
       }
@@ -1369,6 +2201,12 @@
             "state": "translated",
             "value": "Přeplánovat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umplanen"
+          }
         }
       }
     },
@@ -1378,6 +2216,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obnovit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellen"
           }
         }
       }
@@ -1389,6 +2233,12 @@
             "state": "translated",
             "value": "Obnovit '%@'?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ wiederherstellen?"
+          }
         }
       }
     },
@@ -1398,6 +2248,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obnovit tuhle verzi? Současný text se napřed uloží jako verze."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Fassung wiederherstellen? Der aktuelle Text wird zuerst als Fassung abgelegt."
           }
         }
       }
@@ -1409,6 +2265,12 @@
             "state": "translated",
             "value": "Obnoveno: %@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederhergestellt: %@"
+          }
         }
       }
     },
@@ -1418,6 +2280,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Výsledek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ergebnis"
           }
         }
       }
@@ -1429,6 +2297,12 @@
             "state": "translated",
             "value": "Vrátit „%@“ mezi koncepty?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ zu den Entwürfen zurücklegen?"
+          }
         }
       }
     },
@@ -1438,6 +2312,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vrátit do konceptů"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zu den Entwürfen"
           }
         }
       }
@@ -1449,6 +2329,12 @@
             "state": "translated",
             "value": "Vrátit mezi koncepty a posunout zbytek (%lld) o slot dřív"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu den Entwürfen zurücklegen und den Rest (%lld) einen Slot nach vorn rücken"
+          }
         }
       }
     },
@@ -1458,6 +2344,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern"
           }
         }
       }
@@ -1469,6 +2361,12 @@
             "state": "translated",
             "value": "Uložit a smazat je"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern und sie löschen"
+          }
         }
       }
     },
@@ -1478,6 +2376,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložit a publikovat změnu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern und Änderung veröffentlichen"
           }
         }
       }
@@ -1489,6 +2393,12 @@
             "state": "translated",
             "value": "Uložit text v jazyce %@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den Text auf %@ speichern"
+          }
         }
       }
     },
@@ -1498,6 +2408,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložit koncept"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf speichern"
           }
         }
       }
@@ -1509,6 +2425,12 @@
             "state": "translated",
             "value": "Uloženo"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeichert"
+          }
         }
       }
     },
@@ -1518,6 +2440,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ukládám…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gespeichert…"
           }
         }
       }
@@ -1529,6 +2457,12 @@
             "state": "translated",
             "value": "Naplánovat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planen"
+          }
         }
       }
     },
@@ -1538,6 +2472,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Naplánovat přesto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trotzdem planen"
           }
         }
       }
@@ -1549,6 +2489,12 @@
             "state": "translated",
             "value": "Naplánováno"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geplant"
+          }
         }
       }
     },
@@ -1558,6 +2504,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hledat v archivu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Archiv suchen"
           }
         }
       }
@@ -1569,6 +2521,12 @@
             "state": "translated",
             "value": "Hledej v archivu."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Such im Archiv."
+          }
         }
       }
     },
@@ -1578,6 +2536,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poslat na blog jako koncept"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Entwurf ans Blog senden"
           }
         }
       }
@@ -1589,12 +2553,24 @@
             "state": "translated",
             "value": "Odesílám…"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gesendet…"
+          }
         }
       }
     },
     "Server": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        },
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Server"
@@ -1609,6 +2585,12 @@
             "state": "translated",
             "value": "Klíč serveru"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel des Servers"
+          }
         }
       }
     },
@@ -1618,6 +2600,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nastavení"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
           }
         }
       }
@@ -1629,6 +2617,12 @@
             "state": "translated",
             "value": "Zobrazit na webu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Web anzeigen"
+          }
         }
       }
     },
@@ -1638,6 +2632,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit originál"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original anzeigen"
           }
         }
       }
@@ -1649,6 +2649,12 @@
             "state": "translated",
             "value": "Zobrazit náhled na webu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau im Web anzeigen"
+          }
         }
       }
     },
@@ -1658,6 +2664,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přeškrtnutě"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durchgestrichen"
           }
         }
       }
@@ -1669,6 +2681,12 @@
             "state": "translated",
             "value": "Odebrat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
         }
       }
     },
@@ -1678,6 +2696,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odebrat text v jazyce %@ z '%@'? Příspěvek pak vypadá přesně jako před překladem."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den Text auf %1$@ von „%2$@“ entfernen? Der Beitrag sieht dann genau so aus wie vor der Übersetzung."
           }
         }
       }
@@ -1689,6 +2713,12 @@
             "state": "translated",
             "value": "Odebrat tenhle jazyk z příspěvku"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Sprache vom Beitrag entfernen"
+          }
         }
       }
     },
@@ -1698,6 +2728,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vyzkoušet spojení"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung testen"
           }
         }
       }
@@ -1709,6 +2745,12 @@
             "state": "translated",
             "value": "Velikost písma"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schriftgröße"
+          }
         }
       }
     },
@@ -1718,6 +2760,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Appka ještě nemá klíč."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App hat noch keinen Schlüssel."
+          }
+        }
+      }
+    },
+    "The app speaks the chosen language after it is started again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvoleným jazykem appka promluví po novém spuštění."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gewählte Sprache spricht die App nach dem nächsten Start."
           }
         }
       }
@@ -1729,6 +2793,28 @@
             "state": "translated",
             "value": "Archiv"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Archiv"
+          }
+        }
+      }
+    },
+    "The blog's settings": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení blogu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen des Blogs"
+          }
         }
       }
     },
@@ -1738,6 +2824,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Engine neodpověděl daty: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Engine hat nicht mit Daten geantwortet: %@"
           }
         }
       }
@@ -1749,6 +2841,12 @@
             "state": "translated",
             "value": "První je velikost, jakou má systém; další jsou stupně nad ní. Platí na tomto zařízení a pro všechny blogy."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die erste ist die Größe, die das System hat; die anderen sind Stufen darüber. Sie gilt auf diesem Gerät, für jedes Blog."
+          }
         }
       }
     },
@@ -1758,6 +2856,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hlavička a text, jak je otevírá editor. Fotka je pojmenovaná svým souborem."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopf und Text, wie der Editor sie öffnet. Ein Bild heißt wie seine Datei."
           }
         }
       }
@@ -1769,6 +2873,12 @@
             "state": "translated",
             "value": "Klíč vzniká na tomhle zařízení a nikdy ho neopustí. Řádek výše dej na serveru do ~/.ssh/authorized_keys; forced command před ním je vše, co klíč smí spustit."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Schlüssel entsteht auf diesem Gerät und verlässt es nie. Die Zeile oben gehört auf dem Server in ~/.ssh/authorized_keys; der forced command davor ist alles, was der Schlüssel ausführen darf."
+          }
         }
       }
     },
@@ -1778,6 +2888,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Posledních %1$@ příspěvků z %2$@, stejně jako v ./blog.sh. Hledáš starší?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die letzten %1$@ Beiträge von %2$@, wie ./blog.sh sie anbietet. Suchst du einen älteren?"
           }
         }
       }
@@ -1789,6 +2905,12 @@
             "state": "translated",
             "value": "Řádek pro ~/.ssh/authorized_keys na serveru se složí z toho, kde blog leží. K blogu v kontejneru se jde přes příkaz, který do něj vstoupí, například sudo docker exec -i blog."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Zeile für ~/.ssh/authorized_keys auf dem Server entsteht daraus, wo das Blog liegt. Ein Blog in einem Container erreicht man über den Befehl, der ihn betritt, zum Beispiel sudo docker exec -i blog."
+          }
         }
       }
     },
@@ -1798,6 +2920,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stará adresa dál odpovídá: přesměruje na novou."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die alte Adresse antwortet weiter: sie leitet auf die neue um."
           }
         }
       }
@@ -1809,6 +2937,12 @@
             "state": "translated",
             "value": "Originál"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Original"
+          }
         }
       }
     },
@@ -1818,6 +2952,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příspěvek jde do koše a dá se obnovit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag kommt in den Papierkorb und lässt sich wiederherstellen."
           }
         }
       }
@@ -1829,6 +2969,12 @@
             "state": "translated",
             "value": "Příspěvek jde do koše a dá se obnovit; jeho oznámení zmizí s ním a obnovit nejde."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag kommt in den Papierkorb und lässt sich wiederherstellen; seine Ankündigung geht mit und lässt sich nicht zurückholen."
+          }
         }
       }
     },
@@ -1838,6 +2984,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příspěvek je v koši a dá se odtud obnovit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag liegt im Papierkorb und lässt sich von dort wiederherstellen."
           }
         }
       }
@@ -1849,6 +3001,12 @@
             "state": "translated",
             "value": "Příspěvek je živý: uložení web sestaví a nasadí."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag ist live: Speichern baut die Website neu und liefert sie aus."
+          }
         }
       }
     },
@@ -1858,6 +3016,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příspěvek si nechá text a přijde jen o plán."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag behält seinen Text und verliert nur den Plan."
           }
         }
       }
@@ -1869,6 +3033,12 @@
             "state": "translated",
             "value": "Příspěvek zůstane konceptem, s datem, které měl před naplánováním."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag bleibt Entwurf, mit dem Datum, das er vor dem Plan hatte."
+          }
         }
       }
     },
@@ -1878,6 +3048,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příspěvek, jeho média i historie se vrátí, kde byly."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag, seine Medien und seine Geschichte kommen dorthin zurück, wo sie waren."
           }
         }
       }
@@ -1889,6 +3065,12 @@
             "state": "translated",
             "value": "Příspěvky mezi tím ustoupí každý o slot; obsazené časy zůstanou tytéž."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Beiträge dazwischen rücken je einen Slot zurück; belegt bleiben dieselben Zeiten."
+          }
         }
       }
     },
@@ -1898,6 +3080,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Náhled zaostává za frontou — sestavit a nasadit teď"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Vorschau hinkt der Warteschlange hinterher — jetzt neu bauen und ausliefern"
           }
         }
       }
@@ -1909,6 +3097,12 @@
             "state": "translated",
             "value": "Fronta je prázdná"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Warteschlange ist leer"
+          }
         }
       }
     },
@@ -1918,6 +3112,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Totéž jako ruční publikace konceptu, včetně oznámení."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dasselbe wie einen Entwurf von Hand zu veröffentlichen, samt Ankündigung."
           }
         }
       }
@@ -1929,6 +3129,12 @@
             "state": "translated",
             "value": "Fronta naplánovaných příspěvků"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Warteschlange der geplanten Beiträge"
+          }
         }
       }
     },
@@ -1939,15 +3145,27 @@
             "state": "translated",
             "value": "Server zavřel spojení bez odpovědi."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server hat die Verbindung ohne Antwort geschlossen."
+          }
         }
       }
     },
-    "The server does not know this blog's key. The line under the key in Settings belongs in ~/.ssh/authorized_keys on the server.": {
+    "The server does not know this blog's key. The line under the key in the blog's settings belongs in ~/.ssh/authorized_keys on the server.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server klíč tohoto blogu nezná. Řádek pod klíčem v Nastavení patří na serveru do ~/.ssh/authorized_keys."
+            "value": "Server klíč tohoto blogu nezná. Řádek pod klíčem v nastavení blogu patří na serveru do ~/.ssh/authorized_keys."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server kennt den Schlüssel dieses Blogs nicht. Die Zeile unter dem Schlüssel in den Einstellungen des Blogs gehört auf dem Server in ~/.ssh/authorized_keys."
           }
         }
       }
@@ -1959,15 +3177,27 @@
             "state": "translated",
             "value": "Server ještě není nastavený."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server ist noch nicht eingerichtet."
+          }
         }
       }
     },
-    "The server's key changed (%@). If the server was reinstalled, forget the old key in Settings.": {
+    "The server's key changed (%@). If the server was reinstalled, forget the old key in the blog's settings.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klíč serveru se změnil (%@). Pokud byl server přeinstalovaný, zapomeň starý klíč v Nastavení."
+            "value": "Klíč serveru se změnil (%@). Pokud byl server přeinstalovaný, zapomeň starý klíč v nastavení blogu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Schlüssel des Servers hat sich geändert (%@). Wurde der Server neu aufgesetzt, vergiss den alten Schlüssel in den Einstellungen des Blogs."
           }
         }
       }
@@ -1979,6 +3209,12 @@
             "state": "translated",
             "value": "Web"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website"
+          }
         }
       }
     },
@@ -1988,6 +3224,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Web nemá nastavenou adresu, takže není co otevřít."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website hat keine Adresse gesetzt, es gibt also nichts zu öffnen."
           }
         }
       }
@@ -1999,6 +3241,12 @@
             "state": "translated",
             "value": "Text v odpovědi nepřišel."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Text kam nicht mit der Antwort."
+          }
         }
       }
     },
@@ -2008,6 +3256,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Text jmenuje méně obrázků, než příspěvek má. Z appky jde obrázek vyměnit za jiný, ne ubrat: uložení, po kterém by jich zbylo méně, blog odmítne. Ubrat obrázky jde u stolu přes ./blog.sh edit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Text nennt weniger Bilder, als der Beitrag hat. Aus der App lässt sich ein Bild gegen ein anderes tauschen, nicht herausnehmen: das Blog lehnt ein Speichern ab, nach dem der Beitrag weniger hätte. Bilder herausnehmen geht am Schreibtisch, mit ./blog.sh edit."
           }
         }
       }
@@ -2019,6 +3273,12 @@
             "state": "translated",
             "value": "Nabídnutý čas je nejbližší volný slot."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die angebotene Zeit ist der nächste freie Slot."
+          }
         }
       }
     },
@@ -2028,6 +3288,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tenhle příspěvek tady upravit nejde."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Beitrag lässt sich hier nicht bearbeiten."
           }
         }
       }
@@ -2039,6 +3305,12 @@
             "state": "translated",
             "value": "Tenhle příspěvek tady upravit nejde: %@. U počítače se edit zeptá, než to ztratí; tady by neměl kdo odpovědět."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Beitrag lässt sich hier nicht bearbeiten: %@. Am Schreibtisch fragt edit, bevor etwas verloren geht; hier könnte niemand antworten."
+          }
         }
       }
     },
@@ -2048,6 +3320,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tenhle příspěvek nemá staré adresy."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Beitrag hat keine alten Adressen."
           }
         }
       }
@@ -2059,6 +3337,12 @@
             "state": "translated",
             "value": "Web vychází ve více jazycích a tenhle příspěvek ještě není napsaný ve všech: vyšel by jen v jednom."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Website erscheint in mehr als einer Sprache, und dieser Beitrag ist noch nicht in allen geschrieben: er ginge nur in einer Sprache hinaus."
+          }
         }
       }
     },
@@ -2068,6 +3352,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "O tři stupně větší"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drei Stufen größer"
           }
         }
       }
@@ -2079,6 +3369,12 @@
             "state": "translated",
             "value": "Titulek"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel"
+          }
         }
       }
     },
@@ -2088,6 +3384,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Koš"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papierkorb"
           }
         }
       }
@@ -2099,6 +3401,12 @@
             "state": "translated",
             "value": "Koš vysypán: položek %1$lld, uvolněno %2$@."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papierkorb geleert: %1$lld Element(e), %2$@ freigegeben."
+          }
         }
       }
     },
@@ -2108,6 +3416,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Koš je prázdný"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Papierkorb ist leer"
           }
         }
       }
@@ -2119,6 +3433,12 @@
             "state": "translated",
             "value": "Tenhle slug mají dva příspěvky v různých letech a appka neumí říct, který z nich myslíš. U stolu se na to zeptá ./blog.sh props."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Slug tragen zwei Beiträge aus verschiedenen Jahren, und die App kann nicht sagen, welcher gemeint ist. Am Schreibtisch fragt ./blog.sh props danach."
+          }
         }
       }
     },
@@ -2128,6 +3448,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "O dva stupně větší"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei Stufen größer"
           }
         }
       }
@@ -2139,6 +3465,12 @@
             "state": "translated",
             "value": "Stáhnout z webu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück auf Entwurf"
+          }
         }
       }
     },
@@ -2148,6 +3480,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nahoru"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoch"
           }
         }
       }
@@ -2159,6 +3497,12 @@
             "state": "translated",
             "value": "Nahoru — o slot dřív"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoch — einen Slot früher"
+          }
         }
       }
     },
@@ -2168,6 +3512,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "V textu použit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Text verwendet"
           }
         }
       }
@@ -2179,6 +3529,12 @@
             "state": "translated",
             "value": "Uživatel"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benutzer"
+          }
         }
       }
     },
@@ -2188,6 +3544,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Co chceš dělat?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was möchtest du tun?"
           }
         }
       }
@@ -2199,6 +3561,12 @@
             "state": "translated",
             "value": "Co se uklidí, je pryč nadobro. Starší verze jsou to, co příspěvek říkal před posledními uloženími; každému zůstane ta nejnovější."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was aufgeräumt wird, ist endgültig weg. Ältere Fassungen sind, was ein Beitrag vor seinen letzten Speicherungen sagte; jeder behält seine neueste."
+          }
         }
       }
     },
@@ -2208,6 +3576,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zároveň se oznámí na síti — a oznámení nejde vzít zpět."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit einem eingerichteten Netzwerk wird auch angekündigt — und eine Ankündigung lässt sich nicht zurücknehmen."
           }
         }
       }
@@ -2219,6 +3593,12 @@
             "state": "translated",
             "value": "Bez prvního se sestaví jen změněné stránky; druhé nahraje všechno, což si pojistka nasazení vyžádá, když odmítne."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne das Erste werden nur geänderte Seiten gebaut; das Zweite lädt alles hoch — das verlangt die Sicherung des Deploys, wenn sie ablehnt."
+          }
         }
       }
     },
@@ -2228,6 +3608,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "bývalý slug, přesměrovává sem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ein früherer Slug, leitet hierher"
           }
         }
       }
@@ -2239,6 +3625,12 @@
             "state": "translated",
             "value": "vše"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "alle"
+          }
         }
       }
     },
@@ -2248,6 +3640,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "oznámit (%@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ankündigen (%@)"
           }
         }
       }
@@ -2259,6 +3657,12 @@
             "state": "translated",
             "value": "oznámení"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ankündigung"
+          }
         }
       }
     },
@@ -2268,6 +3672,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "jakýkoli štítek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jedes Schlagwort"
           }
         }
       }
@@ -2279,6 +3689,12 @@
             "state": "translated",
             "value": "jakýkoli typ"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jeder Typ"
+          }
         }
       }
     },
@@ -2288,6 +3704,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "fotky"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder"
           }
         }
       }
@@ -2299,6 +3721,12 @@
             "state": "translated",
             "value": "fotek"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder"
+          }
         }
       }
     },
@@ -2308,6 +3736,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "fotka"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild"
           }
         }
       }
@@ -2319,6 +3753,12 @@
             "state": "translated",
             "value": "jen text"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nur Text"
+          }
         }
       }
     },
@@ -2328,6 +3768,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "videa"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos"
           }
         }
       }
@@ -2339,6 +3785,12 @@
             "state": "translated",
             "value": "videí"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos"
+          }
         }
       }
     },
@@ -2348,6 +3800,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "video"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video"
           }
         }
       }
@@ -2359,6 +3817,12 @@
             "state": "translated",
             "value": "rozepsané"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwürfe"
+          }
         }
       }
     },
@@ -2368,6 +3832,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "připnuté"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "angepinnt"
           }
         }
       }
@@ -2379,6 +3849,12 @@
             "state": "translated",
             "value": "publikované"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "veröffentlicht"
+          }
         }
       }
     },
@@ -2388,6 +3864,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "naplánované"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "geplant"
           }
         }
       }
@@ -2399,6 +3881,12 @@
             "state": "translated",
             "value": "nepublikované"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unveröffentlicht"
+          }
         }
       }
     },
@@ -2408,6 +3896,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "zrušit plán"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan aufheben"
           }
         }
       }
@@ -2419,6 +3913,12 @@
             "state": "translated",
             "value": "seznam kapitol"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapitelliste"
+          }
         }
       }
     },
@@ -2428,6 +3928,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "smazat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "löschen"
           }
         }
       }
@@ -2439,6 +3945,12 @@
             "state": "translated",
             "value": "koncept — není na webu, jen náhled"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf -- nicht auf der Website, nur Vorschau"
+          }
         }
       }
     },
@@ -2448,6 +3960,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "starší verze"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frühere Fassungen"
           }
         }
       }
@@ -2459,6 +3977,12 @@
             "state": "translated",
             "value": "Zpět do formuláře"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zum Formular"
+          }
         }
       }
     },
@@ -2468,6 +3992,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Psát na celé obrazovce"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem ganzen Bildschirm schreiben"
           }
         }
       }
@@ -2479,6 +4009,12 @@
             "state": "translated",
             "value": "médií"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medien"
+          }
         }
       }
     },
@@ -2488,6 +4024,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "příspěvků"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beiträge"
           }
         }
       }
@@ -2499,6 +4041,12 @@
             "state": "translated",
             "value": "%@ čtení"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Lesezeit"
+          }
         }
       }
     },
@@ -2508,6 +4056,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "od roku %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seit %@"
           }
         }
       }
@@ -2519,6 +4073,12 @@
             "state": "translated",
             "value": "štítků"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlagwörter"
+          }
         }
       }
     },
@@ -2528,6 +4088,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "v koši"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "im Papierkorb"
           }
         }
       }
@@ -2539,6 +4105,12 @@
             "state": "translated",
             "value": "verzí"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fassungen"
+          }
         }
       }
     },
@@ -2548,6 +4120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "slov"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wörter"
           }
         }
       }
@@ -2559,6 +4137,12 @@
             "state": "translated",
             "value": "ne"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nein"
+          }
         }
       }
     },
@@ -2568,6 +4152,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "ano"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ja"
           }
         }
       }
@@ -2579,6 +4169,12 @@
             "state": "translated",
             "value": "v textu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "im Text"
+          }
         }
       }
     },
@@ -2588,6 +4184,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "jazyk: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache: %@"
           }
         }
       }
@@ -2599,6 +4201,12 @@
             "state": "translated",
             "value": "jazyky"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachen"
+          }
         }
       }
     },
@@ -2608,6 +4216,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "úvodní obrázek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leitbild"
           }
         }
       }
@@ -2619,6 +4233,12 @@
             "state": "translated",
             "value": "text"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
         }
       }
     },
@@ -2628,6 +4248,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "jen média"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nur Medien"
           }
         }
       }
@@ -2639,6 +4265,12 @@
             "state": "translated",
             "value": "neodejde — nezalistovaný příspěvek se neoznamuje"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nie -- ein ungelisteter Beitrag wird nicht angekündigt"
+          }
         }
       }
     },
@@ -2648,6 +4280,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "nikdy — tenhle web neoznamuje nikam"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nie -- diese Website kündigt nirgends an"
           }
         }
       }
@@ -2659,6 +4297,12 @@
             "state": "translated",
             "value": "zatím nikdy — token sítě je prázdný, takže publikace nic neoznámí"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "derzeit nie -- das Token des Netzwerks ist leer, also kündigt das Veröffentlichen nichts an"
+          }
         }
       }
     },
@@ -2668,6 +4312,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "bez oznámení"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nicht angekündigt"
           }
         }
       }
@@ -2679,6 +4329,12 @@
             "state": "translated",
             "value": "není v textu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nicht im Text"
+          }
         }
       }
     },
@@ -2688,6 +4344,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "nejmenována — při uložení se smaže"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nicht genannt — wird beim Speichern gelöscht"
           }
         }
       }
@@ -2699,6 +4361,12 @@
             "state": "translated",
             "value": "zatím ne — odejde s publikací"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noch nicht -- geht mit der Veröffentlichung raus"
+          }
         }
       }
     },
@@ -2708,6 +4376,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "staré odkazy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "alte Links"
           }
         }
       }
@@ -2719,6 +4393,12 @@
             "state": "translated",
             "value": "díl série"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teil der Serie"
+          }
         }
       }
     },
@@ -2728,6 +4408,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "cesta"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pfad"
           }
         }
       }
@@ -2739,6 +4425,12 @@
             "state": "translated",
             "value": "připnout"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "anpinnen"
+          }
         }
       }
     },
@@ -2748,6 +4440,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "připnutí"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "angepinnt"
           }
         }
       }
@@ -2759,6 +4457,12 @@
             "state": "translated",
             "value": "náhled"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorschau"
+          }
         }
       }
     },
@@ -2768,6 +4472,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "vlastnosti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenschaften"
           }
         }
       }
@@ -2779,6 +4489,12 @@
             "state": "translated",
             "value": "vlastnosti a akce"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenschaften und Aktionen"
+          }
         }
       }
     },
@@ -2788,6 +4504,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "publikovat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "veröffentlichen"
           }
         }
       }
@@ -2799,6 +4521,12 @@
             "state": "translated",
             "value": "publikovat hned"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sofort veröffentlichen"
+          }
         }
       }
     },
@@ -2808,6 +4536,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "publikováno, %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "veröffentlicht, %@"
           }
         }
       }
@@ -2819,6 +4553,12 @@
             "state": "translated",
             "value": "přesměrovává sem"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "leitet hierher"
+          }
         }
       }
     },
@@ -2828,6 +4568,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "přejmenovat slug"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slug umbenennen"
           }
         }
       }
@@ -2839,6 +4585,12 @@
             "state": "translated",
             "value": "přeplánovat"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "umplanen"
+          }
         }
       }
     },
@@ -2848,6 +4600,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "koncept"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf"
           }
         }
       }
@@ -2859,6 +4617,12 @@
             "state": "translated",
             "value": "publikováno"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "veröffentlicht"
+          }
         }
       }
     },
@@ -2868,6 +4632,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "naplánovat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "planen"
           }
         }
       }
@@ -2879,6 +4649,12 @@
             "state": "translated",
             "value": "naplánováno"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "geplant"
+          }
         }
       }
     },
@@ -2888,6 +4664,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "série"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie"
           }
         }
       }
@@ -2899,6 +4681,12 @@
             "state": "translated",
             "value": "stav"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
         }
       }
     },
@@ -2908,6 +4696,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "štítek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlagwort"
           }
         }
       }
@@ -2919,6 +4713,12 @@
             "state": "translated",
             "value": "štítek=%@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlagwort=%@"
+          }
         }
       }
     },
@@ -2928,6 +4728,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "štítky"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlagwörter"
           }
         }
       }
@@ -2939,6 +4745,12 @@
             "state": "translated",
             "value": "text"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
         }
       }
     },
@@ -2948,6 +4760,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "přes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "über"
           }
         }
       }
@@ -2959,12 +4777,24 @@
             "state": "translated",
             "value": "Nový"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu"
+          }
         }
       }
     },
     "tile.browse": {
       "localizations": {
         "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv"
+          }
+        },
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Archiv"
@@ -2979,6 +4809,12 @@
             "state": "translated",
             "value": "Příspěvek"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beitrag"
+          }
         }
       }
     },
@@ -2988,6 +4824,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fronta"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geplant"
           }
         }
       }
@@ -2999,6 +4841,12 @@
             "state": "translated",
             "value": "Web"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
+          }
         }
       }
     },
@@ -3008,6 +4856,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Koš"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papierkorb"
           }
         }
       }
@@ -3019,6 +4873,12 @@
             "state": "translated",
             "value": "typ"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ"
+          }
         }
       }
     },
@@ -3028,6 +4888,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "typ=%@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ=%@"
           }
         }
       }
@@ -3039,6 +4905,12 @@
             "state": "translated",
             "value": "nezalistován"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ungelistet"
+          }
         }
       }
     },
@@ -3048,6 +4920,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "odepnout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lösen"
           }
         }
       }
@@ -3059,6 +4937,12 @@
             "state": "translated",
             "value": "stáhnout z webu"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zurück auf Entwurf"
+          }
         }
       }
     },
@@ -3068,6 +4952,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "video"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video"
           }
         }
       }
@@ -3079,6 +4969,12 @@
             "state": "translated",
             "value": "ano — drží se nahoře na úvodní stránce"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ja -- bleibt oben auf der Startseite"
+          }
         }
       }
     },
@@ -3088,6 +4984,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "ano — dostupný na své adrese, ale v žádném výpisu, feedu, sitemapě ani hledání"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ja -- über die eigene Adresse erreichbar, in keiner Liste, keinem Feed, keiner Sitemap und keiner Suche"
           }
         }
       }

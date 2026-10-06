@@ -22,9 +22,9 @@ nonisolated enum EngineError: Error, LocalizedError {
         case .notConfigured: String(localized: "The server is not set up yet.")
         case .noKey: String(localized: "The app has no key yet.")
         case .keyNotKnown:
-            String(localized: "The server does not know this blog's key. The line under the key in Settings belongs in ~/.ssh/authorized_keys on the server.")
+            String(localized: "The server does not know this blog's key. The line under the key in the blog's settings belongs in ~/.ssh/authorized_keys on the server.")
         case .hostKeyChanged(let fingerprint):
-            String(localized: "The server's key changed (\(fingerprint)). If the server was reinstalled, forget the old key in Settings.")
+            String(localized: "The server's key changed (\(fingerprint)). If the server was reinstalled, forget the old key in the blog's settings.")
         // The engine's own sentence here speaks of --yes and of a screen the
         // terminal has; on a phone neither is anything one can do.
         case .refused(let refusal) where refusal.error == "ambiguous_slug":

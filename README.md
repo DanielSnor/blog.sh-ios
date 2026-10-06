@@ -19,8 +19,8 @@ server and iOS 26 or later on the device.
 
 ## Setting it up
 
-1. Build and run the app (below), open **Settings** under the gear and
-   enter the server's host, the account and the port.
+1. Build and run the app (below), tap the name on the first screen, add
+   a blog there and enter the server's host, the account and the port.
 2. **Make the app's key.** It is made on the device and kept in its
    keychain; it never leaves it.
 3. Say where the blog is on the server -- its directory -- and the app
@@ -52,13 +52,18 @@ on the server is then yours to delete.
 Switching changes everything the screen wears: the name, the favicon, the
 accent, what waits in the queue.
 
-One setting is the device's and not a blog's: the size of the type. The
-app follows the size the system has, and under **Text size** in Settings
+What is the app's own and no blog's is under the gear; a blog's settings
+-- where it is, its key -- are behind the key at the end of its row in
+the list of blogs. The app's own are two. The size of the type: the
+app follows the size the system has, and under **Text size**
 it can be set one to four steps above that. On a Mac, where the system
 gives an iPad app one size of type and no way to another, the app
 enlarges its faces by its own hand, by the same steps. Rows that hold a
 name beside a value put the value under the name at the largest sizes,
-and the preview of a post is enlarged with the rest.
+and the preview of a post is enlarged with the rest. And the language:
+the app is written in English, Czech and German and speaks the system's
+unless told another under **Language** -- kept where the system keeps an
+app's own language, and taken up when the app is next started.
 
 ## What is where
 

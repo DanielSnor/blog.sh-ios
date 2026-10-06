@@ -1,18 +1,14 @@
 import SwiftUI
 
 /// The blogs the app drives, and the way from one to another: a row opens
-/// its blog, the last key begins a new one. A blog is its own server, its
-/// own key and its own colour; nothing of one is used for another.
+/// its blog, the key at its end opens that blog's settings, the last key
+/// begins a new one. A blog is its own server, its own key and its own
+/// colour; nothing of one is used for another.
 struct BlogsView: View {
-    /// Told when a blog was added, so its settings can open next.
-    let added: () -> Void
     @Environment(\.dismiss) private var dismiss
     private var blogs = Blogs.shared
     @State private var removing: Blog?
-
-    init(added: @escaping () -> Void) {
-        self.added = added
-    }
+    @State private var settingUp = false
 
     var body: some View {
         List {
@@ -21,13 +17,28 @@ struct BlogsView: View {
                 .padding(.bottom, 6)
                 .paperRow()
             ForEach(blogs.all) { blog in
-                Button {
-                    blogs.select(blog.id)
-                    dismiss()
-                } label: {
-                    BlogRow(blog: blog, open: blog.id == blogs.currentID)
+                HStack(spacing: 4) {
+                    Button {
+                        blogs.select(blog.id)
+                        dismiss()
+                    } label: {
+                        BlogRow(blog: blog, open: blog.id == blogs.currentID)
+                    }
+                    .buttonStyle(PressStyle())
+                    // The settings are the open blog's: the key opens the blog with them.
+                    Button {
+                        blogs.select(blog.id)
+                        settingUp = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.tint)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PressStyle())
+                    .accessibilityLabel(Text("The blog's settings"))
                 }
-                .buttonStyle(PressStyle())
                 .confirmationDialog("Remove '\(blog.label)' from the app? Its key is deleted with it; the blog itself is not touched.",
                                     isPresented: Binding(get: { removing?.id == blog.id }, set: { if !$0 { removing = nil } }),
                                     titleVisibility: .visible) {
@@ -40,8 +51,7 @@ struct BlogsView: View {
             }
             Command("Add a blog", symbol: "plus") {
                 blogs.add()
-                added()
-                dismiss()
+                settingUp = true
             }
             .padding(.vertical, 12)
             .paperRow(rule: false)
@@ -49,6 +59,9 @@ struct BlogsView: View {
         .paperList()
         .navigationTitle("Blogs")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        .navigationDestination(isPresented: $settingUp) {
+            BlogSettingsView(close: { dismiss() })
+        }
     }
 }
 
@@ -97,5 +110,5 @@ struct BlogRow: View {
 }
 
 #Preview {
-    NavigationStack { BlogsView(added: {}) }
+    NavigationStack { BlogsView() }
 }
