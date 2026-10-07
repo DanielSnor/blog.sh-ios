@@ -10,7 +10,8 @@ import SwiftUI
 /// leaves the queue the screen asks whether the rest should step forward
 /// into the gap; the app asks the same, before the call, because the
 /// engine answers both in one. The preview is rebuilt once, when you are
-/// done -- the screen does it on the way out, the app offers it.
+/// done -- the screen does it on the way out; the app does it once the
+/// queue has been left alone a moment, and says so in a line, not a key.
 struct QueueView: View {
     /// The site's other languages, for the post a row opens.
     var languages: [String] = []
@@ -27,6 +28,8 @@ struct QueueView: View {
     @State private var notice: String?
     @State private var said: Said?
     @State private var rebuilding = false
+    /// Counted with every change of the queue: the build waits for the last one.
+    @State private var changes = 0
 
     /// A post about to leave the queue, and which way.
     struct Leaving: Identifiable {
@@ -46,27 +49,20 @@ struct QueueView: View {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
             if dirty {
-                Button {
-                    Task { await rebuild() }
-                } label: {
-                    Card(highlighted: true) {
-                        // A rebuild takes its time: the card says it is at it.
-                        if rebuilding {
-                            ProgressView().controlSize(.small)
-                            Text("Rebuilding…")
-                                .font(.ui(14, weight: .medium))
-                                .foregroundStyle(Theme.ink)
-                        } else {
-                            Image(systemName: "hammer").foregroundStyle(.tint)
-                            Text("The preview is behind the queue — rebuild and deploy now")
-                                .font(.ui(14, weight: .medium))
-                                .foregroundStyle(Theme.ink)
-                        }
-                    }
+                // Not a key: nothing here is the reader's to do. The posts go out
+                // by the queue whatever the previews say, and the site is built
+                // by the app itself once the queue has been left alone a moment.
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    if rebuilding { ProgressView().controlSize(.small) }
+                    (Text("Draft previews still show the old times. The posts go out by the queue all the same.")
+                     + Text(verbatim: rebuilding ? " — " : "")
+                     + Text(rebuilding ? "Building the site now." : ""))
+                        .font(.ui(13))
+                        .foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .buttonStyle(PressStyle())
-                .disabled(rebuilding)
-                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 12)
                 .paperRow(rule: false)
             }
             if !rows.isEmpty {
@@ -145,7 +141,22 @@ struct QueueView: View {
             }
         }
         .paperList()
-        .disabled(busy)
+        // A build holds the lock a change of the queue needs: while one runs, the rows wait.
+        .disabled(busy || rebuilding)
+        // The terminal's queue rebuilds on the way out. Here: once the queue
+        // has been left alone for a moment, or when the screen is left before that.
+        .task(id: changes) {
+            guard dirty, !rebuilding else { return }
+            try? await Task.sleep(for: .seconds(6))
+            guard !Task.isCancelled, dirty, !busy else { return }
+            await rebuild()
+        }
+        .onDisappear {
+            guard dirty, !rebuilding else { return }
+            dirty = false
+            // Seen through whatever becomes of this screen; a failure there has nobody to tell.
+            Task { let _: RebuildAnswer? = try? await Engine.shared.call(["rebuild"]) }
+        }
         .navigationTitle("The scheduled-post queue")
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
@@ -205,7 +216,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue", direction, "\(row.year)/\(row.slug)"])
             rows = answer.queue
-            dirty = true
+            dirty = true; changes += 1
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
         }
@@ -217,7 +228,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue", "--move", "\(row.year)/\(row.slug)", "--to", "\(position)"])
             rows = answer.queue
-            dirty = true
+            dirty = true; changes += 1
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
             // The row was shown where it was dropped; the queue is as the engine has it.
@@ -240,7 +251,7 @@ struct QueueView: View {
             if let warnings = answer.warnings?.plain, !warnings.isEmpty { said.append(contentsOf: warnings) }
             if !said.isEmpty { notice = said.joined(separator: "\n") }
             // Publishing rebuilds by itself; a plan cancelled leaves the preview behind.
-            if !leaving.publish { dirty = true }
+            if !leaving.publish { dirty = true; changes += 1 }
             await load()
         } catch EngineError.refused(let refusal) where refusal.error == Partial.code && leaving.publish && !anyway {
             // Not written in every language the site publishes: asked, as the properties screen asks it.
@@ -253,7 +264,7 @@ struct QueueView: View {
     }
 
     private func changed() async {
-        dirty = true
+        dirty = true; changes += 1
         await load()
     }
 
@@ -261,10 +272,12 @@ struct QueueView: View {
         rebuilding = true
         defer { rebuilding = false }
         do {
-            let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            dirty = false
-            notice = answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run.")
+            let before = changes
+            let _: RebuildAnswer = try await Engine.shared.call(["rebuild"])
+            // Done is said by the line going away; a change made since keeps it.
+            if changes == before { dirty = false }
         } catch {
+            dirty = false
             notice = error.isCalledOff ? notice : error.localizedDescription
         }
     }

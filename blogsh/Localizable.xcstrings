@@ -450,6 +450,22 @@
         }
       }
     },
+    "Building the site now.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nyní sestavuji web."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website wird jetzt gebaut."
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "cs": {
@@ -782,6 +798,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Entwurf"
+          }
+        }
+      }
+    },
+    "Draft previews still show the old times. The posts go out by the queue all the same.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Náhledy konceptů ještě ukazují staré časy. Příspěvky vyjdou podle fronty tak jako tak."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Vorschauen der Entwürfe zeigen noch die alten Zeiten. Die Beiträge erscheinen trotzdem nach der Warteschlange."
           }
         }
       }
@@ -3086,22 +3118,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Beiträge dazwischen rücken je einen Slot zurück; belegt bleiben dieselben Zeiten."
-          }
-        }
-      }
-    },
-    "The preview is behind the queue — rebuild and deploy now": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Náhled zaostává za frontou — sestavit a nasadit teď"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Vorschau hinkt der Warteschlange hinterher — jetzt neu bauen und ausliefern"
           }
         }
       }
