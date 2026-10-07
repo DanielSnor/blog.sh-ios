@@ -181,25 +181,44 @@ nonisolated enum Kept {
         words.split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 
-    /// A description changed on its card follows the mark the text already
-    /// has -- where that mark still says what the card said before. Anything
-    /// else there is the author's own wording, typed into the text, and is
-    /// not the card's to overwrite: the rule of /write/. (A video's two
-    /// marks end in the same one, so the one rule serves both.)
-    static func retitled(_ text: String, name: String, before: String, after: String) -> String {
-        let was = "![\(oneLine(before))](\(name))"
-        guard text.contains(was) else { return text }
-        return text.replacingOccurrences(of: was, with: "![\(oneLine(after))](\(name))")
+    // A picture's description is ONE thing with two places to write it:
+    // the card, and the mark the text has for the picture. Whichever is
+    // written in, the other follows, at every letter -- so it does not
+    // matter where one happens to be when a word comes to mind. Two
+    // functions, one for each way; each leaves alone what already says
+    // the same, which is what keeps the two from chasing each other and
+    // keeps a space typed at the end of a word where it was typed.
+
+    /// What the text says of a picture: the words of its first mark, as
+    /// they stand there -- nothing at all where the text has no mark for
+    /// it, the empty string where the mark says nothing.
+    static func described(_ name: String, in text: String) -> String? {
+        let pattern = #"!\[([^\]]*)\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"#
+        guard let expression = try? NSRegularExpression(pattern: pattern),
+              let match = expression.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text) else { return nil }
+        return String(text[range])
     }
 
-    /// What is typed on a card replaces the words the card SHOWED: its
-    /// own, and when it had none, the ones the text says of its picture --
-    /// an empty card shows those, so the writer sees them as the
-    /// description there is and types over them. Left standing, the card
-    /// would say one thing and the post go out saying another.
-    static func typed(_ text: String, name: String, before: String, after: String) -> String {
-        let own = oneLine(before)
-        return retitled(text, name: name, before: own.isEmpty ? (said(of: name, in: text) ?? "") : own, after: after)
+    /// The text was written in: every card takes what the text now says of
+    /// its picture. A card whose picture the text does not name keeps its
+    /// own words -- they go in with the mark when it is put there.
+    static func heard(_ shots: [Shot], from text: String) -> [Shot] {
+        shots.map { shot in
+            guard let words = described(shot.name, in: text), oneLine(words) != oneLine(shot.alt) else { return shot }
+            var shot = shot
+            shot.alt = words
+            return shot
+        }
+    }
+
+    /// A card was written on: the mark the text has for its picture says
+    /// the same -- that mark, and any other of the picture that said what
+    /// it said. A text with no mark for the picture is let be. (A video's
+    /// two marks end in the same one, so the one rule serves both.)
+    static func typed(_ text: String, name: String, after: String) -> String {
+        guard let words = described(name, in: text), oneLine(words) != oneLine(after) else { return text }
+        return text.replacingOccurrences(of: "![\(words)](\(name))", with: "![\(oneLine(after))](\(name))")
     }
 
     /// The same for every card at once: the shots as they are now, their
@@ -209,20 +228,9 @@ nonisolated enum Kept {
         guard shots.count == before.count else { return text }
         var text = text
         for (shot, was) in zip(shots, before) where shot.alt != was {
-            text = typed(text, name: shot.name, before: was, after: shot.alt)
+            text = typed(text, name: shot.name, after: shot.alt)
         }
         return text
-    }
-
-    /// What the text itself says of a picture, where it says anything: a
-    /// description typed into the mark and not onto the card.
-    static func said(of name: String, in text: String) -> String? {
-        let pattern = #"!\[([^\]]*)\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"#
-        guard let expression = try? NSRegularExpression(pattern: pattern),
-              let match = expression.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let range = Range(match.range(at: 1), in: text) else { return nil }
-        let words = oneLine(String(text[range]))
-        return words.isEmpty ? nil : words
     }
 
     /// What travels with the text: the shots it names. One picked and

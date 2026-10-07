@@ -101,13 +101,12 @@ the line `//--more--//`, which cuts a post in two, is a hairline, not
 words; and pictures in a row are the gallery they are on the site -- two
 side by side, an odd last one across both. And a picture chosen for a post is a key: behind it the
 shots stand one to a page and large, each with the line that describes it
-under it, to be written while looking at what it describes. A description
-typed on a card goes into the mark the text has for that shot as it is
-typed -- where the mark still says what the card showed: its own words,
-or, for a card with none, the ones the text says of its picture, which
-an empty card shows in their place. A mark the author rewrote after the
-card spoke is the author's own wording and no card overwrites it, the
-rule of `/write/`. The text is sent as it stands.
+under it, to be written while looking at what it describes. A picture's
+description is one thing with two places to write it -- its card and
+the mark the text has for it: written in either, the other follows at
+every letter, so it can be begun in the text, added to on the card and
+finished in the text again. A card whose picture the text does not name
+yet keeps its words for when the mark is put in. The text is sent as it stands.
 
 The text of a post is as tall as it asks, up to what stays in sight:
 with a keyboard up it has everything down to the keyboard -- the tags

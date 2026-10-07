@@ -49,7 +49,7 @@ struct ComposeView: View {
             SectionLabel("Pictures and video")
             Plate {
                 ForEach($shots) { $shot in
-                    ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))"), said: Kept.said(of: shot.name, in: self.text)) {
+                    ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
                         insert(shot)
                     } remove: {
                         remove(shot)
@@ -99,8 +99,16 @@ struct ComposeView: View {
         }
         .navigationTitle("New post")
         // A description typed on a card goes into the mark the text has for it.
+        // ...and one typed into the text goes onto the card: the two are one.
+        .onChange(of: text) { _, now in
+            shots = Kept.heard(shots, from: now)
+        }
         .onChange(of: shots.map(\.alt)) { before, _ in
             text = Kept.retitled(text, shots: shots, before: before)
+        }
+        // A picture just chosen, whose mark the text already has, takes its words too.
+        .onChange(of: shots.count) { _, _ in
+            shots = Kept.heard(shots, from: text)
         }
         .onChange(of: picked) { _, items in
             Task { await load(items) }
@@ -184,8 +192,6 @@ struct Looked: Identifiable {
 struct ShotCard: View {
     @Binding var shot: Shot
     let inText: Bool
-    /// What the text itself says of this shot, when the card says nothing.
-    var said: String?
     let insert: () -> Void
     let remove: () -> Void
     /// The shot large, with its description under it.
@@ -238,10 +244,9 @@ struct ShotCard: View {
                     Spacer(minLength: 4)
                     Text(verbatim: Delivery.size(shot.data.count)).font(.mono(11, bold: false)).foregroundStyle(Theme.muted)
                 }
-                // An empty card whose picture the text already describes says
-                // so, in the text's own words: it is described, only not here.
-                TextField("", text: $shot.alt,
-                          prompt: (said.map { Text(verbatim: $0) } ?? Text("No description yet")).foregroundStyle(Theme.muted))
+                // The same words as in the picture's mark in the text: written
+                // here or there, they are one description.
+                TextField("", text: $shot.alt, prompt: Text("No description yet").foregroundStyle(Theme.muted))
                     .font(.ui(15))
                     .foregroundStyle(Theme.ink)
                 // Two keys for a finger, not two words: each is as tall as a

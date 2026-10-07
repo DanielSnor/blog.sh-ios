@@ -75,7 +75,7 @@ struct TextEditView: View {
                 SectionLabel("Pictures and video")
                 Plate {
                     ForEach($shots) { $shot in
-                        ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))"), said: Kept.said(of: shot.name, in: self.text)) {
+                        ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
                             insert(shot)
                         } remove: {
                             shots.removeAll { $0.id == shot.id }
@@ -138,8 +138,16 @@ struct TextEditView: View {
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
         // A description typed on a card goes into the mark the text has for it.
+        // ...and one typed into the text goes onto the card: the two are one.
+        .onChange(of: text) { _, now in
+            shots = Kept.heard(shots, from: now)
+        }
         .onChange(of: shots.map(\.alt)) { before, _ in
             text = Kept.retitled(text, shots: shots, before: before)
+        }
+        // A picture just chosen, whose mark the text already has, takes its words too.
+        .onChange(of: shots.count) { _, _ in
+            shots = Kept.heard(shots, from: text)
         }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
         .sheet(isPresented: $previewing) {
