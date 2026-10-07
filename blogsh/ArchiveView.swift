@@ -60,39 +60,62 @@ struct ArchiveView: View {
         }
     }
 
-    var body: some View {
-        List {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    Button { state = nil } label: { FilterPill(label: String(localized: "all"), selected: state == nil) }
-                    ForEach(StateFilter.allCases) { one in
-                        Button { state = state == one ? nil : one } label: { FilterPill(label: one.label, selected: state == one) }
-                    }
-                    Menu {
-                        Picker("type", selection: $type) {
-                            Text("any type").tag(String?.none)
-                            ForEach(types, id: \.self) { Text($0).tag(String?.some($0)) }
-                        }
-                    } label: {
-                        FilterPill(label: type.map { String(localized: "type=\($0)") } ?? String(localized: "type"), selected: type != nil)
-                    }
-                    Menu {
-                        Picker("tag", selection: $tag) {
-                            Text("any tag").tag(String?.none)
-                            ForEach(tags, id: \.self) { Text($0).tag(String?.some($0)) }
-                        }
-                    } label: {
-                        FilterPill(label: tag.map { String(localized: "tag=\($0)") } ?? String(localized: "tag"), selected: tag != nil)
-                    }
+    /// The filters, as a row of pills that stays put: under the bar, over
+    /// the rows, however far down a long archive has been read -- a filter
+    /// is wanted in the middle of a list more often than at its head.
+    private var pills: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Button { state = nil } label: { FilterPill(label: String(localized: "all"), selected: state == nil) }
+                ForEach(StateFilter.allCases) { one in
+                    Button { state = state == one ? nil : one } label: { FilterPill(label: one.label, selected: state == one) }
                 }
-                .buttonStyle(PressStyle())
-                .padding(.horizontal, Theme.gutter)
-                .padding(.vertical, 10)
+                Menu {
+                    Picker("type", selection: $type) {
+                        Text("any type").tag(String?.none)
+                        ForEach(types, id: \.self) { Text($0).tag(String?.some($0)) }
+                    }
+                } label: {
+                    FilterPill(label: type.map { String(localized: "type=\($0)") } ?? String(localized: "type"), selected: type != nil)
+                }
+                Menu {
+                    Picker("tag", selection: $tag) {
+                        Text("any tag").tag(String?.none)
+                        ForEach(tags, id: \.self) { Text($0).tag(String?.some($0)) }
+                    }
+                } label: {
+                    FilterPill(label: tag.map { String(localized: "tag=\($0)") } ?? String(localized: "tag"), selected: tag != nil)
+                }
             }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden, edges: .top)
-            .listRowSeparatorTint(Theme.line)
+            .buttonStyle(PressStyle())
+            .padding(.horizontal, Theme.gutter)
+            .padding(.vertical, 10)
+        }
+        // The bar lays its edge effect over the scroll view next under it,
+        // which is this row: nothing here runs under the bar to be faded.
+        .scrollEdgeEffectHidden(true, for: .all)
+        .background(Theme.paper)
+        .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1) }
+    }
+
+    var body: some View {
+        // The pills over the list, not in it and not in its safe area: as
+        // an inset of the list, a row that scrolls sideways is given the
+        // bar's height as its own top margin, and its pills slide out of it.
+        VStack(spacing: 0) {
+            pills
+            rows
+        }
+        .background(Theme.paper.ignoresSafeArea())
+        // With no list running under it, the bar would put a ground of its own there.
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationDestination(for: PostRow.self) { post in
+            PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
+        }
+    }
+
+    private var rows: some View {
+        List {
             if let problem {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
@@ -112,9 +135,6 @@ struct ArchiveView: View {
             }
         }
         .paperList(name: String(localized: "tile.browse", defaultValue: "Archive"), count: countLine)
-        .navigationDestination(for: PostRow.self) { post in
-            PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
-        }
         .sheet(item: $previewing) { post in
             NavigationStack { PostPreviewView(post: post, baseURL: baseURL) }
         }
