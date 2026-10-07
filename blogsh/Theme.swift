@@ -717,6 +717,41 @@ struct Hint: View {
     }
 }
 
+extension Unsaved {
+    /// What the screen says of changes it brought back: when they were
+    /// written, that the post has moved on under them where it has, and
+    /// that pictures chosen for them have to be chosen again.
+    @MainActor static func words(_ kept: Unsaved, over base: String, media: [String]?) -> Text {
+        var words = Text("Back in the editor: the changes written here \(kept.at.spoken) and not saved.")
+        if kept.base != base {
+            words = words + Text(verbatim: " ") + Text("The post has changed on the blog since; saving puts this text in its place.")
+        }
+        if let media, kept.namesPictures(beyond: media) {
+            words = words + Text(verbatim: " ") + Text("Its pictures were not kept; add them again.")
+        }
+        return words
+    }
+}
+
+/// Said at the head of a form that opened with something in it nobody
+/// typed just now: writing that was kept from the last time, brought
+/// back -- and the one key that puts it away again.
+struct BroughtBack: View {
+    let words: Text
+    let key: LocalizedStringKey
+    let putAway: () -> Void
+
+    var body: some View {
+        Plate {
+            words
+                .font(.ui(14))
+                .foregroundStyle(Theme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            Command(key, symbol: "xmark", danger: true, action: putAway)
+        }
+    }
+}
+
 /// What went wrong, where it went wrong.
 struct ProblemLine: View {
     let text: String

@@ -76,4 +76,107 @@ import Testing
         #expect(!Unsent(text: "Vykřičník! [a závorka]").namesPictures)
         #expect(!Unsent().namesPictures)
     }
+
+    /// A form that was only opened was not written in: what is kept
+    /// keeps the time it was written.
+    @Test func keepingTheSameWordsAgainKeepsTheirTime() {
+        let defaults = defaults(), blog = UUID()
+        written.keep(for: blog, in: defaults)
+        var again = written
+        again.at = Date(timeIntervalSince1970: 1_791_500_000)
+        again.keep(for: blog, in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults)?.at == written.at)
+        again.text += " A dál."
+        again.keep(for: blog, in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults)?.at == again.at)
+    }
+}
+
+/// Changes to a post the blog has, kept until they are saved. A mistake
+/// here is an edit lost with a closed app -- or one post's changes coming
+/// back into another, or into another language of the same.
+@Suite struct UnsavedTests {
+    private func defaults() -> UserDefaults {
+        let name = "unsaved-tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        return defaults
+    }
+
+    private let changed = Unsaved(text: "---\ntitle: Venku\n---\n\nNový odstavec.\n", base: "abc123",
+                                  at: Date(timeIntervalSince1970: 1_791_400_000))
+
+    @Test func changesAreKeptForTheirPostAndReadBack() {
+        let defaults = defaults(), blog = UUID()
+        changed.keep(for: blog, slug: "venku", what: .text, in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == changed)
+    }
+
+    /// Each to its own: another post, another language of the same post,
+    /// another blog with a post of the same name.
+    @Test func nothingComesBackIntoAnotherPlace() {
+        let defaults = defaults(), blog = UUID()
+        changed.keep(for: blog, slug: "venku", what: .text, in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "doma", what: .text, in: defaults) == nil)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .language("en"), in: defaults) == nil)
+        #expect(Unsaved.kept(for: UUID(), slug: "venku", what: .text, in: defaults) == nil)
+        var english = changed
+        english.text = "A new paragraph."
+        english.keep(for: blog, slug: "venku", what: .language("en"), in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .language("de"), in: defaults) == nil)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .language("en"), in: defaults)?.text == "A new paragraph.")
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == changed)
+    }
+
+    @Test func forgottenTheyAreGoneAndOnlyThey() {
+        let defaults = defaults(), blog = UUID()
+        changed.keep(for: blog, slug: "venku", what: .text, in: defaults)
+        changed.keep(for: blog, slug: "venku", what: .language("en"), in: defaults)
+        Unsaved.forget(for: blog, slug: "venku", what: .text, in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == nil)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .language("en"), in: defaults) != nil)
+    }
+
+    /// A blog that leaves the app takes all of its own with it, and no
+    /// other blog's.
+    @Test func aBlogThatLeavesTakesItsOwn() {
+        let defaults = defaults(), leaving = UUID(), staying = UUID()
+        changed.keep(for: leaving, slug: "venku", what: .text, in: defaults)
+        changed.keep(for: leaving, slug: "doma", what: .language("en"), in: defaults)
+        changed.keep(for: staying, slug: "venku", what: .text, in: defaults)
+        Unsaved.forgetAll(for: leaving, in: defaults)
+        #expect(Unsaved.kept(for: leaving, slug: "venku", what: .text, in: defaults) == nil)
+        #expect(Unsaved.kept(for: leaving, slug: "doma", what: .language("en"), in: defaults) == nil)
+        #expect(Unsaved.kept(for: staying, slug: "venku", what: .text, in: defaults) == changed)
+    }
+
+    @Test func keepingTheSameWordsAgainKeepsTheirTime() {
+        let defaults = defaults(), blog = UUID()
+        changed.keep(for: blog, slug: "venku", what: .text, in: defaults)
+        var again = changed
+        again.at = Date(timeIntervalSince1970: 1_791_500_000)
+        again.base = "def456"
+        again.keep(for: blog, slug: "venku", what: .text, in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == changed)
+        again.text += "Ještě věta.\n"
+        again.keep(for: blog, slug: "venku", what: .text, in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == again)
+    }
+
+    @Test func whatDoesNotReadIsNothing() {
+        let defaults = defaults(), blog = UUID()
+        defaults.set(Data("not json".utf8), forKey: Unsaved.key(blog, slug: "venku", what: .text))
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == nil)
+    }
+
+    /// The pictures the post has are there to be named; one chosen on the
+    /// device for these changes was not kept with them.
+    @Test func itKnowsWhenItsTextNamesAPictureThePostDoesNotHave() {
+        var kept = changed
+        kept.text = "Text.\n\n![Les](photo-1.jpg)\n\n!![Klip](clip-1.mp4)\n"
+        #expect(!kept.namesPictures(beyond: ["photo-1.jpg", "clip-1.mp4"]))
+        #expect(kept.namesPictures(beyond: ["photo-1.jpg"]))
+        #expect(kept.namesPictures(beyond: []))
+        #expect(!changed.namesPictures(beyond: []))
+    }
 }

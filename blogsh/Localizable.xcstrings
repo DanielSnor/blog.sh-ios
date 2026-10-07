@@ -482,6 +482,22 @@
         }
       }
     },
+    "Back in the editor: the changes written here %@ and not saved.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V editoru jsou zpátky změny, které tu byly rozepsány %@ a neuloženy."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wieder im Editor: die Änderungen, die hier %@ geschrieben und nicht gespeichert wurden."
+          }
+        }
+      }
+    },
     "Back in the form: what was written here %@ and not sent.": {
       "localizations": {
         "cs": {
@@ -3058,6 +3074,22 @@
         }
       }
     },
+    "Take the text as the blog has it": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vzít text tak, jak je na blogu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den Text nehmen, wie er im Blog steht"
+          }
+        }
+      }
+    },
     "Take this language off the post": {
       "localizations": {
         "cs": {
@@ -3422,6 +3454,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Der Beitrag kommt in den Papierkorb und lässt sich wiederherstellen; seine Ankündigung geht mit und lässt sich nicht zurückholen."
+          }
+        }
+      }
+    },
+    "The post has changed on the blog since; saving puts this text in its place.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek se mezitím na blogu změnil; uložením ho tenhle text nahradí."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag hat sich im Blog seitdem geändert; beim Speichern tritt dieser Text an seine Stelle."
           }
         }
       }

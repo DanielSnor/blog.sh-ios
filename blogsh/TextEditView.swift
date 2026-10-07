@@ -7,6 +7,9 @@ import PhotosUI
 /// phone goes -- new pictures first, then the text as a file whose header
 /// says which post it edits and which version it started from. A draft
 /// gets its preview rebuilt; a published post is rebuilt and deployed.
+///
+/// Changes written and not saved are kept on the device (`Unsaved`) and
+/// are back in the editor the next time the post is opened.
 struct TextEditView: View {
     let slug: String
     /// The text already handed out to the screen before this one, so the
@@ -31,10 +34,18 @@ struct TextEditView: View {
     @State private var confirmingLoss = false
     @State private var previewing = false
     @State private var looking: Looked?
+    /// The changes brought back when the text was opened, for the line that says so.
+    @State private var broughtBack: Unsaved?
 
     var body: some View {
         PaperScreen(title: entry?.title, answered: answered) {
             if let entry {
+                if let broughtBack {
+                    BroughtBack(words: Unsaved.words(broughtBack, over: entry.base, media: entry.media),
+                                key: "Take the text as the blog has it") { takeTheBlogs() }
+                        .gap(14)
+                        .gap(14, .bottom)
+                }
                 if !entry.editable {
                     Hint(verbatim: entry.problem.map { String(localized: "This post cannot be edited here: \($0). At the desk, edit asks before losing it; here nobody could answer.") }
                          ?? String(localized: "This post cannot be edited here."))
@@ -143,6 +154,7 @@ struct TextEditView: View {
         // ...and one typed into the text goes onto the card: the two are one.
         .onChange(of: text) { _, now in
             shots = Kept.heard(shots, from: now)
+            keep()
         }
         .onChange(of: shots.map(\.alt)) { before, _ in
             text = Kept.retitled(text, shots: shots, before: before)
@@ -180,19 +192,50 @@ struct TextEditView: View {
         Kept.fewer(media: entry?.media ?? [], shots: shots, text: text)
     }
 
+    // MARK: - Kept until saved
+
+    /// The text the editor opens with: the blog's, or -- where changes to
+    /// it were written here and never saved -- those.
+    private func opened(_ entry: EditEntry, with fresh: String) -> String {
+        guard entry.editable, let blog = Blogs.shared.currentID,
+              let kept = Unsaved.kept(for: blog, slug: slug, what: .text), kept.text != fresh else {
+            broughtBack = nil
+            return fresh
+        }
+        broughtBack = kept
+        return kept.text
+    }
+
+    /// At every letter; a text that is the blog's again is nothing to keep.
+    private func keep() {
+        guard let entry, entry.editable, let fresh = entry.text, let blog = Blogs.shared.currentID else { return }
+        if text == fresh {
+            Unsaved.forget(for: blog, slug: slug, what: .text)
+        } else {
+            Unsaved(text: text, base: entry.base, at: .now).keep(for: blog, slug: slug, what: .text)
+        }
+    }
+
+    private func takeTheBlogs() {
+        broughtBack = nil
+        shots = []
+        text = entry?.text ?? ""
+        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+    }
+
     private func load() async {
         // Once: after a save the text is asked for afresh, with its new version.
         if let loaded, !tookLoaded, let handed = loaded.text {
             tookLoaded = true
             entry = loaded
-            text = handed
+            text = opened(loaded, with: handed)
             return
         }
         tookLoaded = true
         do {
             let answer: EditAnswer = try await Engine.shared.call(["edit", slug])
             entry = answer.post
-            text = answer.post.text ?? ""
+            text = opened(answer.post, with: answer.post.text ?? "")
             problem = answer.post.text == nil ? String(localized: "The text did not come with the answer.") : nil
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
@@ -250,6 +293,9 @@ struct TextEditView: View {
             guard let last = answers.last else { throw EngineError.unreadable("") }
             saved = try decoder.decode(ActionAnswer.self, from: last)
             shots = []
+            // Saved: nothing is left to bring back.
+            if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+            broughtBack = nil
             // Saving a published post builds the site: nothing is owed after it.
             if saved?.state == .published { Herald.shared.settled() }
             await load()

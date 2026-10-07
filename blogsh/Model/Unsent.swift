@@ -39,15 +39,84 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
 
     /// Keeps it for this blog -- or, emptied, keeps nothing: a form that
     /// was sent, or cleared by hand, leaves no post behind to bring back.
+    /// What is kept already, word for word, is left as it is and keeps
+    /// its time: a form that was only opened was not written in.
     func keep(for blog: UUID, in defaults: UserDefaults = .standard) {
         guard !isEmpty, let data = try? JSONEncoder().encode(self) else {
             defaults.removeObject(forKey: Self.key(blog))
             return
         }
+        if let kept = Self.kept(for: blog, in: defaults),
+           kept.title == title, kept.tags == tags, kept.text == text { return }
         defaults.set(data, forKey: Self.key(blog))
     }
 
     static func forget(for blog: UUID, in defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: key(blog))
+    }
+}
+
+/// Changes to a post the blog already has -- its text, or its words in
+/// another language -- written and not saved yet. Kept as the new post's
+/// writing is kept, for the same reasons; and with the version of the
+/// post they were written over, so that the screen can say when the post
+/// has moved on under them.
+nonisolated struct Unsaved: Codable, Equatable, Sendable {
+    var text: String
+    /// The digest the post had when the changes were begun.
+    var base: String
+    /// When they were last written in.
+    var at: Date
+
+    /// Which of a post's texts: its own, or one language of it.
+    enum What: Equatable, Sendable {
+        case text
+        case language(String)
+
+        fileprivate var word: String {
+            switch self {
+            case .text: "text"
+            case .language(let code): "lang-\(code)"
+            }
+        }
+    }
+
+    static func key(_ blog: UUID, slug: String, what: What) -> String {
+        "\(prefix(blog))\(what.word).\(slug)"
+    }
+
+    private static func prefix(_ blog: UUID) -> String { "unsaved.\(blog.uuidString)." }
+
+    static func kept(for blog: UUID, slug: String, what: What, in defaults: UserDefaults = .standard) -> Unsaved? {
+        guard let data = defaults.data(forKey: key(blog, slug: slug, what: what)) else { return nil }
+        return try? JSONDecoder().decode(Unsaved.self, from: data)
+    }
+
+    /// Kept, unless the same words are kept already -- those keep their time.
+    func keep(for blog: UUID, slug: String, what: What, in defaults: UserDefaults = .standard) {
+        if let kept = Self.kept(for: blog, slug: slug, what: what, in: defaults), kept.text == text { return }
+        guard let data = try? JSONEncoder().encode(self) else { return }
+        defaults.set(data, forKey: Self.key(blog, slug: slug, what: what))
+    }
+
+    static func forget(for blog: UUID, slug: String, what: What, in defaults: UserDefaults = .standard) {
+        defaults.removeObject(forKey: key(blog, slug: slug, what: what))
+    }
+
+    /// Everything kept for a blog that leaves the app.
+    static func forgetAll(for blog: UUID, in defaults: UserDefaults = .standard) {
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(prefix(blog)) {
+            defaults.removeObject(forKey: key)
+        }
+    }
+
+    /// The text names a picture the post does not have: one that was
+    /// chosen on the device and, like every picture, not kept.
+    func namesPictures(beyond media: [String]) -> Bool {
+        guard let marks = try? NSRegularExpression(pattern: #"!{1,2}\[[^\n]*\]\(([^)\s]+)\)"#) else { return false }
+        let whole = text as NSString
+        return marks.matches(in: text, range: NSRange(location: 0, length: whole.length)).contains { match in
+            !media.contains(whole.substring(with: match.range(at: 1)))
+        }
     }
 }

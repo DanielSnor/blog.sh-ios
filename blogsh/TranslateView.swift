@@ -6,6 +6,9 @@ import SwiftUI
 /// translate from. The save goes back as a file saying which post, which
 /// version and which language; an empty title and body take the language
 /// off the post, as the editor's hint says.
+///
+/// What is written and not saved is kept on the device (`Unsaved`), for
+/// this post and this language, and is back the next time it is opened.
 struct TranslateView: View {
     let slug: String
     let lang: String
@@ -22,12 +25,19 @@ struct TranslateView: View {
     @State private var answered = 0
     @State private var confirmingRemoval = false
     @State private var previewing = false
+    /// The words brought back when the screen opened, for the line that says so.
+    @State private var broughtBack: Unsaved?
 
     private var languageName: String { Locale.current.localizedString(forLanguageCode: lang) ?? lang }
 
     var body: some View {
         PaperScreen(title: entry?.title, answered: answered) {
             if let entry {
+                if let broughtBack {
+                    BroughtBack(words: Unsaved.words(broughtBack, over: entry.base, media: nil),
+                                key: "Take the text as the blog has it") { takeTheBlogs() }
+                        .gap(14)
+                }
                 SectionLabel("The original")
                 Plate {
                     Button {
@@ -98,6 +108,7 @@ struct TranslateView: View {
         .overlay { if entry == nil && problem == nil { ProgressView() } }
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
+        .onChange(of: text) { _, _ in keep() }
         .sheet(isPresented: $previewing) {
             // The translation's own title, or the post's while it has none;
             // the pictures are the post's, from beside its page on the blog.
@@ -111,11 +122,35 @@ struct TranslateView: View {
         do {
             let answer: TranslationAnswer = try await Engine.shared.call(["translate", slug, "--lang", lang])
             entry = answer.post
-            text = answer.post.text
+            // The blog's words, or the ones written here and never saved.
+            if let blog = Blogs.shared.currentID,
+               let kept = Unsaved.kept(for: blog, slug: slug, what: .language(lang)), kept.text != answer.post.text {
+                broughtBack = kept
+                text = kept.text
+            } else {
+                broughtBack = nil
+                text = answer.post.text
+            }
             problem = nil
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
         }
+    }
+
+    /// At every letter; words that are the blog's again are nothing to keep.
+    private func keep() {
+        guard let entry, let blog = Blogs.shared.currentID else { return }
+        if text == entry.text {
+            Unsaved.forget(for: blog, slug: slug, what: .language(lang))
+        } else {
+            Unsaved(text: text, base: entry.base, at: .now).keep(for: blog, slug: slug, what: .language(lang))
+        }
+    }
+
+    private func takeTheBlogs() {
+        broughtBack = nil
+        text = entry?.text ?? ""
+        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .language(lang)) }
     }
 
     /// The header gets the three lines of the delivery: which post, which
@@ -143,6 +178,9 @@ struct TranslateView: View {
             guard let last = answers.last else { throw EngineError.unreadable("") }
             saved = try decoder.decode(ActionAnswer.self, from: last)
             tookOff = takingOff
+            // Saved, or taken off: nothing is left to bring back.
+            if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .language(lang)) }
+            broughtBack = nil
             await load()
             answered += 1
         } catch {

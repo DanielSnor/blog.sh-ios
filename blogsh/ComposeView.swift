@@ -38,16 +38,11 @@ struct ComposeView: View {
             if let broughtBack {
                 // Said, because it was not asked for: the form opens with
                 // something in it that was not typed just now.
-                Plate {
-                    (Text("Back in the form: what was written here \(broughtBack.at.spoken) and not sent.")
-                     + Text(verbatim: broughtBack.namesPictures ? " " : "")
-                     + Text(broughtBack.namesPictures ? "Its pictures were not kept; add them again." : ""))
-                        .font(.ui(14))
-                        .foregroundStyle(Theme.muted)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Command("Start with an empty form", symbol: "xmark", danger: true) { startEmpty() }
-                }
-                .gap(14)
+                BroughtBack(words: broughtBack.namesPictures
+                                ? Text("Back in the form: what was written here \(broughtBack.at.spoken) and not sent.") + Text(verbatim: " ") + Text("Its pictures were not kept; add them again.")
+                                : Text("Back in the form: what was written here \(broughtBack.at.spoken) and not sent."),
+                            key: "Start with an empty form") { startEmpty() }
+                    .gap(14)
             }
             Plate {
                 TextField("", text: $title, prompt: Text("Title").foregroundStyle(Theme.muted))

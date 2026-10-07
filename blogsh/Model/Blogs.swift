@@ -245,6 +245,7 @@ final class Blogs {
         guard let blog = all.first(where: { $0.id == id }) else { return }
         try? KeyStore.deleteKey(account: blog.keyAccount)
         Unsent.forget(for: id)
+        Unsaved.forgetAll(for: id)
         Engine.hangUp()
         all.removeAll { $0.id == id }
         if currentID == id { currentID = all.first?.id }
