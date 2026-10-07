@@ -107,6 +107,13 @@ typed -- where the mark still says what the card said; one typed into the
 text itself is the author's own wording and no card overwrites it, the
 rule of `/write/`. The text is sent as it stands.
 
+A post's address can be handed to somebody from wherever the post is on
+the screen: a key in the bar of its crossroads, its properties and its
+preview, and **Share the link** in the menu of a row of the archive. It
+opens the system's own sheet with the address and the title. The address
+is the engine's to say (`props --json`, `url`): a published post's own,
+and for a draft the hidden page the build keeps for it.
+
 ## What travels
 
 What `/write/` sends, made on the device. A photograph is shrunk to

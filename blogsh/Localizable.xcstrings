@@ -2594,6 +2594,22 @@
         }
       }
     },
+    "Share the link": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sdílet odkaz"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link teilen"
+          }
+        }
+      }
+    },
     "Show on the web": {
       "localizations": {
         "cs": {

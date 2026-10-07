@@ -136,6 +136,29 @@ extension PostRow {
     }
 }
 
+/// A post's address to hand to somebody: where it is, and what it is
+/// called there. A published post's own address; for a draft the hidden
+/// page the build keeps for it -- the engine says which, the app only
+/// passes it on.
+nonisolated struct PostLink: Identifiable, Equatable, Sendable {
+    let url: URL
+    let title: String
+
+    var id: String { url.absoluteString }
+
+    /// Nothing for a site that has no address set: there is no link to give.
+    init?(_ props: PropsAnswer) {
+        self.init(address: props.url, title: props.title.isEmpty ? props.slug : props.title)
+    }
+
+    init?(address: String, title: String) {
+        guard let url = URL(string: address), let scheme = url.scheme?.lowercased(),
+              scheme == "https" || scheme == "http", url.host() != nil else { return nil }
+        self.url = url
+        self.title = title
+    }
+}
+
 nonisolated struct PropsAnswer: Decodable, Sendable {
     let ok: Bool
     let slug: String

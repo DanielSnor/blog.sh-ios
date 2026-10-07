@@ -82,6 +82,25 @@ import Testing
         #expect(row.match == nil)
     }
 
+    /// What is handed to somebody: the address the engine says, and the
+    /// post's title to go with it.
+    @Test func aPostsLinkIsItsAddressAndItsTitle() throws {
+        let props: PropsAnswer = try Engine.decode(Fixture.data("props-renamed"))
+        let link = try #require(PostLink(props))
+        #expect(link.url.absoluteString == "https://example.com/posts/2026/novy-nazev/")
+        #expect(link.title == "K přejmenování")
+    }
+
+    /// A site with no address set, or one that is not a web address: no link to give.
+    @Test func withoutAWebAddressThereIsNoLink() {
+        #expect(PostLink(address: "", title: "x") == nil)
+        #expect(PostLink(address: "/posts/2026/x/", title: "x") == nil)
+        #expect(PostLink(address: "file:///etc/passwd", title: "x") == nil)
+        #expect(PostLink(address: "javascript:alert(1)", title: "x") == nil)
+        #expect(PostLink(address: "http://localhost:8000/draft/abc/x/", title: "x")?.url.host() == "localhost")
+        #expect(PostLink(address: "https://sean.cz/posts/2026/x/", title: "X")?.title == "X")
+    }
+
     /// A row of the queue opens its post: the row it hands over is a
     /// draft with a plan, under the same slug and year.
     @Test func aQueuedPostIsARowOfItsOwn() throws {

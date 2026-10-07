@@ -77,6 +77,11 @@ struct PropsView: View {
         .disabled(busy)
         .navigationTitle(slug)
         .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if let link = props.flatMap({ PostLink($0) }) {
+                ToolbarItem(placement: .topBarTrailing) { ShareKey(link: link) }
+            }
+        }
         .task { await load() }
         .refreshable { await load() }
         .sheet(isPresented: $scheduling) {

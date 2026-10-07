@@ -104,6 +104,8 @@ struct PostCrossroadsView: View {
     /// to: its title may have been rewritten in the editor and its slug in
     /// the properties, and the row this was opened from knows neither.
     @State private var now: PostRow?
+    /// Where the post is, to hand on: the engine's to say, with the rest.
+    @State private var link: PostLink?
 
     init(post: PostRow, languages: [String] = [], gone: (() -> Void)? = nil) {
         opened = post
@@ -173,7 +175,7 @@ struct PostCrossroadsView: View {
                 NavigationLink {
                     // A post deleted from its properties takes this screen with
                     // it, and the list reads itself again.
-                    PropsView(slug: post.slug, gone: { deleted = true }, renamed: { now = PostRow($0) })
+                    PropsView(slug: post.slug, gone: { deleted = true }, renamed: { now = PostRow($0); link = PostLink($0) })
                 } label: {
                     CommandRow("properties and actions", symbol: "slider.horizontal.3", leads: true)
                 }
@@ -195,6 +197,11 @@ struct PostCrossroadsView: View {
             }
         }
         .navigationTitle(post.title ?? post.slug)
+        .toolbar {
+            if let link {
+                ToolbarItem(placement: .topBarTrailing) { ShareKey(link: link) }
+            }
+        }
         // Every time the screen is come to, not once: on the way back from
         // the editor the text may be another, and so is the version a save
         // has to name.
@@ -221,7 +228,10 @@ struct PostCrossroadsView: View {
         // Asked of one name, answered after the post took another: not this one's to keep.
         guard slug == post.slug else { return }
         if let answer: EditAnswer = try? Engine.decode(answers[0]) { entry = answer.post }
-        if let props: PropsAnswer = try? Engine.decode(answers[1]), props.ok { now = PostRow(props) }
+        if let props: PropsAnswer = try? Engine.decode(answers[1]), props.ok {
+            now = PostRow(props)
+            link = PostLink(props)
+        }
     }
 
     /// The address is the engine's to say: a post can carry one of its own.

@@ -23,6 +23,8 @@ struct ArchiveView: View {
     @State private var found: Found?
     @State private var searchingFor: String?
     @State private var previewing: PostRow?
+    /// A row's address, once the engine has said it: what the share sheet hands on.
+    @State private var sharing: PostLink?
     @State private var searchOpen = false
     @State private var opened = false
 
@@ -108,6 +110,7 @@ struct ArchiveView: View {
                 }
                 .contextMenu {
                     Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                    Button { Task { await share(post) } } label: { Label("Share the link", systemImage: "square.and.arrow.up") }
                 }
             }
         }
@@ -117,6 +120,9 @@ struct ArchiveView: View {
         }
         .sheet(item: $previewing) { post in
             NavigationStack { PostPreviewView(post: post, baseURL: baseURL) }
+        }
+        .sheet(item: $sharing) { link in
+            ShareSheet(link: link).presentationDetents([.medium, .large])
         }
         .searchable(text: $query, isPresented: $searchOpen, prompt: "Search the archive")
         .overlay {
@@ -180,6 +186,23 @@ struct ArchiveView: View {
         let filtered = type != nil || state != nil || tag != nil || !words.isEmpty
         let line = filtered ? String(localized: "\(shown.count) of \(posts.count)") : posts.count.formatted()
         return searchingFor == nil ? line : line + " …"
+    }
+
+    /// A row knows its slug, not its address: the engine says the address
+    /// (a post can carry one of its own, a draft has its hidden page), and
+    /// the sheet opens with it.
+    private func share(_ post: PostRow) async {
+        do {
+            let props: PropsAnswer = try await Engine.shared.call(["props", post.slug])
+            if let link = PostLink(props) {
+                problem = nil
+                sharing = link
+            } else {
+                problem = String(localized: "The site has no address set, so there is nothing to open.")
+            }
+        } catch {
+            problem = error.isCalledOff ? problem : error.localizedDescription
+        }
     }
 
     private func load() async {

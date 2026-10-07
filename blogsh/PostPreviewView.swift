@@ -56,6 +56,9 @@ struct PostPreviewView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { openURL(url) } label: { Label("Show on the web", systemImage: "safari") }
                 }
+                if let link = PostLink(address: url.absoluteString, title: post.title ?? post.slug) {
+                    ToolbarItem(placement: .topBarTrailing) { ShareKey(link: link) }
+                }
             }
         }
         .task { await load() }
