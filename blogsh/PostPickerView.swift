@@ -45,7 +45,9 @@ struct PostPickerView: View {
                 .paperRow(rule: false)
             }
         }
-        .paperList(name: String(localized: "tile.post", defaultValue: "Post"), count: total > 0 ? total.formatted() : nil)
+        // How many are listed here, not how many the blog has: the number
+        // beside the name counts the rows under it, as the archive's does.
+        .paperList(name: String(localized: "tile.post", defaultValue: "Post"), count: posts.isEmpty ? nil : posts.count.formatted())
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
         }
