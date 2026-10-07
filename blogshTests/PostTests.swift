@@ -136,6 +136,188 @@ import Testing
         #expect(Kept.typed("![Pes ](dog.jpg)", name: "dog.jpg", after: "Pes v") == "![Pes v](dog.jpg)")
     }
 
+    // The two places as the forms wire them: a change of the text is
+    // heard by the cards, a change of a card is typed into the text, each
+    // until nothing moves.
+    private func settle(_ text: inout String, _ cards: inout [Shot], rounds: inout Int) {
+        for round in 0..<8 {
+            rounds = round
+            let before = cards.map(\.alt)
+            cards = Kept.heard(cards, from: text)
+            let next = Kept.retitled(text, shots: cards, before: before)
+            if next == text && cards.map(\.alt) == before { return }
+            text = next
+        }
+        rounds = 8
+    }
+
+    /// A square bracket in a description: the engine takes it (its own
+    /// pattern for a picture reads the description up to the last "](" of
+    /// the line), so the two places must stay one through it.
+    @Test func aBracketInADescriptionDoesNotPartTheTwo() {
+        var cards = [shot("dog.jpg", alt: "a")]
+        var text = "Before.\n\n![a](dog.jpg)\n\nAfter."
+        var rounds = 0
+        for typed in ["a]", "a]b", "a]b [c]", "a]b [c] d"] {
+            let before = cards.map(\.alt)
+            cards[0].alt = typed
+            text = Kept.retitled(text, shots: cards, before: before)
+            settle(&text, &cards, rounds: &rounds)
+            #expect(text == "Before.\n\n![\(typed)](dog.jpg)\n\nAfter.")
+            #expect(cards[0].alt == typed)
+        }
+        // ...and from the text's side.
+        text = "![x [y] z](dog.jpg)"
+        settle(&text, &cards, rounds: &rounds)
+        #expect(cards[0].alt == "x [y] z")
+    }
+
+    /// Typed at random into either place, a letter at a time: after each
+    /// letter the two say the same, what was just typed stands as typed,
+    /// and they stop moving at once.
+    @Test func typedAtRandomIntoEitherPlaceTheTwoStayOne() {
+        var seed: UInt64 = 20261007
+        func next(_ bound: Int) -> Int {
+            seed = seed &* 6364136223846793005 &+ 1442695040888963407
+            return Int((seed >> 33) % UInt64(bound))
+        }
+        let letters = Array("ab č,. ]")
+        for _ in 0..<300 {
+            var cards = [shot("dog.jpg"), shot("clip.mp4", kind: .video)]
+            var text = "One.\n\n![](dog.jpg)\n\nTwo.\n\n!![](clip.mp4)\n"
+            for _ in 0..<40 {
+                let which = next(2), name = cards[which].name
+                var rounds = 0
+                if next(2) == 0 {
+                    // On the card: a letter at its end, or its last letter taken off.
+                    let before = cards.map(\.alt)
+                    if next(5) == 0, !cards[which].alt.isEmpty { cards[which].alt.removeLast() }
+                    else { cards[which].alt.append(letters[next(letters.count)]) }
+                    let typed = cards[which].alt
+                    text = Kept.retitled(text, shots: cards, before: before)
+                    settle(&text, &cards, rounds: &rounds)
+                    #expect(cards[which].alt == typed)
+                } else {
+                    // In the text: a letter at the end of the picture's description there.
+                    guard let was = Kept.described(name, in: text) else { continue }
+                    let grown = was + String(letters[next(letters.count)])
+                    text = text.replacingOccurrences(of: "[\(was)](\(name))", with: "[\(grown)](\(name))")
+                    let typed = text
+                    settle(&text, &cards, rounds: &rounds)
+                    #expect(text == typed)
+                }
+                #expect(rounds <= 1)
+                for card in cards {
+                    let said = Kept.described(card.name, in: text)
+                    #expect(said != nil)
+                    #expect(Kept.oneLine(said ?? "") == Kept.oneLine(card.alt))
+                }
+            }
+        }
+    }
+
+    /// Several pictures in one text, their names alike and their marks
+    /// one after another: each card is its own picture's and no other's.
+    @Test func severalPicturesEachKeepToTheirOwnMark() {
+        var cards = [shot("photo-1.jpg"), shot("photo-11.jpg"), shot("a-photo-1.jpg"), shot("clip.mp4", kind: .video)]
+        var text = "![one](photo-1.jpg)\n\n![eleven](photo-11.jpg)\n\n![other](a-photo-1.jpg)\n\n!![film](clip.mp4)\n"
+        var rounds = 0
+        settle(&text, &cards, rounds: &rounds)
+        #expect(cards.map(\.alt) == ["one", "eleven", "other", "film"])
+
+        // The second card written on: only the second mark moves.
+        var before = cards.map(\.alt)
+        cards[1].alt = "eleven, changed"
+        text = Kept.retitled(text, shots: cards, before: before)
+        settle(&text, &cards, rounds: &rounds)
+        #expect(text == "![one](photo-1.jpg)\n\n![eleven, changed](photo-11.jpg)\n\n![other](a-photo-1.jpg)\n\n!![film](clip.mp4)\n")
+        #expect(cards.map(\.alt) == ["one", "eleven, changed", "other", "film"])
+
+        // The third mark written in: only the third card moves.
+        text = text.replacingOccurrences(of: "![other]", with: "![other one]")
+        settle(&text, &cards, rounds: &rounds)
+        #expect(cards.map(\.alt) == ["one", "eleven, changed", "other one", "film"])
+
+        // Two cards given the same words stay two descriptions.
+        before = cards.map(\.alt)
+        cards[0].alt = "same"
+        text = Kept.retitled(text, shots: cards, before: before)
+        before = cards.map(\.alt)
+        cards[2].alt = "same"
+        text = Kept.retitled(text, shots: cards, before: before)
+        before = cards.map(\.alt)
+        cards[0].alt = "same, first"
+        text = Kept.retitled(text, shots: cards, before: before)
+        settle(&text, &cards, rounds: &rounds)
+        #expect(text == "![same, first](photo-1.jpg)\n\n![eleven, changed](photo-11.jpg)\n\n![same](a-photo-1.jpg)\n\n!![film](clip.mp4)\n")
+    }
+
+    /// Two marks on one line -- which the engine refuses, but the text
+    /// may hold while it is being written: each is still read as itself.
+    @Test func twoMarksOnOneLineAreReadEachAsItself() {
+        let text = "![x](a.jpg) ![y](b.jpg)\n\n![p](c.jpg)![q](d.jpg)"
+        #expect(Kept.described("a.jpg", in: text) == "x")
+        #expect(Kept.described("b.jpg", in: text) == "y")
+        #expect(Kept.described("c.jpg", in: text) == "p")
+        #expect(Kept.described("d.jpg", in: text) == "q")
+        #expect(Kept.typed(text, name: "b.jpg", after: "why") == "![x](a.jpg) ![why](b.jpg)\n\n![p](c.jpg)![q](d.jpg)")
+    }
+
+    /// The same at random, with three pictures whose marks stand in a row.
+    @Test func typedAtRandomWithSeveralPicturesEachStaysItsOwn() {
+        var seed: UInt64 = 7
+        func next(_ bound: Int) -> Int {
+            seed = seed &* 6364136223846793005 &+ 1442695040888963407
+            return Int((seed >> 33) % UInt64(bound))
+        }
+        let letters = Array("ab č,.]")
+        for _ in 0..<200 {
+            var cards = [shot("photo-1.jpg"), shot("photo-11.jpg"), shot("photo-2.jpg")]
+            var text = "![](photo-1.jpg)\n\n![](photo-11.jpg)\n\n![](photo-2.jpg)\n"
+            var mine = ["", "", ""]
+            for _ in 0..<45 {
+                let which = next(3), name = cards[which].name
+                var rounds = 0
+                if next(2) == 0 {
+                    let before = cards.map(\.alt)
+                    cards[which].alt.append(letters[next(letters.count)])
+                    mine[which] = cards[which].alt
+                    text = Kept.retitled(text, shots: cards, before: before)
+                } else {
+                    guard let was = Kept.described(name, in: text) else { continue }
+                    let grown = was + String(letters[next(letters.count)])
+                    text = text.replacingOccurrences(of: "[\(was)](\(name))", with: "[\(grown)](\(name))")
+                    mine[which] = grown
+                }
+                settle(&text, &cards, rounds: &rounds)
+                #expect(rounds <= 1)
+                // Every picture says what was last written of IT, in both places.
+                for (index, card) in cards.enumerated() {
+                    #expect(Kept.oneLine(card.alt) == Kept.oneLine(mine[index]))
+                    #expect(Kept.oneLine(Kept.described(card.name, in: text) ?? "?") == Kept.oneLine(mine[index]))
+                }
+            }
+        }
+    }
+
+    /// The mark taken out of the text: the card keeps its words, and
+    /// gives them back when the picture is put in again.
+    @Test func aCardKeepsItsWordsWhileItsPictureIsOutOfTheText() {
+        var cards = [shot("dog.jpg", alt: "a dog")]
+        var text = "![a dog](dog.jpg)\n"
+        var rounds = 0
+        text = "Nothing.\n"
+        settle(&text, &cards, rounds: &rounds)
+        #expect(cards[0].alt == "a dog")
+        let before = cards.map(\.alt)
+        cards[0].alt = "a dog, asleep"
+        #expect(Kept.retitled(text, shots: cards, before: before) == "Nothing.\n")
+        text = Kept.placed(cards[0].mark, in: text, at: nil).text
+        settle(&text, &cards, rounds: &rounds)
+        #expect(text == "Nothing.\n\n![a dog, asleep](dog.jpg)\n")
+        #expect(cards[0].alt == "a dog, asleep")
+    }
+
     @Test func aVideosTwoMarksFollowItsCardTheSameWay() {
         #expect(Kept.typed("!![](clip.mp4)\n", name: "clip.mp4", after: "a clip") == "!![a clip](clip.mp4)\n")
         #expect(Kept.heard([shot("clip.mp4", kind: .video)], from: "!![a clip](clip.mp4)")[0].alt == "a clip")

@@ -192,12 +192,30 @@ nonisolated enum Kept {
     /// What the text says of a picture: the words of its first mark, as
     /// they stand there -- nothing at all where the text has no mark for
     /// it, the empty string where the mark says nothing.
+    ///
+    /// Read the way the engine reads a picture: a mark is a line of its
+    /// own, and its description runs to the last "](" before the name --
+    /// so a square bracket in it is part of it, as it is for the engine.
+    /// A mark that shares its line with prose, which the engine refuses
+    /// but the text may hold while it is being written, is read too, up
+    /// to its first closing bracket.
     static func described(_ name: String, in text: String) -> String? {
-        let pattern = #"!\[([^\]]*)\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"#
-        guard let expression = try? NSRegularExpression(pattern: pattern),
-              let match = expression.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let range = Range(match.range(at: 1), in: text) else { return nil }
-        return String(text[range])
+        let file = NSRegularExpression.escapedPattern(for: name)
+        let whole = NSRange(text.startIndex..., in: text)
+        func first(_ pattern: String, _ options: NSRegularExpression.Options = []) -> (words: String, at: Int)? {
+            guard let expression = try? NSRegularExpression(pattern: pattern, options: options),
+                  let match = expression.firstMatch(in: text, range: whole),
+                  let range = Range(match.range(at: 1), in: text) else { return nil }
+            return (String(text[range]), match.range.location)
+        }
+        var line = first(#"^[ \t]*!{1,2}\[(.*)\]\(\#(file)\)[ \t]*$"#, .anchorsMatchLines)
+        // A line that holds another mark before this one is not this mark's line:
+        // what was read as its description has the other's end in it.
+        if let words = line?.words, words.contains("](") { line = nil }
+        let inline = first(#"!\[([^\]\n]*)\]\(\#(file)\)"#)
+        // Whichever stands first in the text is the picture's first mark.
+        if let line, let inline { return line.at <= inline.at ? line.words : inline.words }
+        return (line ?? inline)?.words
     }
 
     /// The text was written in: every card takes what the text now says of
