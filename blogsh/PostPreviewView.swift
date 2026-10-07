@@ -16,21 +16,7 @@ struct PostPreviewView: View {
 
     var body: some View {
         PaperScreen(title: post.title ?? post.slug) {
-            TitleField(title: post.title ?? post.slug)
-            PostSlug(text: post.slug).padding(.top, 4)
-            HStack(spacing: 8) {
-                if let day = post.day {
-                    Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
-                        .font(.mono(12, bold: post.scheduled))
-                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
-                }
-                StateBadge(post: post)
-                Text(verbatim: post.tags.isEmpty ? post.type : post.tags.joined(separator: ", "))
-                    .font(.ui(13))
-                    .foregroundStyle(Theme.muted)
-                    .lineLimit(1)
-            }
-            .padding(.top, 10)
+            PostFacts(post: post)
             Rectangle().fill(Theme.line).frame(height: 1).padding(.vertical, 14)
             if let entry {
                 let text = words(of: entry)

@@ -4978,6 +4978,22 @@
         }
       }
     },
+    "slug": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "slug"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slug"
+          }
+        }
+      }
+    },
     "state": {
       "localizations": {
         "cs": {

@@ -549,16 +549,44 @@ struct BarName: View {
     }
 }
 
-/// A post's whole title, however long: the bar over the screen has one
-/// line for it. The first thing on a screen about the post.
-struct TitleField: View {
-    let title: String
+/// What a post is, as its row in a list knew it, the first thing on a
+/// screen about it and one table: its whole title, however long -- the
+/// bar over the screen has one line for it; what the engine calls it;
+/// what state it is in, and since or until when; its tags, or its type
+/// where it has none. A row with nothing to say is not drawn: a post
+/// without a title has no first row.
+struct PostFacts: View {
+    let post: PostRow
 
     var body: some View {
         Plate {
-            InfoRow(label: "Title", value: title)
+            InfoRow(label: "Title", value: post.title)
+            InfoRow(label: "slug", value: post.slug, mono: true)
+            if post.scheduled {
+                InfoRow(label: "scheduled", value: when)
+            } else {
+                InfoRow(label: "state", value: state)
+            }
+            if post.tags.isEmpty {
+                InfoRow(label: "type", value: post.type)
+            } else {
+                InfoRow(label: "tags", value: post.tags.joined(separator: ", "))
+            }
         }
         .padding(.top, 4)
+    }
+
+    /// The day and the hour, in the blog's own zone said out: the phone may be abroad.
+    private var when: String? {
+        guard let date = post.date.flatMap({ ISO8601DateFormatter.engine.date(from: $0) }) else { return post.date }
+        return date.formatted(.dateTime.year().month().day().hour().minute().timeZone())
+    }
+
+    /// In the words the properties screen has for it.
+    private var state: String {
+        guard post.state == .published else { return String(localized: "saved.draft", defaultValue: "draft") }
+        guard let when else { return String(localized: "saved.published", defaultValue: "published") }
+        return String(localized: "published, \(when)") + (post.pinned ? " · " + String(localized: "browse.state.pinned", defaultValue: "pinned") : "")
     }
 }
 

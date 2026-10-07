@@ -113,25 +113,10 @@ struct PostCrossroadsView: View {
 
     var body: some View {
         PaperScreen(title: post.title ?? post.slug) {
-            // Which post this is, before anything is done to it: what the
-            // engine calls it, when it is from, what state it is in, and how
-            // it begins. Its title stands in the bar, as much of it as fits
-            // there, and whole in the field under it.
-            TitleField(title: post.title ?? post.slug)
-            PostSlug(text: post.slug).padding(.top, 4)
-            HStack(spacing: 8) {
-                if let day = post.day {
-                    Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
-                        .font(.mono(12, bold: post.scheduled))
-                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
-                }
-                StateBadge(post: post)
-                Text(verbatim: post.tags.isEmpty ? post.type : post.tags.joined(separator: ", "))
-                    .font(.ui(13))
-                    .foregroundStyle(Theme.muted)
-                    .lineLimit(1)
-            }
-            .padding(.top, 10)
+            // Which post this is, before anything is done to it: what it is
+            // called, what state it is in and since when, its tags -- one
+            // table -- and then how it begins.
+            PostFacts(post: post)
             Group {
                 if let text = entry?.text {
                     let lede = Lede.of(text)
