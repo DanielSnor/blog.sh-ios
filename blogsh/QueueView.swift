@@ -10,8 +10,9 @@ import SwiftUI
 /// leaves the queue the screen asks whether the rest should step forward
 /// into the gap; the app asks the same, before the call, because the
 /// engine answers both in one. The preview is rebuilt once, when you are
-/// done -- the screen does it on the way out; the app does it once the
-/// queue has been left alone a moment, and says so in a line, not a key.
+/// done -- the screen does it on the way out; the app does it by itself
+/// once the queue has been left alone a moment (`Herald`), and says what
+/// each key did: when the post goes out now.
 struct QueueView: View {
     /// The site's other languages, for the post a row opens.
     var languages: [String] = []
@@ -19,7 +20,6 @@ struct QueueView: View {
     @State private var problem: String?
     @State private var loading = false
     @State private var busy = false
-    @State private var dirty = false
 
     @State private var leaving: Leaving?
     @State private var rescheduling: QueueRow?
@@ -27,9 +27,8 @@ struct QueueView: View {
     @State private var carryTo = 1
     @State private var notice: String?
     @State private var said: Said?
-    @State private var rebuilding = false
-    /// Counted with every change of the queue: the build waits for the last one.
-    @State private var changes = 0
+    /// What the screen is doing while it cannot be touched.
+    @State private var doing: Text?
 
     /// A post about to leave the queue, and which way.
     struct Leaving: Identifiable {
@@ -47,23 +46,6 @@ struct QueueView: View {
                 .paperRow()
             if let problem {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
-            }
-            if dirty {
-                // Not a key: nothing here is the reader's to do. The posts go out
-                // by the queue whatever the previews say, and the site is built
-                // by the app itself once the queue has been left alone a moment.
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    if rebuilding { ProgressView().controlSize(.small) }
-                    (Text("Draft previews still show the old times. The posts go out by the queue all the same.")
-                     + Text(verbatim: rebuilding ? " — " : "")
-                     + Text(rebuilding ? "Building the site now." : ""))
-                        .font(.ui(13))
-                        .foregroundStyle(Theme.muted)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 12)
-                .paperRow(rule: false)
             }
             if !rows.isEmpty {
                 Section {
@@ -142,21 +124,8 @@ struct QueueView: View {
         }
         .paperList()
         // A build holds the lock a change of the queue needs: while one runs, the rows wait.
-        .disabled(busy || rebuilding)
-        // The terminal's queue rebuilds on the way out. Here: once the queue
-        // has been left alone for a moment, or when the screen is left before that.
-        .task(id: changes) {
-            guard dirty, !rebuilding else { return }
-            try? await Task.sleep(for: .seconds(6))
-            guard !Task.isCancelled, dirty, !busy else { return }
-            await rebuild()
-        }
-        .onDisappear {
-            guard dirty, !rebuilding else { return }
-            dirty = false
-            // Seen through whatever becomes of this screen; a failure there has nobody to tell.
-            Task { let _: RebuildAnswer? = try? await Engine.shared.call(["rebuild"]) }
-        }
+        .disabled(busy || Herald.shared.isBuilding)
+        .doing(doing)
         .navigationTitle("The scheduled-post queue")
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
@@ -164,7 +133,7 @@ struct QueueView: View {
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $rescheduling) { row in
-            NavigationStack { ScheduleSheet(slug: row.slug, offered: nil, current: row.date, scheduled: true) { await changed() } }
+            NavigationStack { ScheduleSheet(slug: row.slug, offered: nil, current: row.date, scheduled: true) { await rescheduled(row) } }
         }
         .alert("Carry to which position?", isPresented: Binding(get: { carrying != nil }, set: { if !$0 { carrying = nil } })) {
             TextField("Position, 1 to \(rows.count)", value: $carryTo, format: .number)
@@ -216,7 +185,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue", direction, "\(row.year)/\(row.slug)"])
             rows = answer.queue
-            dirty = true; changes += 1
+            changed(row, String(localized: "Moved"))
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
         }
@@ -228,7 +197,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue", "--move", "\(row.year)/\(row.slug)", "--to", "\(position)"])
             rows = answer.queue
-            dirty = true; changes += 1
+            changed(row, String(localized: "Carried"))
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
             // The row was shown where it was dropped; the queue is as the engine has it.
@@ -238,7 +207,8 @@ struct QueueView: View {
 
     private func leave(_ leaving: Leaving, compact: Bool, anyway: Bool = false) async {
         busy = true
-        defer { busy = false }
+        doing = Doing.word(leaving.publish ? ["publish"] : ["schedule"])
+        defer { busy = false; doing = nil }
         var args = leaving.publish ? ["publish", leaving.row.slug, "--yes"] : ["schedule", leaving.row.slug, "--cancel"]
         if compact { args.append("--compact") }
         if anyway { args.append("--allow-partial") }
@@ -246,12 +216,15 @@ struct QueueView: View {
             let answer: ActionAnswer = try await Engine.shared.call(args)
             // The engine says what it did in its own words (the warnings carry
             // the screen's lines); the app adds only the address a publish gave.
-            var said: [String] = []
-            if leaving.publish { said.append(String(localized: "Published: \(answer.url ?? leaving.row.slug)")) }
-            if let warnings = answer.warnings?.plain, !warnings.isEmpty { said.append(contentsOf: warnings) }
-            if !said.isEmpty { notice = said.joined(separator: "\n") }
-            // Publishing rebuilds by itself; a plan cancelled leaves the preview behind.
-            if !leaving.publish { dirty = true; changes += 1 }
+            let done = leaving.publish ? String(localized: "Published: \(answer.url ?? leaving.row.slug)")
+                                       : String(localized: "The schedule is cancelled; the post is a draft again.")
+            if let warnings = answer.warnings?.plain, !warnings.isEmpty {
+                notice = ([done] + warnings).joined(separator: "\n")
+            } else {
+                Herald.shared.say(done)
+            }
+            // Publishing builds the whole site; a plan cancelled leaves the previews behind.
+            if leaving.publish { Herald.shared.settled() } else { Herald.shared.owe(Self.behind) }
             await load()
         } catch EngineError.refused(let refusal) where refusal.error == Partial.code && leaving.publish && !anyway {
             // Not written in every language the site publishes: asked, as the properties screen asks it.
@@ -263,23 +236,26 @@ struct QueueView: View {
         }
     }
 
-    private func changed() async {
-        dirty = true; changes += 1
-        await load()
+    /// What the previews are behind in, and that it does not matter for
+    /// what goes out when: the herald says it while the site is brought up
+    /// to date.
+    private static var behind: String {
+        String(localized: "Draft previews still show the old times. The posts go out by the queue all the same.")
     }
 
-    private func rebuild() async {
-        rebuilding = true
-        defer { rebuilding = false }
-        do {
-            let before = changes
-            let _: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            // Done is said by the line going away; a change made since keeps it.
-            if changes == before { dirty = false }
-        } catch {
-            dirty = false
-            notice = error.isCalledOff ? notice : error.localizedDescription
-        }
+    /// A key moved a post: where it is now and when it goes out, read off
+    /// the queue the engine answered with -- and the previews are owed a build.
+    private func changed(_ row: QueueRow, _ what: String) {
+        Herald.shared.owe(Self.behind)
+        guard let now = rows.first(where: { $0.id == row.id }) else { return }
+        let when = ISO8601DateFormatter.engine.date(from: now.date)?.spoken ?? now.date
+        Herald.shared.say(String(localized: "\(what): '\(now.title.isEmpty ? now.slug : now.title)' goes out \(when), \(now.position) of \(rows.count) in the queue."))
+    }
+
+    /// The schedule dialog closed on another time for a post.
+    private func rescheduled(_ row: QueueRow) async {
+        await load()
+        changed(row, String(localized: "Rescheduled"))
     }
 
     private func load() async {

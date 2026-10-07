@@ -122,6 +122,9 @@ struct ContentView: View {
             }
             .id(visit)
         }
+        // What was just done, and the site being brought up to date: under
+        // whichever screen is open.
+        .safeAreaInset(edge: .bottom, spacing: 0) { HeraldStrip() }
         .sheet(isPresented: $showingSettings) {
             NavigationStack { SettingsView() }
         }

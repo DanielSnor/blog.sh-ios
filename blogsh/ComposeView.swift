@@ -20,12 +20,14 @@ struct ComposeView: View {
     @State private var sending = false
     @State private var problem: String?
     @State private var made: ActionAnswer?
+    /// Counted when a sending has answered: the page goes to the answer.
+    @State private var answered = 0
     @State private var previewing = false
     @State private var looking: Looked?
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
-        PaperScreen(name: String(localized: "New post")) {
+        PaperScreen(name: String(localized: "New post"), answered: answered) {
             Plate {
                 TextField("", text: $title, prompt: Text("Title").foregroundStyle(Theme.muted))
                     .font(.ui(18, weight: .semibold))
@@ -176,8 +178,10 @@ struct ComposeView: View {
             made = try decoder.decode(ActionAnswer.self, from: last)
             // The form is the next post's now.
             title = ""; tags = ""; text = ""; shots = []
+            answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+            answered += 1
         }
     }
 }

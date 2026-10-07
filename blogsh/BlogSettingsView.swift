@@ -15,6 +15,7 @@ struct BlogSettingsView: View {
     @State private var confirmingRemoval = false
     @State private var probe: Probe = .idle
     @State private var confirmingNewKey = false
+    @State private var copied = false
 
     enum Probe: Equatable {
         case idle, running
@@ -85,8 +86,14 @@ struct BlogSettingsView: View {
                             .font(.mono(12, bold: false))
                             .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
-                        Command("Copy the authorized_keys line", symbol: "doc.on.doc") {
+                        // The key says that it took: the row is the only place to see it.
+                        Command(copied ? "Copied" : "Copy the authorized_keys line", symbol: copied ? "checkmark" : "doc.on.doc") {
                             UIPasteboard.general.string = line
+                            copied = true
+                            Task {
+                                try? await Task.sleep(for: .seconds(2))
+                                copied = false
+                            }
                         }
                     }
                     Command("Make a new key", symbol: "key", danger: true) { confirmingNewKey = true }

@@ -26,12 +26,14 @@ struct TextEditView: View {
     @State private var saving = false
     @State private var problem: String?
     @State private var saved: ActionAnswer?
+    /// Counted when a save has answered: the page goes to the answer.
+    @State private var answered = 0
     @State private var confirmingLoss = false
     @State private var previewing = false
     @State private var looking: Looked?
 
     var body: some View {
-        PaperScreen(title: entry?.title) {
+        PaperScreen(title: entry?.title, answered: answered) {
             if let entry {
                 if !entry.editable {
                     Hint(verbatim: entry.problem.map { String(localized: "This post cannot be edited here: \($0). At the desk, edit asks before losing it; here nobody could answer.") }
@@ -248,9 +250,13 @@ struct TextEditView: View {
             guard let last = answers.last else { throw EngineError.unreadable("") }
             saved = try decoder.decode(ActionAnswer.self, from: last)
             shots = []
+            // Saving a published post builds the site: nothing is owed after it.
+            if saved?.state == .published { Herald.shared.settled() }
             await load()
+            answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+            answered += 1
         }
     }
 }

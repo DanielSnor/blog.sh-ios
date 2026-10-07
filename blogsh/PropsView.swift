@@ -17,6 +17,8 @@ struct PropsView: View {
     @State private var props: PropsAnswer?
     @State private var problem: String?
     @State private var busy = false
+    /// What the screen is doing while it cannot be touched.
+    @State private var doing: Text?
 
     // What is being asked, one at a time, the way one keypress asks.
     @State private var confirming: PostAction?
@@ -74,7 +76,9 @@ struct PropsView: View {
         .overlay {
             if props == nil && problem == nil { ProgressView() }
         }
-        .disabled(busy)
+        // A build holds the lock most of these keys need: while one runs, they wait.
+        .disabled(busy || Herald.shared.isBuilding)
+        .doing(doing)
         .navigationTitle(slug)
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
@@ -86,20 +90,20 @@ struct PropsView: View {
         .refreshable { await load() }
         .sheet(isPresented: $scheduling) {
             NavigationStack { ScheduleSheet(slug: slug, offered: props?.slot, current: props?.scheduled == true ? props?.date : nil,
-                                            scheduled: props?.scheduled == true) { await load() } }
+                                            scheduled: props?.scheduled == true) { await scheduled() } }
         }
         .sheet(isPresented: $editingProperties) {
             if let props {
-                NavigationStack { PropertiesForm(props: props) { await afterWrite(rebuildAsk: true) } }
+                NavigationStack { PropertiesForm(props: props) { await afterWrite(saying: String(localized: "Saved")) } }
             }
         }
         .sheet(isPresented: $showingAddresses) {
             if let props {
-                NavigationStack { AddressesSheet(props: props) { await afterWrite(rebuildAsk: true) } }
+                NavigationStack { AddressesSheet(props: props) { await afterWrite() } }
             }
         }
         .sheet(isPresented: $showingVersions) {
-            NavigationStack { VersionsSheet(slug: slug) { await load() } }
+            NavigationStack { VersionsSheet(slug: slug) { await afterWrite(saying: String(localized: "Restored: \(slug)")) } }
         }
         .alert("Rename slug", isPresented: $renaming) {
             TextField("New slug", text: $newSlug)
@@ -246,21 +250,27 @@ struct PropsView: View {
         case .publish:
             await publish(anyway: false)
         case .unschedule:
-            if let answer = await run(["schedule", slug, "--cancel"]) { await load(); tell(answer.warnings) }
+            if let answer = await run(["schedule", slug, "--cancel"]) {
+                await load()
+                tell(answer.warnings, or: String(localized: "The schedule is cancelled; the post is a draft again."))
+            }
         case .unpublish:
-            if let answer = await run(["unpublish", slug, "--yes"]) { await load(); tell(answer.warnings) }
+            if let answer = await run(["unpublish", slug, "--yes"]) {
+                // Taking a post off the site builds the site.
+                Herald.shared.settled()
+                await load()
+                tell(answer.warnings, or: String(localized: "Unpublished; the post is a draft again."))
+            }
         case .announce:
             await announce(force: false)
         case .delete:
             if await run(["delete", slug, "--yes"]) != nil {
-                // The post is out of this screen's reach now. Said once, with
-                // the question the terminal asks next -- and whichever way
-                // that is answered, the screen is left: its keys would act
-                // on a post that is not there.
+                // The post is out of this screen's reach now. Said once, and
+                // the screen is left: its keys would act on a post that is
+                // not there. The site is brought up to date by itself.
+                Herald.shared.owe()
                 said = Said(title: String(localized: "Deleted"),
-                            text: String(localized: "The post is in the trash and can be restored from there.")
-                                + "\n\n" + String(localized: "Rebuild and deploy the site now?"),
-                            ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild(leaving: true) },
+                            text: String(localized: "The post is in the trash and can be restored from there."),
                             after: { leave() })
             }
         default:
@@ -276,8 +286,10 @@ struct PropsView: View {
         if anyway { args.append("--allow-partial") }
         let ask = Said.Ask(button: String(localized: "Publish anyway")) { await publish(anyway: true) }
         if let answer = await run(args, anyway: anyway ? nil : ask) {
+            // Publishing builds the whole site: nothing is owed after it.
+            Herald.shared.settled()
             await load()
-            tell(answer.warnings)
+            tell(answer.warnings, or: String(localized: "Published: \(answer.url ?? slug)"))
         }
     }
 
@@ -287,15 +299,22 @@ struct PropsView: View {
         dismiss()
     }
 
-    /// The engine's own lines about what it did, when it had any.
-    private func tell(_ lines: [String]?) {
-        if let lines = lines?.plain, !lines.isEmpty { said = Said(text: lines.joined(separator: "\n")) }
+    /// The engine's own lines about what it did, when it had any -- they
+    /// are worth an answer. Otherwise the plain fact that it was done,
+    /// said in passing.
+    private func tell(_ lines: [String]?, or done: String? = nil) {
+        if let lines = lines?.plain, !lines.isEmpty {
+            said = Said(text: lines.joined(separator: "\n"))
+        } else if let done {
+            Herald.shared.say(done)
+        }
     }
 
-    /// The question the terminal asks after a change the site does not show yet.
-    private func askRebuild(saying lines: [String]? = nil) {
-        said = Said(title: String(localized: "Rebuild and deploy the site now?"), text: (lines ?? []).plain.joined(separator: "\n"),
-                    ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild() })
+    /// The schedule dialog closed on a plan: when the post goes out now.
+    private func scheduled() async {
+        await load()
+        guard let props, props.scheduled, let date = props.date.flatMap({ ISO8601DateFormatter.engine.date(from: $0) }) else { return }
+        Herald.shared.say(String(localized: "Scheduled: goes out \(date.spoken)."))
     }
 
     private func announce(force: Bool) async {
@@ -303,7 +322,8 @@ struct PropsView: View {
         if force { args.append("--force") }
         do {
             busy = true
-            defer { busy = false }
+            doing = Doing.word(args)
+            defer { busy = false; doing = nil }
             let answer: ActionAnswer = try await Engine.shared.call(args)
             await load()
             said = Said(text: String(localized: "Announced: \(answer.url ?? "")"))
@@ -317,7 +337,7 @@ struct PropsView: View {
 
     private func pin() async {
         guard let props else { return }
-        await write(["props", slug, "--set", "pinned=\(props.pinned ? "no" : "yes")"], rebuildAsk: true)
+        await write(["props", slug, "--set", "pinned=\(props.pinned ? "no" : "yes")"], owed: true)
     }
 
     private func rename() async {
@@ -328,22 +348,9 @@ struct PropsView: View {
             slug = answer.slug
             props = answer
             renamed?(answer)
-            if wasDraft { tell(answer.warnings) } else { askRebuild(saying: answer.warnings) }
-        }
-    }
-
-    /// `leaving`: the post this screen was about is gone, so once the
-    /// rebuild has said how it went, the screen goes too.
-    private func rebuild(leaving: Bool = false) async {
-        busy = true
-        defer { busy = false }
-        let then: (() -> Void)? = leaving ? { leave() } : nil
-        do {
-            let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            said = Said(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."),
-                        after: then)
-        } catch {
-            said = Said(text: error.localizedDescription, after: then)
+            // A draft's own preview follows it by itself; a published post's pages are owed a build.
+            if !wasDraft { Herald.shared.owe() }
+            tell(answer.warnings)
         }
     }
 
@@ -352,7 +359,8 @@ struct PropsView: View {
     /// second word overrides -- a post not written in every language.
     private func run(_ args: [String], anyway: Said.Ask? = nil) async -> ActionAnswer? {
         busy = true
-        defer { busy = false }
+        doing = Doing.word(args)
+        defer { busy = false; doing = nil }
         do {
             return try await Engine.shared.call(args)
         } catch EngineError.refused(let refusal) where refusal.error == Partial.code && anyway != nil {
@@ -367,7 +375,8 @@ struct PropsView: View {
     /// A write that answers with the screen itself.
     private func writeProps(_ args: [String]) async -> PropsAnswer? {
         busy = true
-        defer { busy = false }
+        doing = Doing.word(args)
+        defer { busy = false; doing = nil }
         do {
             return try await Engine.shared.call(args)
         } catch {
@@ -376,16 +385,19 @@ struct PropsView: View {
         }
     }
 
-    private func write(_ args: [String], rebuildAsk: Bool) async {
+    private func write(_ args: [String], owed: Bool) async {
         if let answer = await writeProps(args) {
             props = answer
-            if rebuildAsk { askRebuild(saying: answer.warnings) } else { tell(answer.warnings) }
+            if owed { Herald.shared.owe() }
+            tell(answer.warnings)
         }
     }
 
-    private func afterWrite(rebuildAsk: Bool) async {
+    /// A sheet wrote something the site does not show yet.
+    private func afterWrite(saying done: String? = nil) async {
         await load()
-        if rebuildAsk { askRebuild() }
+        Herald.shared.owe()
+        if let done { Herald.shared.say(done) }
     }
 
     private func load() async {

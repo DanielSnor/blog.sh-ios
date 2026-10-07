@@ -464,9 +464,15 @@ struct PaperScreen<Content: View>: View {
     /// ...or, where it is about one post, that post's title: its own
     /// words, so in the plain face and with its capitals.
     var title: String?
+    /// Counted by a form each time an action of its has answered -- a
+    /// result or a refusal, written at the form's end. The page then goes
+    /// there and the keyboard out of the way: an answer under the edge of
+    /// the screen is an answer nobody got.
+    var answered = 0
     @ViewBuilder var content: Content
     @State private var height: CGFloat = 800
     @State private var keyboardTop: CGFloat?
+    @State private var position = ScrollPosition()
 
     var body: some View {
         ScrollView {
@@ -477,6 +483,15 @@ struct PaperScreen<Content: View>: View {
                 .padding(.bottom, 28)
                 .environment(\.pageHeight, height)
                 .environment(\.keyboardTop, keyboardTop)
+        }
+        .scrollPosition($position)
+        .onChange(of: answered) {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            Task {
+                // Once the answer is laid out and the keyboard has gone.
+                try? await Task.sleep(for: .milliseconds(350))
+                withAnimation { position.scrollTo(edge: .bottom) }
+            }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in

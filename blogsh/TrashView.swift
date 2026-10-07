@@ -3,8 +3,8 @@ import SwiftUI
 /// What the trash holds, as `restore --json` lists it -- the rows the
 /// terminal offers when `restore` is run with no slug -- and what a row
 /// does: it restores its post. A draft comes back with its preview
-/// rebuilt, as the terminal rebuilds it; a published post is asked about,
-/// as the terminal asks. Under the rows, the clearing out the terminal
+/// rebuilt, as the terminal rebuilds it; a published post's pages are
+/// brought up to date by the app itself (`Herald`), where the terminal asks. Under the rows, the clearing out the terminal
 /// has two commands for: `empty trash` and `empty versions`. Both are for
 /// good, both say how much before they ask, and each is asked over its
 /// own key.
@@ -13,6 +13,8 @@ struct TrashView: View {
     @State private var problem: String?
     @State private var loading = false
     @State private var busy = false
+    /// What the screen is doing while it cannot be touched.
+    @State private var doing: Text?
     @State private var restoring: TrashRow?
     /// How much the trash and the older versions hold, as `empty` counts them.
     @State private var held: HeldAnswer?
@@ -88,7 +90,8 @@ struct TrashView: View {
             }
         }
         .paperList()
-        .disabled(busy)
+        .disabled(busy || Herald.shared.isBuilding)
+        .doing(doing)
         .navigationTitle("Trash")
         .task { await load() }
         .refreshable { await load() }
@@ -111,7 +114,8 @@ struct TrashView: View {
     /// answer says how much went; the screen reads itself again.
     private func empty(_ what: Clearing) async {
         busy = true
-        defer { busy = false }
+        doing = Doing.word(["empty"])
+        defer { busy = false; doing = nil }
         do {
             let answer: HeldAnswer = try await Engine.shared.call(["empty", what.rawValue, "--yes"])
             await load()
@@ -130,7 +134,8 @@ struct TrashView: View {
     // time this runs.
     private func restore(_ row: TrashRow) async {
         busy = true
-        defer { busy = false }
+        doing = Doing.word(["restore"])
+        defer { busy = false; doing = nil }
         do {
             // A draft's preview is rebuilt without asking, the way the terminal
             // does it; a published post's page is asked about.
@@ -141,24 +146,9 @@ struct TrashView: View {
             let words = lines.isEmpty ? String(localized: "Restored: \(answer.url ?? row.slug)") : lines.joined(separator: "\n")
             await load()
             // A published post is back in the archive and not yet on the site:
-            // that it is back, and the question about the site, as one.
-            if answer.state == .published {
-                said = Said(title: String(localized: "Rebuild and deploy the site now?"), text: words,
-                            ask: Said.Ask(button: String(localized: "Rebuild"), cancel: String(localized: "Not now")) { await rebuild() })
-            } else {
-                said = Said(text: words)
-            }
-        } catch {
-            if !error.isCalledOff { said = Said(text: error.localizedDescription) }
-        }
-    }
-
-    private func rebuild() async {
-        busy = true
-        defer { busy = false }
-        do {
-            let answer: RebuildAnswer = try await Engine.shared.call(["rebuild"])
-            said = Said(text: answer.deploy == "done" ? String(localized: "Rebuilt and deployed.") : String(localized: "Rebuilt; the deploy is owed to the next scheduled run."))
+            // that it is back is said, and the site is brought up to date by itself.
+            if answer.state == .published { Herald.shared.owe() }
+            Herald.shared.say(words)
         } catch {
             if !error.isCalledOff { said = Said(text: error.localizedDescription) }
         }

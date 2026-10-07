@@ -50,6 +50,22 @@
         }
       }
     },
+    "%@: '%@' goes out %@, %lld of %lld in the queue.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: „%2$@“ vyjde %3$@, ve frontě %4$lld. z %5$lld."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: „%2$@“ erscheint %3$@, Stelle %4$lld von %5$lld in der Warteschlange."
+          }
+        }
+      }
+    },
     "%@: a picture has to stand on a line of its own, with a blank line before it and after it -- the blog refuses the post otherwise": {
       "localizations": {
         "cs": {
@@ -78,6 +94,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: der Text auf %2$@"
+          }
+        }
+      }
+    },
+    "%@: the %@ text is taken off": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: text v jazyce %2$@ je odebraný"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: der Text auf %2$@ ist entfernt"
           }
         }
       }
@@ -370,6 +402,22 @@
         }
       }
     },
+    "Announcing…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oznamuji…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird angekündigt…"
+          }
+        }
+      }
+    },
     "As the system has it": {
       "localizations": {
         "cs": {
@@ -530,6 +578,22 @@
         }
       }
     },
+    "Carried": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeneseno"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getragen"
+          }
+        }
+      }
+    },
     "Carry": {
       "localizations": {
         "cs": {
@@ -590,6 +654,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aufräumen"
+          }
+        }
+      }
+    },
+    "Clearing out…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uklízím…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird aufgeräumt…"
           }
         }
       }
@@ -674,6 +754,22 @@
         }
       }
     },
+    "Copied": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkopírováno"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiert"
+          }
+        }
+      }
+    },
     "Copy the authorized_keys line": {
       "localizations": {
         "cs": {
@@ -734,6 +830,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gelöscht"
+          }
+        }
+      }
+    },
+    "Deleting…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mažu…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gelöscht…"
           }
         }
       }
@@ -1266,6 +1378,22 @@
         }
       }
     },
+    "Moved": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunuto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschoben"
+          }
+        }
+      }
+    },
     "Near enough, not exact: the blog itself renders the post, and the draft's preview after sending is the real thing.": {
       "localizations": {
         "cs": {
@@ -1406,22 +1534,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nicht im Text — es wird nicht mit dem Beitrag gesendet."
-          }
-        }
-      }
-    },
-    "Not now": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Teď ne"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nicht jetzt"
           }
         }
       }
@@ -1970,6 +2082,22 @@
         }
       }
     },
+    "Publishing…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publikuji…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird veröffentlicht…"
+          }
+        }
+      }
+    },
     "Quote": {
       "localizations": {
         "cs": {
@@ -2034,22 +2162,6 @@
         }
       }
     },
-    "Rebuild": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sestavit"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neu bauen"
-          }
-        }
-      }
-    },
     "Rebuild and deploy": {
       "localizations": {
         "cs": {
@@ -2062,22 +2174,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neu bauen und ausliefern"
-          }
-        }
-      }
-    },
-    "Rebuild and deploy the site now?": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Znovu sestavit a nasadit web teď?"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Website jetzt neu bauen und ausliefern?"
           }
         }
       }
@@ -2274,6 +2370,22 @@
         }
       }
     },
+    "Rescheduled": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeplánováno"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umgeplant"
+          }
+        }
+      }
+    },
     "Restore": {
       "localizations": {
         "cs": {
@@ -2334,6 +2446,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wiederhergestellt: %@"
+          }
+        }
+      }
+    },
+    "Restoring…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovuji…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird wiederhergestellt…"
           }
         }
       }
@@ -2510,6 +2638,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geplant"
+          }
+        }
+      }
+    },
+    "Scheduled: goes out %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naplánováno: vyjde %@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geplant: erscheint %@."
           }
         }
       }
@@ -2750,6 +2894,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Diese Sprache vom Beitrag entfernen"
+          }
+        }
+      }
+    },
+    "Taken off": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebráno"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernt"
           }
         }
       }
@@ -3154,6 +3314,22 @@
         }
       }
     },
+    "The schedule is cancelled; the post is a draft again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plán je zrušený, příspěvek je zase koncept."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Plan ist aufgehoben, der Beitrag ist wieder ein Entwurf."
+          }
+        }
+      }
+    },
     "The scheduled-post queue": {
       "localizations": {
         "cs": {
@@ -3246,6 +3422,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Website"
+          }
+        }
+      }
+    },
+    "The site could not be built: %@ It can be tried again under The site.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web se nepodařilo sestavit: %@ Znovu to jde zkusit na obrazovce Web."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website ließ sich nicht bauen: %@ Unter „Website“ lässt es sich erneut versuchen."
+          }
+        }
+      }
+    },
+    "The site does not show this change yet.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web tuhle změnu ještě neukazuje."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website zeigt diese Änderung noch nicht."
           }
         }
       }
@@ -3502,6 +3710,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zurück auf Entwurf"
+          }
+        }
+      }
+    },
+    "Unpublished; the post is a draft again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staženo z webu, příspěvek je zase koncept."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückgesetzt, der Beitrag ist wieder ein Entwurf."
+          }
+        }
+      }
+    },
+    "Unpublishing…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stahuji z webu…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird auf Entwurf zurückgesetzt…"
           }
         }
       }

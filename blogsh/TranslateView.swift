@@ -16,13 +16,17 @@ struct TranslateView: View {
     @State private var saving = false
     @State private var problem: String?
     @State private var saved: ActionAnswer?
+    /// The last save took the language off rather than wrote it.
+    @State private var tookOff = false
+    /// Counted when a save has answered: the page goes to the answer.
+    @State private var answered = 0
     @State private var confirmingRemoval = false
     @State private var previewing = false
 
     private var languageName: String { Locale.current.localizedString(forLanguageCode: lang) ?? lang }
 
     var body: some View {
-        PaperScreen(title: entry?.title) {
+        PaperScreen(title: entry?.title, answered: answered) {
             if let entry {
                 SectionLabel("The original")
                 Plate {
@@ -67,7 +71,7 @@ struct TranslateView: View {
                         Command("Take this language off the post", symbol: "minus.circle", danger: true) { confirmingRemoval = true }
                             .confirmationDialog("Take the \(languageName) text off '\(slug)'? The post then looks exactly as it did before the translation existed.",
                                                 isPresented: $confirmingRemoval, titleVisibility: .visible) {
-                                Button("Take it off", role: .destructive) { Task { await save("---\ntitle:\n---\n\n") } }
+                                Button("Take it off", role: .destructive) { Task { await save("---\ntitle:\n---\n\n", takingOff: true) } }
                             }
                             .disabled(saving)
                     }
@@ -75,9 +79,12 @@ struct TranslateView: View {
                 }
 
                 if let saved {
-                    SectionLabel("Saved")
+                    SectionLabel(tookOff ? "Taken off" : "Saved")
                     Plate {
-                        Text("\(saved.slug): the \(languageName) text").font(.ui(15)).foregroundStyle(Theme.ink)
+                        // What was done, not only to what: written, or taken off.
+                        (tookOff ? Text("\(saved.slug): the \(languageName) text is taken off")
+                                 : Text("\(saved.slug): the \(languageName) text"))
+                            .font(.ui(15)).foregroundStyle(Theme.ink)
                         if let warnings = saved.warnings?.plain {
                             ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
                         }
@@ -120,7 +127,7 @@ struct TranslateView: View {
         return "---\n" + lines + "---\n\n" + body
     }
 
-    private func save(_ body: String) async {
+    private func save(_ body: String, takingOff: Bool = false) async {
         saving = true
         defer { saving = false }
         problem = nil
@@ -135,9 +142,12 @@ struct TranslateView: View {
             }
             guard let last = answers.last else { throw EngineError.unreadable("") }
             saved = try decoder.decode(ActionAnswer.self, from: last)
+            tookOff = takingOff
             await load()
+            answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+            answered += 1
         }
     }
 }
