@@ -22,9 +22,8 @@ struct TranslateView: View {
     private var languageName: String { Locale.current.localizedString(forLanguageCode: lang) ?? lang }
 
     var body: some View {
-        PaperScreen {
+        PaperScreen(title: entry?.title) {
             if let entry {
-                PostHeading(title: entry.title, detail: "\(entry.slug) · \(lang)")
                 SectionLabel("The original")
                 Plate {
                     Button {

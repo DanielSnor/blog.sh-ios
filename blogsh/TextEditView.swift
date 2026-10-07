@@ -31,9 +31,8 @@ struct TextEditView: View {
     @State private var looking: Looked?
 
     var body: some View {
-        PaperScreen {
+        PaperScreen(title: entry?.title) {
             if let entry {
-                PostHeading(title: entry.title, detail: entry.slug)
                 if !entry.editable {
                     Hint(verbatim: entry.problem.map { String(localized: "This post cannot be edited here: \($0). At the desk, edit asks before losing it; here nobody could answer.") }
                          ?? String(localized: "This post cannot be edited here."))
@@ -42,7 +41,7 @@ struct TextEditView: View {
                     PaperEditor(text: $text, selection: $caret, minHeight: 320)
                         .disabled(!entry.editable)
                 }
-                .padding(.top, 14)
+                .padding(.top, entry.editable ? 0 : 14)
                 Hint("The header and the text, as the editor opens them. A picture is named by its file name.")
                 Plate {
                     Command("Preview", symbol: "eye") { previewing = true }

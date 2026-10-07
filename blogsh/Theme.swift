@@ -408,11 +408,25 @@ nonisolated enum RowDate {
 extension View {
     /// The bar keeps its buttons and gives up its title: a screen says its
     /// own name, in its own face, at the head of what it holds.
-    func namedByItsHeader() -> some View {
+    ///
+    /// A screen about one post may hand its title over instead: the bar
+    /// then says it in the post's own words -- the plain face, its
+    /// capitals -- over all the room between the way back and the far edge.
+    func namedByItsHeader(title: String? = nil) -> some View {
         toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
+                    if let title {
+                        Text(verbatim: title)
+                            .font(.ui(18, weight: .bold))
+                            .foregroundStyle(Theme.ink)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+                    } else {
+                        Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
+                    }
                 }
             }
     }
@@ -447,6 +461,9 @@ struct PaperScreen<Content: View>: View {
     /// A screen for writing says its name in the bar, beside the way
     /// back, and leaves the page to the text.
     var name: String?
+    /// ...or, where it is about one post, that post's title: its own
+    /// words, so in the plain face and with its capitals.
+    var title: String?
     @ViewBuilder var content: Content
     @State private var height: CGFloat = 800
     @State private var keyboardTop: CGFloat?
@@ -473,7 +490,7 @@ struct PaperScreen<Content: View>: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Theme.paper.ignoresSafeArea())
-        .namedByItsHeader()
+        .namedByItsHeader(title: title)
         .toolbar {
             if let name {
                 ToolbarItem(placement: .topBarLeading) {
