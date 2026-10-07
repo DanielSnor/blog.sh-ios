@@ -92,7 +92,8 @@ struct ComposeView: View {
                         Link(destination: link) { CommandRow("Open the preview", symbol: "safari") }
                             .buttonStyle(PressStyle())
                     }
-                    NavigationLink { PropsView(slug: made.slug) } label: {
+                    // Deleted from there, the post is not this form's to point at any more.
+                    NavigationLink { PropsView(slug: made.slug, gone: { self.made = nil }) } label: {
                         CommandRow("Its properties and the actions on it", symbol: "slider.horizontal.3", leads: true)
                     }
                     .buttonStyle(PressStyle())

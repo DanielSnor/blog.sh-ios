@@ -121,6 +121,20 @@ a paragraph of its own, a blank line on each side and none doubled, the
 rule of `/write/` -- and at the end only when the text was never
 touched. The two keys on a picture's card are as tall as a finger needs.
 
+The app says what it did and asks nothing back. What was done -- a post
+published, a plan cancelled, a row of the queue moved and when it goes
+out now -- is said in a line under whichever screen is open, and goes by
+itself. A change the site does not show yet (a pin, a rename, a property,
+a post deleted or restored, the queue in another order) is owed a build,
+and the app builds the site itself: it waits a moment for the next such
+change, as the terminal's queue waits for the way out, then runs, and
+the same line says so while it does. Nobody is asked whether the site
+should be rebuilt; only a build that failed says something that wants an
+answer -- where to try again. While a build runs, the keys that need the
+engine's lock wait. A screen that cannot be touched says what it is
+doing once the wait is long enough to wonder about, and a form's page
+goes to its answer, so a result is never under the edge of the screen.
+
 A post's address can be handed to somebody from wherever the post is on
 the screen: a key in the bar of its crossroads, its properties and its
 preview, and **Share the link** in the menu of a row of the archive. It

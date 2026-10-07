@@ -147,7 +147,8 @@ struct HeraldStrip: View {
                 case .none:
                     EmptyView()
                 case .owed:
-                    Text(verbatim: herald.owedFor)
+                    // Said with what comes next, so the line is never a thing left to do.
+                    (Text(verbatim: herald.owedFor + " — ") + Text("The site will be built in a moment."))
                         .font(.ui(13))
                         .foregroundStyle(Theme.muted)
                 case .building:
