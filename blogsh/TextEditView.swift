@@ -18,6 +18,8 @@ struct TextEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var entry: EditEntry?
     @State private var text = ""
+    /// Where the caret is in the text: where a picture's mark goes.
+    @State private var caret: TextSelection?
     @State private var shots: [Shot] = []
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
@@ -37,7 +39,7 @@ struct TextEditView: View {
                          ?? String(localized: "This post cannot be edited here."))
                 }
                 Plate {
-                    PaperEditor(text: $text, minHeight: 320)
+                    PaperEditor(text: $text, selection: $caret, minHeight: 320)
                         .disabled(!entry.editable)
                 }
                 .padding(.top, 14)
@@ -202,10 +204,11 @@ struct TextEditView: View {
         }
     }
 
+    /// Where the caret is, a paragraph of its own; the caret goes on after it.
     private func insert(_ shot: Shot) {
-        var kept = text
-        while kept.hasSuffix("\n") { kept.removeLast() }
-        text = kept + "\n\n" + shot.mark + "\n"
+        let put = Kept.placed(shot.mark, in: text, at: caret?.range(in: text)?.location)
+        text = put.text
+        caret = TextSelection(caret: put.caret, in: put.text)
     }
 
     /// The header gets the two lines of the delivery: which post, which version.

@@ -12,6 +12,8 @@ struct ComposeView: View {
     @State private var title = ""
     @State private var tags = ""
     @State private var text = ""
+    /// Where the caret is in the text: where a picture's mark goes.
+    @State private var caret: TextSelection?
     @State private var shots: [Shot] = []
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
@@ -23,13 +25,12 @@ struct ComposeView: View {
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
-        PaperScreen {
-            ScreenHeader(title: String(localized: "New post"))
+        PaperScreen(name: String(localized: "New post")) {
             Plate {
                 TextField("", text: $title, prompt: Text("Title").foregroundStyle(Theme.muted))
                     .font(.ui(18, weight: .semibold))
                     .foregroundStyle(Theme.ink)
-                PaperEditor(text: $text, minHeight: 200)
+                PaperEditor(text: $text, selection: $caret, minHeight: 200)
                     .focused($bodyFocused)
                 FieldRow(label: "tags", text: $tags, prompt: String(localized: "Comma separated."))
                     .autocorrectionDisabled()
@@ -127,12 +128,11 @@ struct ComposeView: View {
         }
     }
 
-    /// A blank line on each side: the blog renders a picture only as a
-    /// paragraph of its own.
+    /// Where the caret is, a paragraph of its own; the caret goes on after it.
     private func insert(_ shot: Shot) {
-        var kept = text
-        while kept.hasSuffix("\n") { kept.removeLast() }
-        text = kept.isEmpty ? shot.mark + "\n" : kept + "\n\n" + shot.mark + "\n"
+        let put = Kept.placed(shot.mark, in: text, at: caret?.range(in: text)?.location)
+        text = put.text
+        caret = TextSelection(caret: put.caret, in: put.text)
     }
 
     private func remove(_ shot: Shot) {
@@ -244,17 +244,25 @@ struct ShotCard: View {
                           prompt: (said.map { Text(verbatim: $0) } ?? Text("No description yet")).foregroundStyle(Theme.muted))
                     .font(.ui(15))
                     .foregroundStyle(Theme.ink)
-                HStack {
+                // Two keys for a finger, not two words: each is as tall as a
+                // finger needs and takes its half of the row.
+                HStack(spacing: 0) {
                     Button(action: insert) {
-                        Text(inText ? "Used in the text" : "Insert into text").engineLabel(11)
+                        Text(inText ? "Used in the text" : "Insert into text").engineLabel(12)
+                            .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+                            .contentShape(Rectangle())
                     }
                     .foregroundStyle(inText ? AnyShapeStyle(Theme.muted) : AnyShapeStyle(.tint))
                     .disabled(inText)
-                    Spacer()
-                    Button(action: remove) { Text("Remove").engineLabel(11) }
-                        .foregroundStyle(Theme.danger)
+                    Button(action: remove) {
+                        Text("Remove").engineLabel(12)
+                            .frame(minWidth: 88, minHeight: 40, alignment: .trailing)
+                            .contentShape(Rectangle())
+                    }
+                    .foregroundStyle(Theme.danger)
                 }
                 .buttonStyle(PressStyle())
+                .padding(.vertical, -6)
                 // Said on the card, before the post goes: what the text
                 // does not name stays behind.
                 if !inText {

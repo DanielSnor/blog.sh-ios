@@ -152,6 +152,28 @@ nonisolated enum Kept {
 
     static func named(_ name: String, in text: String) -> Bool { text.contains("(\(name))") }
 
+    /// A shot's mark put into the text where the caret is -- at its end
+    /// when the text was never touched. A blank line on each side, counted:
+    /// the blog renders a picture only as a paragraph of its own and
+    /// refuses one on the line straight after a sentence, so a mark put in
+    /// the middle of a line breaks the line there; and counted so that a
+    /// blank line already standing is not doubled. The rule of /write/
+    /// (spacedMark). Positions are UTF-16 offsets, as the text view counts;
+    /// the caret comes back after the mark and its gap, where one goes on
+    /// writing.
+    static func placed(_ mark: String, in text: String, at position: Int?) -> (text: String, caret: Int) {
+        let whole = text as NSString
+        let at = max(0, min(position ?? whole.length, whole.length))
+        let before = whole.substring(to: at), after = whole.substring(from: at)
+        let gaps = ["\n\n", "\n", ""]
+        let trailing = before.reversed().prefix { $0 == "\n" }.count
+        let leading = after.prefix { $0 == "\n" }.count
+        let gapBefore = before.isEmpty ? "" : gaps[min(2, trailing)]
+        let gapAfter = after.isEmpty ? "\n" : gaps[min(2, leading)]
+        let put = gapBefore + mark + gapAfter
+        return (before + put + after, at + (put as NSString).length)
+    }
+
     /// A description is one line in the markdown, whatever its field held:
     /// a line break inside ![…](name) is a picture the engine refuses, with
     /// a reason that names the wrong thing.

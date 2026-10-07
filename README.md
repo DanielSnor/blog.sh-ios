@@ -107,6 +107,19 @@ typed -- where the mark still says what the card said; one typed into the
 text itself is the author's own wording and no card overwrites it, the
 rule of `/write/`. The text is sent as it stands.
 
+The text of a post is as tall as it asks, up to what stays in sight:
+with a keyboard up it has everything down to the keyboard -- the tags
+under it are not needed while writing -- and past that it moves inside
+its own frame, so the caret is never behind the keyboard; without one it
+has half the page. The screen for a new post says its name in the bar,
+beside the way back, and leaves the page to the text. Over the whole
+screen the text has a tablet's whole width and most of a window's; the
+lines stop growing at some hundred and ten letters, a measure that grows
+with the type. A picture's mark goes into the text where the caret is --
+a paragraph of its own, a blank line on each side and none doubled, the
+rule of `/write/` -- and at the end only when the text was never
+touched. The two keys on a picture's card are as tall as a finger needs.
+
 A post's address can be handed to somebody from wherever the post is on
 the screen: a key in the bar of its crossroads, its properties and its
 preview, and **Share the link** in the menu of a row of the archive. It

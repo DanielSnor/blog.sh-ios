@@ -126,6 +126,56 @@ import Testing
         #expect(Kept.said(of: "absent.jpg", in: text) == nil)
     }
 
+    // MARK: a mark put where the caret is
+
+    private let cat = "![a cat](cat.jpg)"
+
+    /// The text never touched: the mark goes to its end, as before.
+    @Test func withNoCaretTheMarkGoesToTheEnd() {
+        #expect(Kept.placed(cat, in: "", at: nil).text == "![a cat](cat.jpg)\n")
+        #expect(Kept.placed(cat, in: "Words.", at: nil).text == "Words.\n\n![a cat](cat.jpg)\n")
+        #expect(Kept.placed(cat, in: "Words.\n", at: nil).text == "Words.\n\n![a cat](cat.jpg)\n")
+        #expect(Kept.placed(cat, in: "Words.\n\n", at: nil).text == "Words.\n\n![a cat](cat.jpg)\n")
+    }
+
+    /// Between two paragraphs, with the caret on the blank line between
+    /// them: a paragraph of its own, and no blank line doubled.
+    @Test func betweenTwoParagraphsItIsAParagraphOfItsOwn() {
+        let text = "One.\n\nTwo."
+        #expect(Kept.placed(cat, in: text, at: 6).text == "One.\n\n![a cat](cat.jpg)\n\nTwo.")
+        #expect(Kept.placed(cat, in: text, at: 5).text == "One.\n\n![a cat](cat.jpg)\n\nTwo.")
+        #expect(Kept.placed(cat, in: text, at: 4).text == "One.\n\n![a cat](cat.jpg)\n\nTwo.")
+    }
+
+    /// In the middle of a line the line is broken there: the blog refuses
+    /// a picture that shares a line with prose.
+    @Test func inTheMiddleOfALineItBreaksTheLine() {
+        #expect(Kept.placed(cat, in: "One two.", at: 4).text == "One \n\n![a cat](cat.jpg)\n\ntwo.")
+    }
+
+    @Test func atTheVeryStartNothingStandsBeforeIt() {
+        #expect(Kept.placed(cat, in: "One.", at: 0).text == "![a cat](cat.jpg)\n\nOne.")
+    }
+
+    /// The caret comes back after the mark and its gap: where one goes on writing.
+    @Test func theCaretGoesOnAfterTheMark() {
+        let put = Kept.placed(cat, in: "One.\n\nTwo.", at: 6)
+        #expect((put.text as NSString).substring(from: put.caret) == "Two.")
+        let end = Kept.placed(cat, in: "One.", at: nil)
+        #expect(end.caret == (end.text as NSString).length)
+    }
+
+    /// Positions are counted the way the text view counts: an emoji is two.
+    @Test func positionsAreCountedAsTheTextViewCountsThem() {
+        let text = "Běh 🏃 hotov.\n\nDál."
+        let at = ("Běh 🏃 hotov.\n\n" as NSString).length
+        let put = Kept.placed(cat, in: text, at: at)
+        #expect(put.text == "Běh 🏃 hotov.\n\n![a cat](cat.jpg)\n\nDál.")
+        // A caret past the end, or before the start, is the end and the start.
+        #expect(Kept.placed(cat, in: "One.", at: 99).text == "One.\n\n![a cat](cat.jpg)\n")
+        #expect(Kept.placed(cat, in: "One.", at: -3).text == "![a cat](cat.jpg)\n\nOne.")
+    }
+
     @Test func aPictureIsOneMarkAVideoTwo() {
         #expect(shot("cat.jpg", alt: " a cat ").mark == "![a cat](cat.jpg)")
         #expect(shot("clip.mp4", alt: "", kind: .video).mark == "!![](clip.mp4)")

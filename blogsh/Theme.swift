@@ -193,6 +193,11 @@ extension EnvironmentValues {
     /// How much larger than on a phone the first screen draws itself: one,
     /// or more where it is a page of its own on a wide screen.
     @Entry var scale: CGFloat = 1
+    /// How tall the page a form stands on is: what the text of a post
+    /// measures its own room by.
+    @Entry var pageHeight: CGFloat = 800
+    /// Where the keyboard's upper edge is on the screen while it is up.
+    @Entry var keyboardTop: CGFloat? = nil
 }
 
 /// The type as large as was chosen in the settings: the system's size and
@@ -439,7 +444,12 @@ extension View {
 /// A screen of fields, facts and actions: everything it holds in one
 /// column on paper, between the two gutters.
 struct PaperScreen<Content: View>: View {
+    /// A screen for writing says its name in the bar, beside the way
+    /// back, and leaves the page to the text.
+    var name: String?
     @ViewBuilder var content: Content
+    @State private var height: CGFloat = 800
+    @State private var keyboardTop: CGFloat?
 
     var body: some View {
         ScrollView {
@@ -448,10 +458,36 @@ struct PaperScreen<Content: View>: View {
                 .padding(.horizontal, Theme.gutter)
                 .padding(.top, 2)
                 .padding(.bottom, 28)
+                .environment(\.pageHeight, height)
+                .environment(\.keyboardTop, keyboardTop)
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in
+            guard let frame = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+            // Off the lower edge of the screen it is down, whatever it says of its size.
+            let screen = (note.object as? UIScreen)?.bounds.height ?? .greatestFiniteMagnitude
+            keyboardTop = frame.height > 0 && frame.minY < screen ? frame.minY : nil
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardTop = nil
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Theme.paper.ignoresSafeArea())
         .namedByItsHeader()
+        .toolbar {
+            if let name {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text(verbatim: name)
+                        .font(.display(21))
+                        .textCase(Theme.voiceCase)
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .accessibilityAddTraits(.isHeader)
+                }
+                .sharedBackgroundVisibility(.hidden)
+            }
+        }
     }
 }
 
@@ -921,30 +957,86 @@ struct SwitchRow: View {
 /// closes it again. Both are the one text.
 struct PaperEditor: View {
     @Binding var text: String
+    /// Where the caret is, for a form that puts something there itself --
+    /// a picture's mark; a form that does not need it leaves it out.
+    private var outer: Binding<TextSelection?>?
     var minHeight: CGFloat = 220
     @State private var whole = false
+    @State private var inner: TextSelection?
+
+    init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, minHeight: CGFloat = 220) {
+        _text = text
+        outer = selection
+        self.minHeight = minHeight
+    }
+
+    private var selection: Binding<TextSelection?> { outer ?? $inner }
+    @Environment(\.pageHeight) private var pageHeight
+    @Environment(\.keyboardTop) private var keyboardTop
+    /// Where the text's own upper edge is on the screen.
+    @State private var top: CGFloat = 0
+
+    /// As tall as the text asks, up to what stays in sight: a text that
+    /// grew on down the page took its caret behind the keyboard, and the
+    /// page does not follow a caret. Past that height the text moves
+    /// inside its own frame, which does. With a keyboard up the text has
+    /// everything down to it -- what stands under the text, the tags, is
+    /// not needed while writing; without one, half the page. For more room
+    /// there is the whole screen, one key away.
+    private var room: CGFloat {
+        let half = (pageHeight * 0.5).rounded()
+        guard let keyboardTop else { return max(180, half) }
+        return min(max(180, (keyboardTop - top - 6).rounded()), max(180, pageHeight * 0.9))
+    }
 
     var body: some View {
-        EditorKeys(text: $text, selection: $selection, symbol: "arrow.up.left.and.arrow.down.right",
+        EditorKeys(text: $text, selection: selection, symbol: "arrow.up.left.and.arrow.down.right",
                    label: String(localized: "editor.whole", defaultValue: "Write on the whole screen")) { whole = true }
-        TextEditor(text: $text, selection: $selection)
+        TextEditor(text: $text, selection: selection)
             .font(.mono(15, bold: false))
             .foregroundStyle(Theme.ink)
             .scrollContentBackground(.hidden)
-            .frame(minHeight: minHeight)
+            .frame(minHeight: min(minHeight, room), maxHeight: room)
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY.rounded() } action: { top = $0 }
             .padding(.horizontal, -5)
             .padding(.vertical, -4)
             .fullScreenCover(isPresented: $whole) { WritingScreen(text: $text) }
     }
+}
 
-    @State private var selection: TextSelection?
+extension TextSelection {
+    /// The caret or the selection as the text view counts it, in UTF-16;
+    /// nothing when it does not lie in this text any more.
+    func range(in text: String) -> NSRange? {
+        switch indices {
+        case .selection(let picked):
+            guard picked.lowerBound >= text.startIndex, picked.upperBound <= text.endIndex else { return nil }
+            return NSRange(picked, in: text)
+        case .multiSelection(let set):
+            guard let first = set.ranges.first, first.upperBound <= text.endIndex else { return nil }
+            return NSRange(first, in: text)
+        @unknown default:
+            return nil
+        }
+    }
+
+    /// The caret at a UTF-16 offset of this text.
+    init?(caret: Int, in text: String) {
+        guard let at = Range(NSRange(location: caret, length: 0), in: text) else { return nil }
+        self.init(insertionPoint: at.lowerBound)
+    }
 }
 
 /// Nothing but the text: the marks over it, the paper under it, the
-/// keyboard up. On a wide screen the lines keep a length one can read.
+/// keyboard up. The text has the width of the screen -- a tablet's whole,
+/// most of a window on a desk; only on a screen wider than some hundred
+/// and ten letters do the lines stop growing, and that measure grows
+/// with the type.
 struct WritingScreen: View {
     @Binding var text: String
     @Environment(\.dismiss) private var dismiss
+    /// The longest line, in points at the usual size of type.
+    @ScaledMetric(relativeTo: .caption) private var measure: CGFloat = 1080
     @State private var selection: TextSelection?
     @FocusState private var typing: Bool
 
@@ -964,7 +1056,7 @@ struct WritingScreen: View {
                 .padding(.horizontal, Theme.gutter - 5)
                 .padding(.top, 8)
         }
-        .frame(maxWidth: 760)
+        .frame(maxWidth: measure * TypeScale.shared.factor)
         .frame(maxWidth: .infinity)
         .background(Theme.paper.ignoresSafeArea())
         .onAppear { typing = true }
@@ -1002,21 +1094,7 @@ struct EditorKeys: View {
     /// -- the text was never touched -- at its end.
     private func mark(_ kind: Marks.Kind) {
         let whole = (text as NSString).length
-        var range = NSRange(location: whole, length: 0)
-        if let selection {
-            switch selection.indices {
-            case .selection(let picked):
-                if picked.lowerBound >= text.startIndex, picked.upperBound <= text.endIndex {
-                    range = NSRange(picked, in: text)
-                }
-            case .multiSelection(let set):
-                if let first = set.ranges.first, first.upperBound <= text.endIndex {
-                    range = NSRange(first, in: text)
-                }
-            @unknown default:
-                break
-            }
-        }
+        let range = selection?.range(in: text) ?? NSRange(location: whole, length: 0)
         let words = Marks.Words(text: String(localized: "mark.link.text", defaultValue: "text"), url: "https://")
         let out = Marks.apply(text, selection: range, kind: kind, words: words)
         text = out.value
