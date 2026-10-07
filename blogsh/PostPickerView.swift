@@ -136,7 +136,7 @@ struct PostCrossroadsView: View {
             .font(.ui(15))
             .lineSpacing(3)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 12)
+            .gap(12)
             // The prompt's words: "Edit what? [Enter] the text  [v] properties and
             // actions". The text is the editor's and comes with it.
             SectionLabel("Edit what?")
@@ -177,7 +177,7 @@ struct PostCrossroadsView: View {
                 }
                 .disabled(looking)
             }
-            .padding(.top, 10)
+            .gap(10)
             if let problem {
                 ProblemLine(text: problem)
             }

@@ -40,7 +40,7 @@ struct PropsView: View {
                 // Where the post is, under its title in the bar: its address, or that it has none yet.
                 PostSlug(text: props.state == .draft ? String(localized: "draft -- not on the site, preview only")
                                                     : String(props.address.trimmingPrefix("/")))
-                rows(props).padding(.top, 12)
+                rows(props).gap(12)
                 if !props.url.isEmpty, let url = URL(string: props.url) {
                     Plate {
                         Link(destination: url) {
@@ -48,7 +48,7 @@ struct PropsView: View {
                         }
                         .buttonStyle(PressStyle())
                     }
-                    .padding(.top, 10)
+                    .gap(10)
                 }
                 SectionLabel("Actions")
                 Plate {
@@ -69,7 +69,7 @@ struct PropsView: View {
                         }
                         .modifier(asked(.delete))
                     }
-                    .padding(.top, 10)
+                    .gap(10)
                 }
             }
         }

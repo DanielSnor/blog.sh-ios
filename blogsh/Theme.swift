@@ -228,6 +228,33 @@ extension Text {
     }
 }
 
+/// The distance between two parts of a screen -- a section and the one
+/// before it, a plate and its hint. It grows with the type: a gap that
+/// tells two groups apart at the usual size is lost between lines twice
+/// as tall, and a screen of large type reads as one unbroken column.
+struct Gap: ViewModifier {
+    private let points: CGFloat
+    private let edge: Edge.Set
+    @ScaledMetric private var grown: CGFloat
+
+    init(_ points: CGFloat, _ edge: Edge.Set) {
+        self.points = points
+        self.edge = edge
+        _grown = ScaledMetric(wrappedValue: points, relativeTo: .body)
+    }
+
+    func body(content: Content) -> some View {
+        // Where the app enlarges its type by its own hand, its gaps too.
+        content.padding(edge, TypeScale.ownHand ? points * TypeScale.shared.factor : grown)
+    }
+}
+
+extension View {
+    func gap(_ points: CGFloat, _ edge: Edge.Set = .top) -> some View {
+        modifier(Gap(points, edge))
+    }
+}
+
 extension EnvironmentValues {
     /// How much larger than on a phone the first screen draws itself: one,
     /// or more where it is a page of its own on a wide screen.
@@ -668,8 +695,8 @@ struct SectionLabel: View {
     var body: some View {
         text.engineLabel()
             .foregroundStyle(ground?.muted ?? Theme.muted)
-            .padding(.top, 22)
-            .padding(.bottom, 8)
+            .gap(22)
+            .gap(8, .bottom)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -686,7 +713,7 @@ struct Hint: View {
         text.font(.ui(13))
             .foregroundStyle(ground?.muted ?? Theme.muted)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.top, 8)
+            .gap(8)
     }
 }
 
@@ -699,7 +726,7 @@ struct ProblemLine: View {
             .font(.ui(14))
             .foregroundStyle(Theme.danger)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.top, 10)
+            .gap(10)
             .textSelection(.enabled)
     }
 }
@@ -1324,7 +1351,7 @@ struct DeliveryNote: View {
                 .font(.ui(13, weight: over ? .medium : .regular))
                 .foregroundStyle(over ? Theme.danger : Theme.muted)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 8)
+                .gap(8)
         }
         Hint("A picture is shrunk to \(String(Pictures.maxEdge)) px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under \(maxMb) MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about \(Int(Double(maxMb) * 0.73)) MB.")
     }

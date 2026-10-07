@@ -19,12 +19,12 @@ struct SiteView: View {
             Plate {
                 SwitchRow(label: "Build every page again", isOn: $full)
             }
-            .padding(.top, 14)
+            .gap(14)
             Hint("Usually only the pages that changed are built. With this on the whole site is built again, which takes longer.")
             Plate {
                 SwitchRow(label: "Upload the whole site unchecked", isOn: $force)
             }
-            .padding(.top, 14)
+            .gap(14)
             Hint("A deploy uploads what changed, and stops by itself when the site has suddenly lost or gained a lot: that is what a broken build looks like. Turn this on only when it stopped and the change is right (many posts deleted, a large import). The whole site is then uploaded without that check.")
             Button {
                 Task { await rebuild() }
@@ -33,7 +33,7 @@ struct SiteView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(running)
-            .padding(.top, 22)
+            .gap(22)
             if let problem {
                 ProblemLine(text: problem)
             }

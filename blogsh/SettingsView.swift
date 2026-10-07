@@ -27,7 +27,7 @@ struct SettingsView: View {
                             Spacer(minLength: 8)
                             if choice == language {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.ui(13, weight: .semibold))
                                     .foregroundStyle(.tint)
                             }
                         }
@@ -46,7 +46,7 @@ struct SettingsView: View {
             Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")
 
             BuildMark()
-                .padding(.top, 36)
+                .gap(36)
                 .padding(.bottom, 8)
         }
         .navigationTitle("Settings")
@@ -94,7 +94,7 @@ struct ColoursSection: View {
                             Spacer(minLength: 8)
                             if choice == look.wearing {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.ui(13, weight: .semibold))
                                     .foregroundStyle(.tint)
                             }
                         }
@@ -130,7 +130,7 @@ struct ColoursSection: View {
                         }
                     }
                 }
-                .padding(.top, 14)
+                .gap(14)
                 Hint(ground != nil ? "The chosen colours cannot be read here, so this part keeps to the default scheme until they can."
                            : "Tap a colour to change it. It holds on this device, for every blog.")
                 Plate {
@@ -145,7 +145,7 @@ struct ColoursSection: View {
                     }
                     .buttonStyle(PressStyle())
                 }
-                .padding(.top, 14)
+                .gap(14)
             }
         }
         // In its own colours the section brings its ground with it: the

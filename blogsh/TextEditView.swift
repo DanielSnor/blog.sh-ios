@@ -48,7 +48,7 @@ struct TextEditView: View {
                 Plate {
                     Command("Preview", symbol: "eye") { previewing = true }
                 }
-                .padding(.top, 10)
+                .gap(10)
 
                 if !entry.media.isEmpty {
                     SectionLabel("Pictures on the blog")
@@ -111,7 +111,7 @@ struct TextEditView: View {
                 }
                 .disabled(saving || importing || !entry.editable || text == entry.text
                           || Delivery.over(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb))
-                .padding(.top, 22)
+                .gap(22)
                 if let problem {
                     ProblemLine(text: problem)
                 } else if !isDraft {

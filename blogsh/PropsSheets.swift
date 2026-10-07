@@ -24,7 +24,7 @@ struct ScheduleSheet: View {
                 }
                 .padding(.vertical, -4)
             }
-            .padding(.top, 14)
+            .gap(14)
             if offered != nil {
                 Hint("The time offered is the next free publishing slot.")
             }
@@ -35,7 +35,7 @@ struct ScheduleSheet: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(busy)
-            .padding(.top, 22)
+            .gap(22)
             if let problem {
                 ProblemLine(text: problem)
             }
@@ -118,7 +118,7 @@ struct PropertiesForm: View {
                     ForEach(Self.types, id: \.self) { Text(verbatim: typeWord($0)).tag($0) }
                 }
             }
-            .padding(.top, 14)
+            .gap(14)
             Plate {
                 SwitchRow(label: "unlisted", isOn: $unlisted, property: true)
                 ChoiceRow(label: "lead image", chosen: flagWord(hero), selection: $hero) {
@@ -128,7 +128,7 @@ struct PropertiesForm: View {
                     ForEach(Self.threeStates, id: \.self) { Text(verbatim: flagWord($0)).tag($0) }
                 }
             }
-            .padding(.top, 10)
+            .gap(10)
             Hint("Properties are what the post IS, not what it says. The flags have a third state: whatever the site does.")
             Button {
                 Task { await save() }
@@ -137,7 +137,7 @@ struct PropertiesForm: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(busy || sets.isEmpty)
-            .padding(.top, 22)
+            .gap(22)
             if let problem {
                 ProblemLine(text: problem)
             }

@@ -129,7 +129,7 @@ struct BlogSettingsView: View {
                     }
                     .foregroundStyle(Theme.ink)
                 }
-                .padding(.top, 12)
+                .gap(12)
             case .failed(let reason):
                 ProblemLine(text: reason)
             }
@@ -146,7 +146,7 @@ struct BlogSettingsView: View {
                         TrustOnFirstUse.forget(host: host, port: port)
                     }
                 }
-                .padding(.top, 12)
+                .gap(12)
             }
 
             // The blog leaves the app; nothing on the server is touched.
@@ -161,7 +161,7 @@ struct BlogSettingsView: View {
                             }
                         }
                 }
-                .padding(.top, 28)
+                .gap(28)
             }
         }
         .navigationTitle("The blog's settings")

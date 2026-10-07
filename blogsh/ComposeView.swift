@@ -40,13 +40,13 @@ struct ComposeView: View {
                     .task { await TagStore.shared.loadIfNeeded() }
                 TagSuggestions(text: $tags)
             }
-            .padding(.top, 14)
+            .gap(14)
             // Said as it is typed: the marks in the sentence are examples, not marks.
             Hint(verbatim: String(localized: "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) -- the bare name, no path."))
             Plate {
                 Command("Preview", symbol: "eye") { previewing = true }
             }
-            .padding(.top, 10)
+            .gap(10)
 
             SectionLabel("Pictures and video")
             Plate {
@@ -76,7 +76,7 @@ struct ComposeView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(sending || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
-            .padding(.top, 22)
+            .gap(22)
             if let problem {
                 ProblemLine(text: problem)
             }

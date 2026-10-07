@@ -53,7 +53,7 @@ struct TranslateView: View {
                 Plate {
                     Command("Preview", symbol: "eye") { previewing = true }
                 }
-                .padding(.top, 10)
+                .gap(10)
 
                 Button {
                     Task { await save(text) }
@@ -62,7 +62,7 @@ struct TranslateView: View {
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .disabled(saving || text == entry.text)
-                .padding(.top, 22)
+                .gap(22)
                 if let problem {
                     ProblemLine(text: problem)
                 }
@@ -75,7 +75,7 @@ struct TranslateView: View {
                             }
                             .disabled(saving)
                     }
-                    .padding(.top, 14)
+                    .gap(14)
                 }
 
                 if let saved {
