@@ -244,6 +244,7 @@ final class Blogs {
     func remove(_ id: UUID) {
         guard let blog = all.first(where: { $0.id == id }) else { return }
         try? KeyStore.deleteKey(account: blog.keyAccount)
+        Engine.hangUp()
         all.removeAll { $0.id == id }
         if currentID == id { currentID = all.first?.id }
         save()

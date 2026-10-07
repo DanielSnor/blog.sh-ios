@@ -149,6 +149,12 @@ struct ContentView: View {
             guard !Task.isCancelled else { return }
             AppIcon.follow(blogs.current?.accentLight ?? "")
         }
+        // Off the screen the app is asked nothing, and the system may stop
+        // it at any moment: the connection it keeps to the server is closed
+        // now, in order, rather than left to die there unannounced.
+        .onChange(of: phase) {
+            if phase == .background { Engine.hangUp() }
+        }
         // Another blog: nothing of the last one stays on the screen, and its
         // own name and colour are there before its server answers.
         .onChange(of: blogs.currentID) {

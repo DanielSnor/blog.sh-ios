@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Citadel
 import CryptoKit
 import NIOCore
@@ -40,6 +41,9 @@ nonisolated enum EngineError: Error, LocalizedError {
 /// forced command there (scripts/remote.sh, `run`): the argv goes over as
 /// one line of JSON, the answer comes back as one object. Nothing here is
 /// a shell; the server checks every word before the engine sees it.
+///
+/// Every command is a channel of its own on one connection, which is kept
+/// between them (`Line`) rather than opened for each.
 actor Engine {
     static let shared = Engine()
 
@@ -78,10 +82,8 @@ actor Engine {
         }
     }
 
-    // Nothing here touches the actor: the client lives and dies inside one
-    // call. @concurrent, because Citadel runs its methods on the global
-    // executor and the client is not Sendable -- so it is made and used
-    // there, never handed across an isolation boundary.
+    // Nothing here touches the actor. @concurrent, because Citadel runs
+    // its methods on the global executor.
     @concurrent nonisolated func run(_ args: [String]) async throws -> Data {
         try await batch([args])[0]
     }
@@ -93,42 +95,15 @@ actor Engine {
     /// the fourth one away. A command that fails ends the batch; what was
     /// answered before it is lost with it.
     @concurrent nonisolated func batch(_ commands: [[String]]) async throws -> [Data] {
-        guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
-        let key: Curve25519.Signing.PrivateKey
-        do {
-            key = try KeyStore.privateKey(account: settings.keyAccount)
-        } catch {
-            throw EngineError.noKey
-        }
-        let client: SSHClient
-        do {
-            client = try await SSHClient.connect(
-                host: settings.host,
-                port: settings.port,
-                authenticationMethod: .ed25519(username: settings.user, privateKey: key),
-                hostKeyValidator: .custom(TrustOnFirstUse(host: settings.host, port: settings.port)),
-                reconnect: .never
-            )
-        } catch let error as EngineError {
-            throw error
-        } catch SSHClientError.allAuthenticationOptionsFailed {
-            throw EngineError.keyNotKnown
-        } catch {
-            throw EngineError.stage("connect", error)
-        }
-        // Closed on both ways out, in line rather than from a detached task:
-        // a task spawned here would carry the client across the actor's
-        // boundary, and the compiler is right to refuse that.
-        do {
+        try await Self.onTheLine { wire, wary in
             var answers: [Data] = []
             for args in commands {
-                answers.append(try await Self.exec(args, on: client))
+                // Only the first can find the connection dead without
+                // having said anything; after it, the connection has just
+                // been heard from.
+                answers.append(try await Self.exec(args, on: wire, wary: wary && answers.isEmpty, said: !answers.isEmpty))
             }
-            try? await client.close()
             return answers
-        } catch {
-            try? await client.close()
-            throw error
         }
     }
 
@@ -137,20 +112,93 @@ actor Engine {
     /// line saying `end` -- scripts/remote.sh's `deliver`. One answer per
     /// file comes back; the last is the engine's own for the markdown.
     @concurrent nonisolated func deliver(_ files: [DeliveryFile]) async throws -> [Data] {
+        try await Self.onTheLine { wire, wary in
+            try await Self.send(files, on: wire, wary: wary)
+        }
+    }
+
+    // MARK: - The connection
+
+    /// A connection, to be kept by the line: not Sendable by its own
+    /// account, and used only through its own methods, which take
+    /// themselves to its event loop.
+    final class Wired: @unchecked Sendable {
+        let client: SSHClient
+        init(_ client: SSHClient) { self.client = client }
+    }
+
+    /// Kept for five minutes after its last call: somebody reading through
+    /// the app asks the server every few seconds, and a server that counts
+    /// connections stops answering the tenth. See `Line`.
+    static let line = Line<Wired>(keep: 300,
+                                  open: { door in
+                                      let wire = Wired(try await connect(door))
+                                      log.info("connection opened")
+                                      return wire
+                                  },
+                                  close: {
+                                      try? await $0.client.close()
+                                      log.info("connection closed")
+                                  })
+
+    /// The connection's comings and goings, for whoever reads the device's log.
+    private static let log = Logger(subsystem: "app.blogsh.ios", category: "line")
+
+    /// Lets go of the kept connection: the app left the screen, or what a
+    /// connection is opened with was changed.
+    nonisolated static func hangUp() {
+        Task { await line.drop() }
+    }
+
+    /// The connection failed before the call had said anything on it, so
+    /// nothing was done on the server and the call can be made again.
+    private struct NothingSaid: Error {
+        let reason: Error
+    }
+
+    /// Runs `work` on the kept connection, opening one where none is kept.
+    /// A kept connection can be dead without anybody knowing -- the network
+    /// changed under it, a router forgot it: if it fails before the call
+    /// said anything, the call is made once more on a new one. A call that
+    /// had begun to speak is never repeated; whether a publish arrived is
+    /// not something to guess at.
+    @concurrent private static func onTheLine<T: Sendable>(_ work: @Sendable (Wired, _ wary: Bool) async throws -> T) async throws -> T {
         guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
+        let door = Door(host: settings.host, port: settings.port, user: settings.user, keyAccount: settings.keyAccount)
+        var again = true
+        while true {
+            let hold = try await line.take(door)
+            do {
+                let result = try await work(hold.wire, hold.rested)
+                await line.give(hold)
+                return result
+            } catch let nothing as NothingSaid {
+                await line.give(hold, broken: true)
+                guard again else { throw EngineError.stage("exec (0 bytes so far)", nothing.reason) }
+                again = false
+            } catch {
+                // Whatever broke, this is not a connection to hand on --
+                // except where the engine itself answered and the close
+                // after it complained, which never comes here.
+                await line.give(hold, broken: true)
+                throw error
+            }
+        }
+    }
+
+    @concurrent private static func connect(_ door: Door) async throws -> SSHClient {
         let key: Curve25519.Signing.PrivateKey
         do {
-            key = try KeyStore.privateKey(account: settings.keyAccount)
+            key = try KeyStore.privateKey(account: door.keyAccount)
         } catch {
             throw EngineError.noKey
         }
-        let client: SSHClient
         do {
-            client = try await SSHClient.connect(
-                host: settings.host,
-                port: settings.port,
-                authenticationMethod: .ed25519(username: settings.user, privateKey: key),
-                hostKeyValidator: .custom(TrustOnFirstUse(host: settings.host, port: settings.port)),
+            return try await SSHClient.connect(
+                host: door.host,
+                port: door.port,
+                authenticationMethod: .ed25519(username: door.user, privateKey: key),
+                hostKeyValidator: .custom(TrustOnFirstUse(host: door.host, port: door.port)),
                 reconnect: .never
             )
         } catch let error as EngineError {
@@ -160,21 +208,41 @@ actor Engine {
         } catch {
             throw EngineError.stage("connect", error)
         }
-        do {
-            let answers = try await Self.send(files, on: client)
-            try? await client.close()
-            return answers
-        } catch {
-            try? await client.close()
-            throw error
+    }
+
+    /// Watches a call's first step on a connection that has lain unused:
+    /// one that has not let the call in after ten seconds is closed, which
+    /// ends the wait -- and the call is made again on a new one.
+    private final class Watch: @unchecked Sendable {
+        private let lock = NSLock()
+        private var done = false
+        private var task: Task<Void, Never>?
+
+        init(_ wire: Wired, wary: Bool) {
+            guard wary else { return }
+            task = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(10))
+                guard !Task.isCancelled, let self, !self.isIn else { return }
+                try? await wire.client.close()
+            }
+        }
+
+        var isIn: Bool { lock.withLock { done } }
+
+        /// The call was let in: the connection lives.
+        func letIn() {
+            lock.withLock { done = true }
+            task?.cancel()
         }
     }
 
-    @concurrent private static func send(_ files: [DeliveryFile], on client: SSHClient) async throws -> [Data] {
+    @concurrent private static func send(_ files: [DeliveryFile], on wire: Wired, wary: Bool) async throws -> [Data] {
         var output = Data()
         var stage = "exec"
+        let watch = Watch(wire, wary: wary)
         do {
-            try await client.withExec("deliver") { inbound, outbound in
+            try await wire.client.withExec("deliver") { inbound, outbound in
+                watch.letIn()
                 stage = "write"
                 for file in files {
                     try await outbound.write(ByteBuffer(string: file.name + "\n"))
@@ -193,7 +261,9 @@ actor Engine {
                 stage = "close"
             }
         } catch {
+            watch.letIn()
             if stage == "close", !output.isEmpty { return Self.objects(in: output) }
+            if stage == "exec" { throw NothingSaid(reason: error) }
             throw EngineError.stage("\(stage) (\(output.count) bytes so far)", error)
         }
         return Self.objects(in: output)
@@ -217,13 +287,17 @@ actor Engine {
         return found
     }
 
-    @concurrent private static func exec(_ args: [String], on client: SSHClient) async throws -> Data {
+    /// `said`: an earlier command of the same batch has already run on
+    /// this connection, so a failure here is not one to start over from.
+    @concurrent private static func exec(_ args: [String], on wire: Wired, wary: Bool, said: Bool) async throws -> Data {
         var request = try JSONSerialization.data(withJSONObject: ["args": args])
         request.append(0x0a)
         var answer = Data()
         var stage = "exec"
+        let watch = Watch(wire, wary: wary)
         do {
-            try await client.withExec("run") { inbound, outbound in
+            try await wire.client.withExec("run") { inbound, outbound in
+                watch.letIn()
                 stage = "write"
                 try await outbound.write(ByteBuffer(bytes: request))
                 stage = "read"
@@ -235,8 +309,10 @@ actor Engine {
                 stage = "close"
             }
         } catch {
+            watch.letIn()
             // The answer may be whole even when the close after it complains.
             if stage == "close", !answer.isEmpty { return answer }
+            if stage == "exec", !said { throw NothingSaid(reason: error) }
             throw EngineError.stage("\(stage) (\(answer.count) bytes so far)", error)
         }
         return answer

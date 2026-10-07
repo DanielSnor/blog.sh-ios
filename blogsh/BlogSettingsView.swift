@@ -144,6 +144,8 @@ struct BlogSettingsView: View {
                     }
                     Command("Forget the server's key", symbol: "xmark.circle", danger: true) {
                         TrustOnFirstUse.forget(host: host, port: port)
+                        // The kept connection was opened to the key just forgotten.
+                        Engine.hangUp()
                     }
                 }
                 .gap(12)
@@ -192,6 +194,7 @@ struct BlogSettingsView: View {
         do {
             guard let account = blogs.current?.keyAccount else { return }
             try KeyStore.makeKey(account: account)
+            Engine.hangUp()
             publicKey = try KeyStore.publicKeyLine(account: account)
             probe = .idle
         } catch {
