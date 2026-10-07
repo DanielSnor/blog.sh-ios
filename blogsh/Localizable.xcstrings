@@ -306,6 +306,22 @@
         }
       }
     },
+    "Accent": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvýraznění"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hervorhebung"
+          }
+        }
+      }
+    },
     "Actions": {
       "localizations": {
         "cs": {
@@ -434,6 +450,22 @@
         }
       }
     },
+    "As the blog has them": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podle blogu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie im Blog"
+          }
+        }
+      }
+    },
     "As the system has it": {
       "localizations": {
         "cs": {
@@ -462,6 +494,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zurück zum Beitrag"
+          }
+        }
+      }
+    },
+    "Background": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podklad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund"
           }
         }
       }
@@ -802,6 +850,22 @@
         }
       }
     },
+    "Dark": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tmavý"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkel"
+          }
+        }
+      }
+    },
     "Delete": {
       "localizations": {
         "cs": {
@@ -862,6 +926,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wird gelöscht…"
+          }
+        }
+      }
+    },
+    "Dividers": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předěly"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trennlinien"
           }
         }
       }
@@ -1266,6 +1346,22 @@
         }
       }
     },
+    "Light": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Světlý"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hell"
+          }
+        }
+      }
+    },
     "Link": {
       "localizations": {
         "cs": {
@@ -1390,6 +1486,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verschoben"
+          }
+        }
+      }
+    },
+    "Muted text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlumený text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gedämpfter Text"
           }
         }
       }
@@ -2834,6 +2946,22 @@
         }
       }
     },
+    "Start again from the blog's colours": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Začít znovu od barev blogu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wieder mit den Farben des Blogs beginnen"
+          }
+        }
+      }
+    },
     "Strikethrough": {
       "localizations": {
         "cs": {
@@ -2914,6 +3042,22 @@
         }
       }
     },
+    "Tap a colour to change it. It holds on this device, for every blog.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ťuknutím na políčko barvu změníš. Platí na tomto zařízení a pro všechny blogy."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe auf ein Feld, um die Farbe zu ändern. Gilt auf diesem Gerät, für jeden Blog."
+          }
+        }
+      }
+    },
     "Test the connection": {
       "localizations": {
         "cs": {
@@ -2926,6 +3070,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verbindung testen"
+          }
+        }
+      }
+    },
+    "Text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
           }
         }
       }
@@ -2978,18 +3138,18 @@
         }
       }
     },
-    "The app wears the colours of the blog that is open. With this on it keeps to its own, the same for every blog.": {
+    "The app wears the colours of the blog that is open, its default ones, or the ones chosen here.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appka nosí barvy blogu, který je právě otevřený. Se zapnutou volbou drží svoje vlastní, stejné pro každý blog."
+            "value": "Appka nosí barvy otevřeného blogu, své výchozí, nebo ty, které si tu zvolíš."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die App trägt die Farben des Blogs, das gerade geöffnet ist. Ist das eingeschaltet, bleibt sie bei ihren eigenen, für jedes Blog denselben."
+            "value": "Die App trägt die Farben des geöffneten Blogs, ihre Standardfarben oder die hier gewählten."
           }
         }
       }
@@ -3022,6 +3182,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Einstellungen des Blogs"
+          }
+        }
+      }
+    },
+    "The chosen colours cannot be read here, so this part keeps to the default scheme until they can.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvolené barvy se tu nedají číst, proto tenhle oddíl zůstává ve výchozím schématu, dokud to nepůjde."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gewählten Farben sind hier nicht lesbar, deshalb bleibt dieser Abschnitt im Standardschema, bis sie es sind."
+          }
+        }
+      }
+    },
+    "The default scheme": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí schéma"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardschema"
           }
         }
       }
@@ -3810,22 +4002,6 @@
         }
       }
     },
-    "Use the default colour scheme": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Používat výchozí barevné schéma"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardfarbschema verwenden"
-          }
-        }
-      }
-    },
     "Used in the text": {
       "localizations": {
         "cs": {
@@ -3918,6 +4094,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mit einem eingerichteten Netzwerk wird auch angekündigt — und eine Ankündigung lässt sich nicht zurücknehmen."
+          }
+        }
+      }
+    },
+    "Your own": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastní"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene"
           }
         }
       }

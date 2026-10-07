@@ -10,41 +10,22 @@ import CoreText
 /// count, a date, a key).
 nonisolated enum Theme {
     /// The ground everything sits on.
-    @MainActor static var paper: Color {
-        let worn = Look.shared.worn
-        return dynamic(light: worn.light.bg, dark: worn.dark.bg)
-    }
+    @MainActor static var paper: Color { colour(\.bg) }
     /// What is written on it.
-    @MainActor static var ink: Color {
-        let worn = Look.shared.worn
-        return dynamic(light: worn.light.text, dark: worn.dark.text)
-    }
+    @MainActor static var ink: Color { colour(\.text) }
     /// What is written beside it: tags, dates, hints.
-    @MainActor static var muted: Color {
-        let worn = Look.shared.worn
-        return dynamic(light: worn.light.metaText, dark: worn.dark.metaText)
-    }
+    @MainActor static var muted: Color { colour(\.metaText) }
     /// A hairline: the edge of a card, the rule between two rows.
-    @MainActor static var line: Color {
-        let worn = Look.shared.worn
-        return dynamic(light: worn.light.border, dark: worn.dark.border)
-    }
+    @MainActor static var line: Color { colour(\.border) }
     /// The inside of a card, barely off the ground.
-    @MainActor static var card: Color {
-        let worn = Look.shared.worn
-        return dynamic(light: worn.light.text, dark: worn.dark.text, lightAlpha: 0.03, darkAlpha: 0.05)
-    }
+    @MainActor static var card: Color { colour(\.text, lightAlpha: 0.03, darkAlpha: 0.05) }
     /// Text on a pill filled with ink: the ground's own colour.
-    @MainActor static var onInk: Color {
-        let worn = Look.shared.worn
-        return dynamic(light: worn.light.bg, dark: worn.dark.bg)
-    }
+    @MainActor static var onInk: Color { colour(\.bg) }
+    /// The one accent: every control of the app, its links, its counts.
+    @MainActor static var accent: Color { colour(\.accent) }
     /// What cannot be taken back: a delete, a refusal. The one colour
     /// beside the accent, and never a fill.
     static let danger = dynamic(light: 0xA81800, dark: 0xFF7A5C)
-    /// The accent before a blog has said its own, and the app's own when
-    /// it keeps to its own colours.
-    static let accent = dynamic(light: Tones.ownAccent.light, dark: Tones.ownAccent.dark)
 
     /// The engine's voice and the names of screens are set in lower case
     /// -- except in German, which reads its nouns by their capitals: there
@@ -53,6 +34,15 @@ nonisolated enum Theme {
 
     static let corner: CGFloat = 14
     static let gutter: CGFloat = 20
+
+    /// One of the worn colours, by day and by night.
+    @MainActor private static func colour(_ part: KeyPath<Shades, UInt32>, lightAlpha: CGFloat = 1, darkAlpha: CGFloat = 1) -> Color {
+        colour(part, of: Look.shared.worn, lightAlpha: lightAlpha, darkAlpha: darkAlpha)
+    }
+
+    fileprivate static func colour(_ part: KeyPath<Shades, UInt32>, of colours: Colours, lightAlpha: CGFloat = 1, darkAlpha: CGFloat = 1) -> Color {
+        dynamic(light: colours.light[keyPath: part], dark: colours.dark[keyPath: part], lightAlpha: lightAlpha, darkAlpha: darkAlpha)
+    }
 
     private static func dynamic(light: UInt32, dark: UInt32, lightAlpha: CGFloat = 1, darkAlpha: CGFloat = 1) -> Color {
         Color(uiColor: UIColor { traits in
@@ -66,28 +56,70 @@ nonisolated enum Theme {
     }
 }
 
-/// Whose colours the app wears: the open blog's -- its ground, its ink,
-/// its rules, as its pages have them -- or its own, when the blog has
-/// said none or when it is asked to keep to its own. The last is for eyes
-/// that a blog's palette does not serve: the app's own are always the
-/// same, whatever a blog chose.
+/// The colours of a part of a screen that does not wear the worn ones:
+/// the place the colours are chosen in keeps to the app's own once the
+/// chosen ones cannot be read, so there is always a way back. Handed down
+/// to the few pieces such a part is built of; everything else asks the
+/// theme.
+nonisolated struct Ground: Sendable {
+    let paper: Color
+    let ink: Color
+    let muted: Color
+    let line: Color
+    let card: Color
+    let accent: Color
+
+    /// The app's own, whatever is worn.
+    static let plain = Ground(paper: Theme.colour(\.bg, of: .own),
+                              ink: Theme.colour(\.text, of: .own),
+                              muted: Theme.colour(\.metaText, of: .own),
+                              line: Theme.colour(\.border, of: .own),
+                              card: Theme.colour(\.text, of: .own, lightAlpha: 0.03, darkAlpha: 0.05),
+                              accent: Theme.colour(\.accent, of: .own))
+}
+
+extension EnvironmentValues {
+    /// Nil wherever the worn colours are the ones to draw in.
+    @Entry var ground: Ground? = nil
+}
+
+/// Whose colours the app wears, and the ones chosen here: the open
+/// blog's -- its ground, its ink, its rules, its accent, as its pages have
+/// them -- the app's own, or the ones somebody chose on this device,
+/// colour by colour. The device's, not a blog's: eyes do not change with
+/// the blog.
 @Observable final class Look {
     static let shared = Look()
-    static let key = "ownColours"
 
-    /// Keep to the app's own colours, the accent included.
-    var own: Bool {
-        didSet { UserDefaults.standard.set(own, forKey: Self.key) }
+    var wearing: Colouring {
+        didSet { UserDefaults.standard.set(wearing.rawValue, forKey: Colouring.key) }
+    }
+    /// The ones chosen here; nil until somebody chose.
+    var chosen: Colours? {
+        didSet { UserDefaults.standard.set(chosen?.kept, forKey: Colours.key) }
     }
 
     private init() {
-        own = UserDefaults.standard.bool(forKey: Self.key)
+        let defaults = UserDefaults.standard
+        wearing = Colouring(kept: defaults.string(forKey: Colouring.key), switchedToOwn: defaults.bool(forKey: Colouring.switchKey))
+        chosen = Colours(kept: defaults.data(forKey: Colours.key))
+    }
+
+    /// What the open blog said of itself.
+    var blog: Colours {
+        let blog = Blogs.shared.current
+        return Colours.said(light: blog?.tonesLight, dark: blog?.tonesDark,
+                            accentLight: blog?.accentLight ?? "", accentDark: blog?.accentDark ?? "")
     }
 
     /// The two schemes everything is drawn in now.
-    var worn: (light: Tones.Scheme, dark: Tones.Scheme) {
-        let blog = Blogs.shared.current
-        return Tones.worn(own: own, light: blog?.tonesLight, dark: blog?.tonesDark)
+    var worn: Colours { Colours.worn(wearing, chosen: chosen, blog: blog) }
+
+    /// Wears the chosen ones -- which, the first time, are the ones worn
+    /// until then, so that choosing starts from a screen that reads.
+    func wearChosen() {
+        if chosen == nil { chosen = worn }
+        wearing = .chosen
     }
 }
 
@@ -608,13 +640,14 @@ struct PostSlug: View {
 /// What the rows under it are, in the engine's voice.
 struct SectionLabel: View {
     let text: Text
+    @Environment(\.ground) private var ground
 
     init(_ key: LocalizedStringKey) { text = Text(key) }
     init(verbatim: String) { text = Text(verbatim: verbatim) }
 
     var body: some View {
         text.engineLabel()
-            .foregroundStyle(Theme.muted)
+            .foregroundStyle(ground?.muted ?? Theme.muted)
             .padding(.top, 22)
             .padding(.bottom, 8)
             .accessibilityAddTraits(.isHeader)
@@ -624,13 +657,14 @@ struct SectionLabel: View {
 /// A word of explanation under a plate.
 struct Hint: View {
     let text: Text
+    @Environment(\.ground) private var ground
 
     init(_ key: LocalizedStringKey) { text = Text(key) }
     init(verbatim: String) { text = Text(verbatim: verbatim) }
 
     var body: some View {
         text.font(.ui(13))
-            .foregroundStyle(Theme.muted)
+            .foregroundStyle(ground?.muted ?? Theme.muted)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 8)
     }
@@ -655,14 +689,16 @@ struct ProblemLine: View {
 /// place and leaves no rule behind.
 struct Plate<Content: View>: View {
     @ViewBuilder var content: Content
+    @Environment(\.ground) private var ground
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+        let line = ground?.line ?? Theme.line
         VStack(alignment: .leading, spacing: 0) {
             Group(subviews: content) { rows in
                 ForEach(rows) { row in
                     if row.id != rows.first?.id {
-                        Rectangle().fill(Theme.line).frame(height: 1)
+                        Rectangle().fill(line).frame(height: 1)
                     }
                     row.padding(.horizontal, 13)
                         .padding(.vertical, 12)
@@ -670,8 +706,8 @@ struct Plate<Content: View>: View {
                 }
             }
         }
-        .background(shape.fill(Theme.card))
-        .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+        .background(shape.fill(ground?.card ?? Theme.card))
+        .overlay(shape.strokeBorder(line, lineWidth: 1))
         .clipShape(shape)
     }
 }

@@ -74,7 +74,6 @@ struct ContentView: View {
     // are kept from its last answer, so the app opens as that blog before
     // the server has said anything.
     private var blogs = Blogs.shared
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.scenePhase) private var phase
 
@@ -134,11 +133,10 @@ struct ContentView: View {
             NavigationStack { BlogsView() }
         }
         .task { await load() }
-        // The blog's own accent, as /write/ wears it: every control of the
-        // app, the sheets included. Until a blog has said its own, the
-        // look's.
-        .tint(Look.shared.own ? Theme.accent
-              : Color(hex: (colorScheme == .dark ? blogs.current?.accentDark : blogs.current?.accentLight) ?? "") ?? Theme.accent)
+        // The accent that is worn -- the blog's own, as /write/ wears it,
+        // until something else is chosen: every control of the app, the
+        // sheets included.
+        .tint(Theme.accent)
         // The icon on the home screen wears the accent of the blog the app
         // was last opened with: it is set when the app comes to the front,
         // never while one is switching blogs inside it -- the system says
@@ -723,20 +721,4 @@ struct Tile: View {
 
 #Preview {
     ContentView()
-}
-
-extension Color {
-    /// `#rrggbb` or `#rgb`, the way a palette writes a colour; anything
-    /// else -- rgb(), a name, nothing -- is nil.
-    init?(hex: String) {
-        var digits = hex.trimmingCharacters(in: .whitespaces)
-        guard digits.hasPrefix("#") else { return nil }
-        digits.removeFirst()
-        if digits.count == 3 { digits = digits.map { "\($0)\($0)" }.joined() }
-        guard digits.count == 6, let value = UInt32(digits, radix: 16) else { return nil }
-        self.init(.sRGB,
-                  red: Double((value >> 16) & 0xff) / 255,
-                  green: Double((value >> 8) & 0xff) / 255,
-                  blue: Double(value & 0xff) / 255)
-    }
 }
