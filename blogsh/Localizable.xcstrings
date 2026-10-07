@@ -7,7 +7,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ (podle obsahu)"
+            "value": "%@ (odvozeno z obsahu)"
           }
         },
         "de": {
@@ -135,7 +135,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "(jak to má web)"
+            "value": "(jak má web)"
           }
         },
         "de": {
@@ -503,7 +503,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zrušit plán a posunout zbytek (%lld) o slot dřív"
+            "value": "Zrušit plán a posunout zbytek (%lld) o slot dopředu"
           }
         },
         "de": {
@@ -871,7 +871,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Odebrat %@? Přestane přesměrovávat."
+            "value": "Odebrat %@? Ten odkaz tím přestane fungovat natrvalo."
           }
         },
         "de": {
@@ -1559,7 +1559,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jednu fotku nešlo přečíst."
+            "value": "Jeden obrázek se nepodařilo přečíst."
           }
         },
         "de": {
@@ -1719,7 +1719,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fotky na blogu"
+            "value": "Obrázky na blogu"
           }
         },
         "de": {
@@ -1735,7 +1735,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fotky, které text už nejmenuje, se z blogu smažou: %@. Přesto uložit?"
+            "value": "Obrázky, které text už nejmenuje, se z blogu smažou: %@. Přesto uložit?"
           }
         },
         "de": {
@@ -1927,7 +1927,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publikovat hned a posunout zbytek (%lld) o slot dřív"
+            "value": "Publikovat hned a posunout zbytek (%lld) o slot dopředu"
           }
         },
         "de": {
@@ -2551,7 +2551,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Poslat na blog jako koncept"
+            "value": "Odeslat na blog jako koncept"
           }
         },
         "de": {
@@ -2903,7 +2903,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hlavička a text, jak je otevírá editor. Fotka je pojmenovaná svým souborem."
+            "value": "Hlavička a text, jak je otevírá editor. Obrázek je pojmenovaný svým souborem."
           }
         },
         "de": {
@@ -3527,7 +3527,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nahoru — o slot dřív"
+            "value": "Nahoru — o slot dříve"
           }
         },
         "de": {
@@ -4391,7 +4391,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "nejmenována — při uložení se smaže"
+            "value": "nejmenován — při uložení se smaže"
           }
         },
         "de": {
