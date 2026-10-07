@@ -69,6 +69,63 @@ import Testing
         Shot(name: name, data: Data(count: bytes), width: 10, height: 10, alt: alt, kind: kind)
     }
 
+    // MARK: a description, on its card and in the text
+
+    /// Typed on a card after the picture went into the text: the mark
+    /// there takes it, letter by letter.
+    @Test func aDescriptionTypedOnACardGoesIntoItsMark() {
+        var text = "Before.\n\n![](cat.jpg)\n\nAfter."
+        text = Kept.retitled(text, name: "cat.jpg", before: "", after: "a")
+        text = Kept.retitled(text, name: "cat.jpg", before: "a", after: "a cat")
+        #expect(text == "Before.\n\n![a cat](cat.jpg)\n\nAfter.")
+    }
+
+    /// The report this is pinned for: a description typed straight into
+    /// the text, the card left empty. The card never said it, so the card
+    /// has nothing to overwrite it with -- not when it is still empty, not
+    /// when something is typed on it later.
+    @Test func aDescriptionTypedIntoTheTextIsNotTheCardsToOverwrite() {
+        let text = "![a cat on a wall](cat.jpg)\n\n!![the clip](clip.mp4)\n"
+        let cards = [shot("cat.jpg"), shot("clip.mp4", kind: .video)]
+        #expect(Kept.retitled(text, shots: cards, before: ["", ""]) == text)
+        #expect(Kept.retitled(text, name: "cat.jpg", before: "", after: "x") == text)
+        #expect(Kept.retitled(text, name: "clip.mp4", before: "", after: "x") == text)
+    }
+
+    @Test func aVideosTwoMarksFollowItsCardTheSameWay() {
+        let text = Kept.retitled("!![](clip.mp4)\n", name: "clip.mp4", before: "", after: "a clip")
+        #expect(text == "!![a clip](clip.mp4)\n")
+    }
+
+    @Test func everyMarkOfTheShotThatStillSaysTheSameFollows() {
+        let text = Kept.retitled("![a](cat.jpg)\n\n![a](cat.jpg)\n\n![mine](cat.jpg)\n", name: "cat.jpg", before: "a", after: "b")
+        #expect(text == "![b](cat.jpg)\n\n![b](cat.jpg)\n\n![mine](cat.jpg)\n")
+    }
+
+    @Test func onlyTheCardsThatChangedTouchTheText() {
+        var cards = [shot("one.jpg", alt: "first"), shot("two.jpg", alt: "second")]
+        let text = "![first](one.jpg)\n\n![second](two.jpg)\n"
+        cards[1].alt = "the second"
+        #expect(Kept.retitled(text, shots: cards, before: ["first", "second"]) == "![first](one.jpg)\n\n![the second](two.jpg)\n")
+        // A shot added or taken away between the two: nothing to compare.
+        #expect(Kept.retitled(text, shots: cards, before: ["first"]) == text)
+    }
+
+    /// A line break inside a mark is a picture the engine refuses.
+    @Test func aDescriptionIsOneLineWhateverItsFieldHeld() {
+        #expect(Kept.oneLine("  a cat\non  a\twall \n") == "a cat on a wall")
+        #expect(shot("cat.jpg", alt: "a cat\non a wall").mark == "![a cat on a wall](cat.jpg)")
+        #expect(Kept.retitled("![](cat.jpg)", name: "cat.jpg", before: "", after: "a cat\non a wall") == "![a cat on a wall](cat.jpg)")
+    }
+
+    @Test func whatTheTextSaysOfAPictureIsRead() {
+        let text = "![a cat on a wall](cat.jpg)\n\n!![the clip](clip.mp4)\n\n![](bare.jpg)\n"
+        #expect(Kept.said(of: "cat.jpg", in: text) == "a cat on a wall")
+        #expect(Kept.said(of: "clip.mp4", in: text) == "the clip")
+        #expect(Kept.said(of: "bare.jpg", in: text) == nil)
+        #expect(Kept.said(of: "absent.jpg", in: text) == nil)
+    }
+
     @Test func aPictureIsOneMarkAVideoTwo() {
         #expect(shot("cat.jpg", alt: " a cat ").mark == "![a cat](cat.jpg)")
         #expect(shot("clip.mp4", alt: "", kind: .video).mark == "!![](clip.mp4)")

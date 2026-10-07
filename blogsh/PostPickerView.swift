@@ -83,7 +83,8 @@ struct PostPickerView: View {
 /// properties. The text is the editor's, and comes with it; the
 /// properties are here.
 struct PostCrossroadsView: View {
-    let post: PostRow
+    /// The row the screen was opened from: what the list knew then.
+    let opened: PostRow
     var languages: [String] = []
     /// Said to the list the post was picked from, when the post is deleted.
     var gone: (() -> Void)?
@@ -99,6 +100,18 @@ struct PostCrossroadsView: View {
     /// post that is not there, and leaves once it is in front again -- a
     /// screen under another cannot be left.
     @State private var deleted = false
+    /// What the post is now, asked again every time the screen is come
+    /// to: its title may have been rewritten in the editor and its slug in
+    /// the properties, and the row this was opened from knows neither.
+    @State private var now: PostRow?
+
+    init(post: PostRow, languages: [String] = [], gone: (() -> Void)? = nil) {
+        opened = post
+        self.languages = languages
+        self.gone = gone
+    }
+
+    private var post: PostRow { now ?? opened }
 
     var body: some View {
         PaperScreen {
@@ -141,7 +154,9 @@ struct PostCrossroadsView: View {
             SectionLabel("Edit what?")
             Plate {
                 NavigationLink {
-                    TextEditView(slug: post.slug, loaded: entry)
+                    // The text read for the lede is handed on only while it is
+                    // this post's under this name: after a rename it is not.
+                    TextEditView(slug: post.slug, loaded: entry?.slug == post.slug ? entry : nil)
                 } label: {
                     CommandRow("the text", symbol: "text.alignleft", leads: true)
                 }
@@ -158,7 +173,7 @@ struct PostCrossroadsView: View {
                 NavigationLink {
                     // A post deleted from its properties takes this screen with
                     // it, and the list reads itself again.
-                    PropsView(slug: post.slug, gone: { deleted = true })
+                    PropsView(slug: post.slug, gone: { deleted = true }, renamed: { now = PostRow($0) })
                 } label: {
                     CommandRow("properties and actions", symbol: "slider.horizontal.3", leads: true)
                 }
@@ -186,9 +201,10 @@ struct PostCrossroadsView: View {
         .task { await read() }
     }
 
-    /// `edit <slug> --json`: the text handed out, nothing written. A
-    /// failure costs the lede and nothing else -- the keys below ask for
-    /// themselves.
+    /// `edit <slug> --json` and `props <slug> --json`, in one go: the text
+    /// handed out and what the post is now, nothing written. A failure
+    /// costs the lede and leaves the row as the list had it -- the keys
+    /// below ask for themselves.
     private func read() async {
         if deleted {
             // Back in front, on the way out: after the screen above has gone.
@@ -199,9 +215,13 @@ struct PostCrossroadsView: View {
         }
         reading = true
         defer { reading = false }
-        if let answer: EditAnswer = try? await Engine.shared.call(["edit", post.slug]) {
-            entry = answer.post
-        }
+        let slug = post.slug
+        guard let answers = try? await Engine.shared.answers(to: [["edit", slug], ["props", slug]]),
+              answers.count == 2 else { return }
+        // Asked of one name, answered after the post took another: not this one's to keep.
+        guard slug == post.slug else { return }
+        if let answer: EditAnswer = try? Engine.decode(answers[0]) { entry = answer.post }
+        if let props: PropsAnswer = try? Engine.decode(answers[1]), props.ok { now = PostRow(props) }
     }
 
     /// The address is the engine's to say: a post can carry one of its own.

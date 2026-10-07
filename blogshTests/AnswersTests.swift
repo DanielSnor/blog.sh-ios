@@ -62,6 +62,26 @@ import Testing
         #expect(answer.site.accent?.light == "#1da1f2")
     }
 
+    /// A post renamed in its properties, as the engine answers the rename:
+    /// the screen it was opened from takes its new name from this, and
+    /// asks for the text and the properties under it.
+    @Test func aPostsRowIsReadFromItsProperties() throws {
+        let props: PropsAnswer = try Engine.decode(Fixture.data("props-renamed"))
+        let row = PostRow(props)
+        #expect(row.slug == "novy-nazev")
+        #expect(row.year == "2026")
+        #expect(row.id == "2026/novy-nazev")
+        #expect(row.title == "K přejmenování")
+        #expect(row.state == .published)
+        #expect(row.scheduled == false)
+        #expect(row.date == "2026-05-01T10:00:00+02:00")
+        #expect(row.day != nil)
+        #expect(row.type == "text")
+        #expect(row.tags == [])
+        #expect(row.pinned == false)
+        #expect(row.match == nil)
+    }
+
     /// `stats --json` has no `ok` of its own and far more than the first
     /// screen says; what it says is read, the rest let be.
     @Test func theArchiveCountedIsRead() throws {

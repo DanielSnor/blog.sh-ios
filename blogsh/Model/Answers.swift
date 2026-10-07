@@ -125,6 +125,17 @@ nonisolated struct ListAnswer: Decodable, Sendable {
 }
 
 /// `props <slug> --json`.
+extension PostRow {
+    /// The row a post has in a list, from what its properties say now: a
+    /// screen opened from a row keeps up with the post through this, when
+    /// its title or its slug has changed since the list was read.
+    init(_ props: PropsAnswer) {
+        self.init(slug: props.slug, year: props.year, date: props.date,
+                  title: props.title.isEmpty ? nil : props.title, type: props.type, tags: props.tags,
+                  state: props.state, scheduled: props.scheduled, series: props.series, pinned: props.pinned)
+    }
+}
+
 nonisolated struct PropsAnswer: Decodable, Sendable {
     let ok: Bool
     let slug: String

@@ -74,7 +74,7 @@ struct TextEditView: View {
                 SectionLabel("Pictures and video")
                 Plate {
                     ForEach($shots) { $shot in
-                        ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
+                        ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))"), said: Kept.said(of: shot.name, in: self.text)) {
                             insert(shot)
                         } remove: {
                             shots.removeAll { $0.id == shot.id }
@@ -136,11 +136,15 @@ struct TextEditView: View {
         .overlay { if entry == nil && problem == nil { ProgressView() } }
         .navigationTitle(entry?.title ?? slug)
         .task { await load() }
+        // A description typed on a card goes into the mark the text has for it.
+        .onChange(of: shots.map(\.alt)) { before, _ in
+            text = Kept.retitled(text, shots: shots, before: before)
+        }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
         .sheet(isPresented: $previewing) {
             // The post's own media from beside its page on the blog; what
             // was picked here from the device.
-            let parts = Preview.parts(of: described(text))
+            let parts = Preview.parts(of: text)
             let own = Preview.shown(media: entry?.media ?? [], beside: entry?.preview ?? "/")
             PreviewSheet(title: parts.title, markdown: parts.body,
                          shown: own.merging(Preview.shown(for: shots)) { _, new in new })
@@ -204,20 +208,12 @@ struct TextEditView: View {
         text = kept + "\n\n" + shot.mark + "\n"
     }
 
-    /// The text with every new shot's mark carrying its description as it stands now.
-    private func described(_ text: String) -> String {
-        var marked = text
-        for shot in shots {
-            marked = marked.replacingOccurrences(of: shot.markPattern,
-                                                 with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
-        }
-        return marked
-    }
-
     /// The header gets the two lines of the delivery: which post, which version.
     private func fileText() -> String {
         guard let entry else { return text }
-        let marked = described(text)
+        // The text is what goes: a description typed on a card is in it
+        // already, one typed into the text itself was never the card's.
+        let marked = text
         let lines = "edits: \(entry.slug)\nbase: \(entry.base)\n"
         if marked.hasPrefix("---\n") {
             return "---\n" + lines + marked.dropFirst(4)

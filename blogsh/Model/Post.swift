@@ -26,7 +26,7 @@ nonisolated struct Shot: Identifiable, Sendable {
 
     /// The shot as a line of markdown, a paragraph of its own. One mark or
     /// two: a picture is ![…](name), a video !![…](name).
-    var mark: String { (kind == .video ? "!!" : "!") + "[\(alt.trimmingCharacters(in: .whitespacesAndNewlines))](\(name))" }
+    var mark: String { (kind == .video ? "!!" : "!") + "[\(Kept.oneLine(alt))](\(name))" }
 
     /// The shot's mark wherever the text has it, whatever it says there.
     var markPattern: String { #"!{1,2}\[[^\]]*\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"# }
@@ -151,6 +151,47 @@ nonisolated enum Kept {
     }
 
     static func named(_ name: String, in text: String) -> Bool { text.contains("(\(name))") }
+
+    /// A description is one line in the markdown, whatever its field held:
+    /// a line break inside ![…](name) is a picture the engine refuses, with
+    /// a reason that names the wrong thing.
+    static func oneLine(_ words: String) -> String {
+        words.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    }
+
+    /// A description changed on its card follows the mark the text already
+    /// has -- where that mark still says what the card said before. Anything
+    /// else there is the author's own wording, typed into the text, and is
+    /// not the card's to overwrite: the rule of /write/. (A video's two
+    /// marks end in the same one, so the one rule serves both.)
+    static func retitled(_ text: String, name: String, before: String, after: String) -> String {
+        let was = "![\(oneLine(before))](\(name))"
+        guard text.contains(was) else { return text }
+        return text.replacingOccurrences(of: was, with: "![\(oneLine(after))](\(name))")
+    }
+
+    /// The same for every card at once: the shots as they are now, their
+    /// descriptions as they were. With a shot added or taken away between
+    /// the two there is nothing to compare, and the text is let be.
+    static func retitled(_ text: String, shots: [Shot], before: [String]) -> String {
+        guard shots.count == before.count else { return text }
+        var text = text
+        for (shot, was) in zip(shots, before) where shot.alt != was {
+            text = retitled(text, name: shot.name, before: was, after: shot.alt)
+        }
+        return text
+    }
+
+    /// What the text itself says of a picture, where it says anything: a
+    /// description typed into the mark and not onto the card.
+    static func said(of name: String, in text: String) -> String? {
+        let pattern = #"!\[([^\]]*)\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"#
+        guard let expression = try? NSRegularExpression(pattern: pattern),
+              let match = expression.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text) else { return nil }
+        let words = oneLine(String(text[range]))
+        return words.isEmpty ? nil : words
+    }
 
     /// What travels with the text: the shots it names. One picked and
     /// never put into the text would arrive, stand in no post and lie in

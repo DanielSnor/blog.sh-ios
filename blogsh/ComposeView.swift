@@ -48,7 +48,7 @@ struct ComposeView: View {
             SectionLabel("Pictures and video")
             Plate {
                 ForEach($shots) { $shot in
-                    ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
+                    ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))"), said: Kept.said(of: shot.name, in: self.text)) {
                         insert(shot)
                     } remove: {
                         remove(shot)
@@ -97,11 +97,15 @@ struct ComposeView: View {
             }
         }
         .navigationTitle("New post")
+        // A description typed on a card goes into the mark the text has for it.
+        .onChange(of: shots.map(\.alt)) { before, _ in
+            text = Kept.retitled(text, shots: shots, before: before)
+        }
         .onChange(of: picked) { _, items in
             Task { await load(items) }
         }
         .sheet(isPresented: $previewing) {
-            PreviewSheet(title: title, markdown: described(text), shown: Preview.shown(for: shots))
+            PreviewSheet(title: title, markdown: text, shown: Preview.shown(for: shots))
         }
         .fullScreenCover(item: $looking) { one in
             ShotsViewer(shots: $shots, current: one.id)
@@ -141,25 +145,15 @@ struct ComposeView: View {
     /// The shots the text names: only those go.
     private var sent: [Shot] { Kept.sent(shots, text: text) }
 
-    /// The text with every shot's mark carrying its description as it
-    /// stands now: what will be sent, and what the preview shows.
-    private func described(_ text: String) -> String {
-        var marked = text
-        for shot in shots {
-            marked = marked.replacingOccurrences(of: shot.markPattern,
-                                                 with: NSRegularExpression.escapedTemplate(for: shot.mark), options: .regularExpression)
-        }
-        return marked
-    }
-
     // MARK: - Sending
 
     private func send() async {
         sending = true
         defer { sending = false }
         problem = nil
-        // The descriptions follow the marks already in the text.
-        let markdown = Markdown.file(title: title, tags: tags, body: described(text))
+        // The text is what goes: a description typed on a card is in it
+        // already, one typed into the text itself was never the card's.
+        let markdown = Markdown.file(title: title, tags: tags, body: text)
         var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
@@ -190,6 +184,8 @@ struct Looked: Identifiable {
 struct ShotCard: View {
     @Binding var shot: Shot
     let inText: Bool
+    /// What the text itself says of this shot, when the card says nothing.
+    var said: String?
     let insert: () -> Void
     let remove: () -> Void
     /// The shot large, with its description under it.
@@ -242,7 +238,10 @@ struct ShotCard: View {
                     Spacer(minLength: 4)
                     Text(verbatim: Delivery.size(shot.data.count)).font(.mono(11, bold: false)).foregroundStyle(Theme.muted)
                 }
-                TextField("", text: $shot.alt, prompt: Text("No description yet").foregroundStyle(Theme.muted))
+                // An empty card whose picture the text already describes says
+                // so, in the text's own words: it is described, only not here.
+                TextField("", text: $shot.alt,
+                          prompt: (said.map { Text(verbatim: $0) } ?? Text("No description yet")).foregroundStyle(Theme.muted))
                     .font(.ui(15))
                     .foregroundStyle(Theme.ink)
                 HStack {

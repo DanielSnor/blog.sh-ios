@@ -10,6 +10,9 @@ struct PropsView: View {
     /// Said to the screen this one was opened from, once the post is
     /// deleted: that screen is about the same post, and leaves with it.
     var gone: (() -> Void)?
+    /// Told what the post is now, when it was renamed here: the screen
+    /// under this one was opened with the name it had before.
+    var renamed: ((PropsAnswer) -> Void)?
     @Environment(\.dismiss) private var dismiss
     @State private var props: PropsAnswer?
     @State private var problem: String?
@@ -319,6 +322,7 @@ struct PropsView: View {
             let wasDraft = props?.state == .draft
             slug = answer.slug
             props = answer
+            renamed?(answer)
             if wasDraft { tell(answer.warnings) } else { askRebuild(saying: answer.warnings) }
         }
     }
