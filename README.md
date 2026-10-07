@@ -114,9 +114,8 @@ its own frame, so the caret is never behind the keyboard; without one it
 has half the page. The screens for writing say what they are in the bar,
 beside the way back, and leave the page to the text: a new post its
 name, a post's text and its translation the post's title. Over the whole
-screen the text has a tablet's whole width and most of a window's; the
-lines stop growing at some hundred and ten letters, a measure that grows
-with the type. A picture's mark goes into the text where the caret is --
+screen the text has the whole width of the screen or the window, however
+wide. A picture's mark goes into the text where the caret is --
 a paragraph of its own, a blank line on each side and none doubled, the
 rule of `/write/` -- and at the end only when the text was never
 touched. The two keys on a picture's card are as tall as a finger needs.

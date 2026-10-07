@@ -1045,15 +1045,12 @@ extension TextSelection {
 }
 
 /// Nothing but the text: the marks over it, the paper under it, the
-/// keyboard up. The text has the width of the screen -- a tablet's whole,
-/// most of a window on a desk; only on a screen wider than some hundred
-/// and ten letters do the lines stop growing, and that measure grows
-/// with the type.
+/// keyboard up. The text has the whole width of the screen or the window,
+/// however wide: how long a line is, is the writer's to say, by the size
+/// of the window.
 struct WritingScreen: View {
     @Binding var text: String
     @Environment(\.dismiss) private var dismiss
-    /// The longest line, in points at the usual size of type.
-    @ScaledMetric(relativeTo: .caption) private var measure: CGFloat = 1080
     @State private var selection: TextSelection?
     @FocusState private var typing: Bool
 
@@ -1073,7 +1070,6 @@ struct WritingScreen: View {
                 .padding(.horizontal, Theme.gutter - 5)
                 .padding(.top, 8)
         }
-        .frame(maxWidth: measure * TypeScale.shared.factor)
         .frame(maxWidth: .infinity)
         .background(Theme.paper.ignoresSafeArea())
         .onAppear { typing = true }
