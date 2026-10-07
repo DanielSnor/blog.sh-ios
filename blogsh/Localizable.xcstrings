@@ -4050,6 +4050,54 @@
         }
       }
     },
+    "Unsaved changes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuložená úprava"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gespeicherte Änderungen"
+          }
+        }
+      }
+    },
+    "Unsaved translation, %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuložený překlad, %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gespeicherte Übersetzung, %@"
+          }
+        }
+      }
+    },
+    "Unsent new post": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neodeslaný nový příspěvek"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gesendeter neuer Beitrag"
+          }
+        }
+      }
+    },
     "Up": {
       "localizations": {
         "cs": {

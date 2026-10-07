@@ -180,3 +180,78 @@ import Testing
         #expect(!changed.namesPictures(beyond: []))
     }
 }
+
+/// What the first screen lists as begun and not finished. A mistake here
+/// is writing that waits in a form nobody knows to open -- or another
+/// blog's writing offered under this one.
+@Suite struct BegunTests {
+    private func defaults() -> UserDefaults {
+        let name = "begun-tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        return defaults
+    }
+
+    private func at(_ seconds: Double) -> Date { Date(timeIntervalSince1970: 1_791_400_000 + seconds) }
+
+    @Test func withNothingKeptNothingIsBegun() {
+        #expect(Begun.all(for: UUID(), in: defaults()).isEmpty)
+    }
+
+    @Test func everythingKeptForTheBlogIsListedTheLastWrittenFirst() {
+        let defaults = defaults(), blog = UUID()
+        Unsent(title: "Pes v trávě", tags: "", text: "Plazí se.", at: at(100)).keep(for: blog, in: defaults)
+        Unsaved(text: "změna", base: "b", at: at(300), title: "Venku").keep(for: blog, slug: "venku", what: .text, in: defaults)
+        Unsaved(text: "change", base: "b", at: at(200), title: "Doma").keep(for: blog, slug: "doma", what: .language("en"), in: defaults)
+        let all = Begun.all(for: blog, in: defaults)
+        #expect(all.map(\.what) == [.text(slug: "venku"), .language(slug: "doma", lang: "en"), .new])
+        #expect(all.map(\.title) == ["Venku", "Doma", "Pes v trávě"])
+        #expect(all.map(\.at) == [at(300), at(200), at(100)])
+    }
+
+    @Test func anotherBlogsWritingIsNotThisOnes() {
+        let defaults = defaults(), mine = UUID(), other = UUID()
+        Unsent(title: "Cizí", tags: "", text: "", at: at(0)).keep(for: other, in: defaults)
+        Unsaved(text: "x", base: "b", at: at(0), title: "Cizí").keep(for: other, slug: "venku", what: .text, in: defaults)
+        #expect(Begun.all(for: mine, in: defaults).isEmpty)
+        #expect(Begun.all(for: other, in: defaults).count == 2)
+    }
+
+    /// Sent, saved or put away: gone from the list with it.
+    @Test func whatIsFinishedIsNoLongerListed() {
+        let defaults = defaults(), blog = UUID()
+        Unsent(title: "Pes", tags: "", text: "", at: at(0)).keep(for: blog, in: defaults)
+        Unsaved(text: "x", base: "b", at: at(1), title: "Venku").keep(for: blog, slug: "venku", what: .text, in: defaults)
+        Unsent().keep(for: blog, in: defaults)
+        #expect(Begun.all(for: blog, in: defaults).map(\.what) == [.text(slug: "venku")])
+        Unsaved.forget(for: blog, slug: "venku", what: .text, in: defaults)
+        #expect(Begun.all(for: blog, in: defaults).isEmpty)
+    }
+
+    /// A slug is whatever the blog made it; one with a dot in it is still one slug.
+    @Test func aPostIsFoundByItsWholeSlug() {
+        let defaults = defaults(), blog = UUID()
+        Unsaved(text: "x", base: "b", at: at(0), title: nil).keep(for: blog, slug: "verze-1.10", what: .language("de"), in: defaults)
+        let all = Begun.all(for: blog, in: defaults)
+        #expect(all.map(\.what) == [.language(slug: "verze-1.10", lang: "de")])
+        // Kept without a title -- by an earlier build of the app: its slug stands in.
+        #expect(all.first?.title == "verze-1.10")
+    }
+
+    @Test func aPostWithoutATitleIsCalledByItsFirstWords() {
+        #expect(Unsent(title: "  Pes  ", text: "Text.").headline == "Pes")
+        #expect(Unsent(text: "\n\n## Nadpis uvnitř\n\nA dál.").headline == "Nadpis uvnitř")
+        #expect(Unsent(text: "![Les](photo-1.jpg)\n\nPrvní věta.").headline == "První věta.")
+        #expect(Unsent(text: String(repeating: "slovo ", count: 30)).headline.count == 60)
+        #expect(Unsent(tags: "jen, štítky").headline == "")
+    }
+
+    /// Changes kept by a build that did not keep the title yet still read.
+    @Test func changesKeptWithoutATitleStillRead() throws {
+        let defaults = defaults(), blog = UUID()
+        let old = Data(#"{"text":"x","base":"b","at":0}"#.utf8)
+        defaults.set(old, forKey: Unsaved.key(blog, slug: "venku", what: .text))
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults)?.title == nil)
+        #expect(Begun.all(for: blog, in: defaults).first?.title == "venku")
+    }
+}

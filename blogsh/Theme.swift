@@ -717,6 +717,14 @@ struct Hint: View {
     }
 }
 
+/// What is being written on this device, as far as the first screen
+/// needs to know: that it changed, so the list of things begun is read again.
+@Observable final class Desk {
+    static let shared = Desk()
+    private(set) var changes = 0
+    func changed() { changes += 1 }
+}
+
 extension Unsaved {
     /// What the screen says of changes it brought back: when they were
     /// written, that the post has moved on under them where it has, and

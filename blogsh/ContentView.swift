@@ -54,6 +54,9 @@ struct Glance: Equatable {
 
 struct ContentView: View {
     @State private var selection: MenuEntry?
+    /// Something begun and not finished, opened from the first screen:
+    /// the editor it waits in, straight away.
+    @State private var resumed: Begun.What?
     @State private var column: NavigationSplitViewColumn = .sidebar
     // Where there is room for both, which of the two columns are shown: the
     // menu steps aside when the screen is turned upright over an open screen.
@@ -88,7 +91,12 @@ struct ContentView: View {
             // not push by itself.
             NavigationStack {
                 Group {
-                    switch selection {
+                    switch resumed {
+                    case .text(let slug): TextEditView(slug: slug)
+                    case .language(let slug, let lang): TranslateView(slug: slug, lang: lang)
+                    case .new, nil: EmptyView()
+                    }
+                    if resumed == nil || resumed == .new { switch selection {
                     case .add: ComposeView()
                     case .post: PostPickerView(languages: otherLanguages)
                     case .queue: QueueView(languages: otherLanguages)
@@ -106,12 +114,12 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(Theme.paper.ignoresSafeArea())
                         }
-                    }
+                    } }
                 }
                 // ...and from an open screen the way back to it is here,
                 // where a phone has it.
                 .toolbar {
-                    if single && selection != nil {
+                    if single && (selection != nil || resumed != nil) {
                         ToolbarItem(placement: .topBarLeading) {
                             Button(action: close) { Image(systemName: "chevron.left") }
                                 .accessibilityLabel(Text(verbatim: "./blog.sh"))
@@ -162,6 +170,7 @@ struct ContentView: View {
             identityProblem = nil
             glance = nil
             selection = nil
+            resumed = nil
             visit += 1
             column = .sidebar
             TagStore.shared.reset()
@@ -201,10 +210,12 @@ struct ContentView: View {
                  url: identity?.site.url ?? blogs.current?.url ?? "",
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: identityProblem, glance: glance,
+                 begun: begun,
                  facts: blogs.current?.facts,
                  current: sizeClass == .regular && !roomy ? selection : nil,
                  roomy: roomy,
-                 open: open)
+                 open: open,
+                 resume: resume)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
@@ -219,13 +230,35 @@ struct ContentView: View {
     /// Back to the menu from an open screen, upright on a wide screen.
     private func close() {
         selection = nil
+        resumed = nil
         visit += 1
         Task { await loadGlance() }
+    }
+
+    /// What was begun on this device for the open blog and not finished.
+    /// Read whenever the screen is drawn: it is a look into the device's
+    /// own keeping, and the desk says when that changed.
+    private var begun: [Begun] {
+        _ = Desk.shared.changes
+        guard let blog = blogs.currentID else { return [] }
+        return Begun.all(for: blog)
+    }
+
+    /// Straight to where it waits: the new post's form, or the editor of
+    /// the post -- or of its language -- that was being changed.
+    private func resume(_ one: Begun) {
+        guard one.what != .new else { return open(.add) }
+        visit += 1
+        selection = nil
+        resumed = one.what
+        column = .detail
+        if upright { columns = .detailOnly }
     }
 
     private func open(_ entry: MenuEntry, state: ArchiveView.StateFilter? = nil, searching: Bool = false) {
         archiveState = state
         archiveSearching = searching
+        resumed = nil
         visit += 1
         selection = entry
         column = .detail
@@ -351,6 +384,8 @@ struct HomeView: View {
     let identity: VersionAnswer?
     let problem: String?
     let glance: Glance?
+    /// What was begun on this device and not finished: each a way back to it.
+    var begun: [Begun] = []
     /// The blog in numbers, once it has counted itself.
     let facts: Facts?
     /// The entry whose screen is open beside this one, where there is a beside.
@@ -359,6 +394,7 @@ struct HomeView: View {
     /// everything on it larger by the same measure.
     var roomy = false
     let open: (MenuEntry, ArchiveView.StateFilter?, Bool) -> Void
+    var resume: (Begun) -> Void = { _ in }
 
     @State private var mark: UIImage?
 
@@ -420,6 +456,18 @@ struct HomeView: View {
                     }
                     .buttonStyle(PressStyle())
                     .padding(.top, 18 * k)
+                }
+
+                // Writing kept on this device from the last time: said here,
+                // or nobody knows of it before opening the form it waits in.
+                if !begun.isEmpty {
+                    VStack(spacing: 8 * k) {
+                        ForEach(begun) { one in
+                            Button { resume(one) } label: { begunCard(one) }
+                        }
+                    }
+                    .buttonStyle(PressStyle())
+                    .padding(.top, (glance == nil ? 18 : 8) * k)
                 }
 
                 LazyVGrid(columns: columns, spacing: 8 * k) {
@@ -510,6 +558,39 @@ struct HomeView: View {
             } else {
                 Text("Nothing scheduled").font(.ui(15 * k)).foregroundStyle(Theme.muted)
             }
+        }
+    }
+
+    /// One thing begun: what it is and when it was last written in, and
+    /// under that what it is called.
+    private func begunCard(_ one: Begun) -> some View {
+        Card {
+            Image(systemName: "square.and.pencil").font(.system(size: 17 * k)).foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 2 * k) {
+                (kind(one) + Text(verbatim: " · \(one.at.spoken)"))
+                    .font(.ui(12 * k))
+                    .foregroundStyle(Theme.muted)
+                    .lineLimit(1)
+                if !one.title.isEmpty {
+                    Text(verbatim: one.title)
+                        .font(.ui(15 * k, weight: .medium))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 6)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12 * k, weight: .semibold))
+                .foregroundStyle(Theme.muted)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func kind(_ one: Begun) -> Text {
+        switch one.what {
+        case .new: Text("Unsent new post")
+        case .text: Text("Unsaved changes")
+        case .language(_, let lang): Text("Unsaved translation, \(Locale.current.localizedString(forLanguageCode: lang) ?? lang)")
         }
     }
 

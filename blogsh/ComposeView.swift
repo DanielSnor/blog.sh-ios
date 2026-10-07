@@ -161,6 +161,7 @@ struct ComposeView: View {
     private func keep() {
         guard let keeping else { return }
         Unsent(title: title, tags: tags, text: text, at: .now).keep(for: keeping)
+        Desk.shared.changed()
     }
 
     private func startEmpty() {

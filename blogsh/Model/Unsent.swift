@@ -21,6 +21,17 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
         [title, tags, text].allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 
+    /// What to call it where it is listed: its title, or -- written
+    /// without one -- the first words of its text.
+    var headline: String {
+        let named = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !named.isEmpty { return named }
+        let first = text.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { !$0.isEmpty && !$0.hasPrefix("!") } ?? ""
+        return String(first.drop { $0 == "#" || $0 == " " }.prefix(60))
+    }
+
     /// The text names a picture or a video, which was not kept with it.
     var namesPictures: Bool {
         text.range(of: #"!{1,2}\[[^\n]*\]\([^)\s]+\)"#, options: .regularExpression) != nil
@@ -67,6 +78,8 @@ nonisolated struct Unsaved: Codable, Equatable, Sendable {
     var base: String
     /// When they were last written in.
     var at: Date
+    /// The post's title, for where the changes are listed by name.
+    var title: String?
 
     /// Which of a post's texts: its own, or one language of it.
     enum What: Equatable, Sendable {
@@ -78,6 +91,29 @@ nonisolated struct Unsaved: Codable, Equatable, Sendable {
             case .text: "text"
             case .language(let code): "lang-\(code)"
             }
+        }
+
+        fileprivate init?(word: String) {
+            if word == "text" {
+                self = .text
+            } else if word.hasPrefix("lang-"), word.count > 5 {
+                self = .language(String(word.dropFirst(5)))
+            } else {
+                return nil
+            }
+        }
+    }
+
+    /// Every change kept for a blog: which post, which of its texts.
+    static func all(for blog: UUID, in defaults: UserDefaults = .standard) -> [(slug: String, what: What, kept: Unsaved)] {
+        let prefix = prefix(blog)
+        return defaults.dictionaryRepresentation().keys.compactMap { key in
+            guard key.hasPrefix(prefix) else { return nil }
+            let rest = key.dropFirst(prefix.count)
+            guard let dot = rest.firstIndex(of: "."), let what = What(word: String(rest[..<dot])) else { return nil }
+            let slug = String(rest[rest.index(after: dot)...])
+            guard !slug.isEmpty, let kept = kept(for: blog, slug: slug, what: what, in: defaults) else { return nil }
+            return (slug, what, kept)
         }
     }
 
@@ -118,5 +154,40 @@ nonisolated struct Unsaved: Codable, Equatable, Sendable {
         return marks.matches(in: text, range: NSRange(location: 0, length: whole.length)).contains { match in
             !media.contains(whole.substring(with: match.range(at: 1)))
         }
+    }
+}
+
+/// One thing begun on this device for a blog and not finished: a new post
+/// not sent, a post's text or one of its languages changed and not saved.
+/// What the first screen lists, so that writing kept from the last time is
+/// seen without opening the form it waits in.
+nonisolated struct Begun: Identifiable, Equatable, Sendable {
+    enum What: Hashable, Sendable {
+        case new
+        case text(slug: String)
+        case language(slug: String, lang: String)
+    }
+
+    let what: What
+    /// What to call it: the post's title, or what stands for one.
+    let title: String
+    let at: Date
+
+    var id: What { what }
+
+    /// All of them for a blog, the last written first.
+    static func all(for blog: UUID, in defaults: UserDefaults = .standard) -> [Begun] {
+        var all: [Begun] = []
+        if let unsent = Unsent.kept(for: blog, in: defaults) {
+            all.append(Begun(what: .new, title: unsent.headline, at: unsent.at))
+        }
+        for (slug, what, kept) in Unsaved.all(for: blog, in: defaults) {
+            let title = kept.title.flatMap { $0.isEmpty ? nil : $0 } ?? slug
+            switch what {
+            case .text: all.append(Begun(what: .text(slug: slug), title: title, at: kept.at))
+            case .language(let lang): all.append(Begun(what: .language(slug: slug, lang: lang), title: title, at: kept.at))
+            }
+        }
+        return all.sorted { ($0.at, $1.title) > ($1.at, $0.title) }
     }
 }

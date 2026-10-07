@@ -143,8 +143,9 @@ struct TranslateView: View {
         if text == entry.text {
             Unsaved.forget(for: blog, slug: slug, what: .language(lang))
         } else {
-            Unsaved(text: text, base: entry.base, at: .now).keep(for: blog, slug: slug, what: .language(lang))
+            Unsaved(text: text, base: entry.base, at: .now, title: entry.title).keep(for: blog, slug: slug, what: .language(lang))
         }
+        Desk.shared.changed()
     }
 
     private func takeTheBlogs() {
@@ -181,6 +182,7 @@ struct TranslateView: View {
             // Saved, or taken off: nothing is left to bring back.
             if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .language(lang)) }
             broughtBack = nil
+            Desk.shared.changed()
             await load()
             answered += 1
         } catch {

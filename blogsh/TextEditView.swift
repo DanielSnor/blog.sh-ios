@@ -212,8 +212,9 @@ struct TextEditView: View {
         if text == fresh {
             Unsaved.forget(for: blog, slug: slug, what: .text)
         } else {
-            Unsaved(text: text, base: entry.base, at: .now).keep(for: blog, slug: slug, what: .text)
+            Unsaved(text: text, base: entry.base, at: .now, title: entry.title).keep(for: blog, slug: slug, what: .text)
         }
+        Desk.shared.changed()
     }
 
     private func takeTheBlogs() {
@@ -296,6 +297,7 @@ struct TextEditView: View {
             // Saved: nothing is left to bring back.
             if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
             broughtBack = nil
+            Desk.shared.changed()
             // Saving a published post builds the site: nothing is owed after it.
             if saved?.state == .published { Herald.shared.settled() }
             await load()
