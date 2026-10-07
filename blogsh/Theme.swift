@@ -171,6 +171,10 @@ nonisolated enum Typeface {
         #endif
     }()
 
+    /// A screen with room for longer steps: a tablet, and so a Mac too,
+    /// which runs the tablet's app.
+    static let wide = UIDevice.current.userInterfaceIdiom == .pad
+
     var size: TextSize {
         didSet { UserDefaults.standard.set(size.rawValue, forKey: TextSize.key) }
     }
@@ -180,11 +184,14 @@ nonisolated enum Typeface {
     }
 
     /// How much larger every face is drawn by the app itself.
-    var factor: CGFloat { Self.ownHand ? size.zoom : 1 }
+    var factor: CGFloat { Self.ownHand ? zoom : 1 }
+
+    /// How much a page of the blog is enlarged, here.
+    var zoom: CGFloat { size.zoom(wide: Self.wide) }
 
     /// Type so large that a name and its value no longer share a row --
     /// what the system calls an accessibility size where it has one.
-    var crowded: Bool { Self.ownHand && size == .four }
+    var crowded: Bool { Self.ownHand && zoom >= 1.65 }
 }
 
 extension Font {
@@ -275,7 +282,7 @@ private struct WindowType: UIViewRepresentable {
                 return
             }
             let system = DynamicTypeSize(UIApplication.shared.preferredContentSizeCategory) ?? .large
-            window.traitOverrides.preferredContentSizeCategory = UIContentSizeCategory(size.applied(to: system))
+            window.traitOverrides.preferredContentSizeCategory = UIContentSizeCategory(size.applied(to: system, wide: TypeScale.wide))
         }
     }
 }
@@ -296,7 +303,7 @@ struct TextSizePicker: View {
                 }
                 Button { scale.size = size } label: {
                     Text(verbatim: "Aa")
-                        .font(.custom(Typeface.sans(.medium) ?? "Helvetica Neue", fixedSize: size.sample))
+                        .font(.custom(Typeface.sans(.medium) ?? "Helvetica Neue", fixedSize: size.sample(wide: TypeScale.wide)))
                         .foregroundStyle(chosen ? Theme.onInk : Theme.ink)
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .background(chosen ? Theme.ink : .clear)

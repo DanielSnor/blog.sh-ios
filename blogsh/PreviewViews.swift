@@ -27,7 +27,7 @@ struct PreviewSheet: View {
             .padding(.horizontal, Theme.gutter)
             .padding(.top, 18)
             Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 10)
-            WebPage(html: page, base: URL(string: site), zoom: TypeScale.shared.size.zoom)
+            WebPage(html: page, base: URL(string: site), zoom: TypeScale.shared.zoom)
             Rectangle().fill(Theme.line).frame(height: 1)
             Hint("Near enough, not exact: the blog itself renders the post, and the draft's preview after sending is the real thing.")
                 .padding(.horizontal, Theme.gutter)

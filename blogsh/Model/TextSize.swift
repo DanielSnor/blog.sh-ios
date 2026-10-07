@@ -4,6 +4,10 @@ import SwiftUI
 /// steps above that. The device's own and not a blog's -- eyes do not
 /// change with the blog -- and the only way to a larger type where the
 /// system offers none, which is an iPad app on a Mac.
+///
+/// The steps are longer on a wide screen -- a tablet, a Mac -- than on a
+/// phone: it is read from further away and has the room, so its last step
+/// is a good deal past where a phone's ends.
 nonisolated enum TextSize: Int, CaseIterable, Identifiable, Sendable {
     case system, one, two, three, four
 
@@ -15,33 +19,29 @@ nonisolated enum TextSize: Int, CaseIterable, Identifiable, Sendable {
     /// What is kept, read back; anything else is the system's size.
     init(kept: Int) { self = TextSize(rawValue: kept) ?? .system }
 
-    /// The system's size moved up by the steps chosen, as far as its scale goes.
-    func applied(to size: DynamicTypeSize) -> DynamicTypeSize {
-        let all = DynamicTypeSize.allCases
-        guard let at = all.firstIndex(of: size) else { return size }
-        return all[min(at + rawValue, all.count - 1)]
+    /// How many sizes of the system's own scale it stands above the
+    /// system's: one after another on a phone, in longer strides on a
+    /// wide screen.
+    func strides(wide: Bool = false) -> Int {
+        wide ? [0, 2, 4, 5, 6][rawValue] : rawValue
     }
 
-    /// How much a page of the blog is enlarged with it: the steps of the
-    /// system's own scale, from its usual size.
-    var zoom: CGFloat {
-        switch self {
-        case .system: 1
-        case .one: 1.12
-        case .two: 1.24
-        case .three: 1.35
-        case .four: 1.65
-        }
+    /// The system's size moved up by the steps chosen, as far as its scale goes.
+    func applied(to size: DynamicTypeSize, wide: Bool = false) -> DynamicTypeSize {
+        let all = DynamicTypeSize.allCases
+        guard let at = all.firstIndex(of: size) else { return size }
+        return all[min(at + strides(wide: wide), all.count - 1)]
+    }
+
+    /// How much a page of the blog is enlarged with it, and every face
+    /// where the app sets its type by its own hand: what that many sizes
+    /// of the system's scale come to, from its usual one.
+    func zoom(wide: Bool = false) -> CGFloat {
+        [1, 1.12, 1.24, 1.35, 1.65, 1.94, 2.35][strides(wide: wide)]
     }
 
     /// The two letters that stand for it where it is chosen, in points.
-    var sample: CGFloat {
-        switch self {
-        case .system: 14
-        case .one: 16
-        case .two: 18
-        case .three: 21
-        case .four: 25
-        }
+    func sample(wide: Bool = false) -> CGFloat {
+        (wide ? [14, 18, 23, 27, 32] : [14, 16, 18, 21, 25])[rawValue]
     }
 }
