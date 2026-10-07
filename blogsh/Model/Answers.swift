@@ -89,7 +89,7 @@ nonisolated struct PostRow: Decodable, Identifiable, Equatable, Sendable {
     let slug: String
     let year: String
     let date: String?
-    let title: String?
+    var title: String?
     let type: String
     let tags: [String]
     let state: PostState
@@ -133,6 +133,16 @@ extension PostRow {
         self.init(slug: props.slug, year: props.year, date: props.date,
                   title: props.title.isEmpty ? nil : props.title, type: props.type, tags: props.tags,
                   state: props.state, scheduled: props.scheduled, series: props.series, pinned: props.pinned)
+    }
+
+    /// This row as the post is now. A post without a title keeps none: its
+    /// properties call it by its opening words, a list by its slug, and a
+    /// screen opened from the list would otherwise change the post's name
+    /// under the reader a moment after opening.
+    func seen(as props: PropsAnswer) -> PostRow {
+        var now = PostRow(props)
+        if title == nil { now.title = nil }
+        return now
     }
 }
 

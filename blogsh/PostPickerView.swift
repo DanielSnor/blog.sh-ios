@@ -175,7 +175,7 @@ struct PostCrossroadsView: View {
                 NavigationLink {
                     // A post deleted from its properties takes this screen with
                     // it, and the list reads itself again.
-                    PropsView(slug: post.slug, gone: { deleted = true }, renamed: { now = PostRow($0); link = PostLink($0) })
+                    PropsView(slug: post.slug, gone: { deleted = true }, renamed: { now = post.seen(as: $0); link = PostLink($0) })
                 } label: {
                     CommandRow("properties and actions", symbol: "slider.horizontal.3", leads: true)
                 }
@@ -229,7 +229,7 @@ struct PostCrossroadsView: View {
         guard slug == post.slug else { return }
         if let answer: EditAnswer = try? Engine.decode(answers[0]) { entry = answer.post }
         if let props: PropsAnswer = try? Engine.decode(answers[1]), props.ok {
-            now = PostRow(props)
+            now = post.seen(as: props)
             link = PostLink(props)
         }
     }

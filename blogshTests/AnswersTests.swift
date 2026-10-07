@@ -82,6 +82,22 @@ import Testing
         #expect(row.match == nil)
     }
 
+    /// A post without a title is called by its slug in a list and by its
+    /// opening words in its properties: the row keeps none, so the screen
+    /// opened from the list does not rename the post a moment later.
+    @Test func aRowWithoutATitleKeepsNone() throws {
+        let props: PropsAnswer = try Engine.decode(Fixture.data("props-renamed"))
+        let untitled = PostRow(slug: "stary", year: "2026", date: nil, title: nil, type: "text", tags: [],
+                               state: .draft, scheduled: false, series: nil, pinned: false)
+        let now = untitled.seen(as: props)
+        #expect(now.title == nil)
+        #expect(now.slug == "novy-nazev")
+        #expect(now.state == .published)
+        let titled = PostRow(slug: "stary", year: "2026", date: nil, title: "Starý", type: "text", tags: [],
+                             state: .draft, scheduled: false, series: nil, pinned: false)
+        #expect(titled.seen(as: props).title == "K přejmenování")
+    }
+
     /// What is handed to somebody: the address the engine says, and the
     /// post's title to go with it.
     @Test func aPostsLinkIsItsAddressAndItsTitle() throws {
