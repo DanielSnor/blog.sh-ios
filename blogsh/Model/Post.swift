@@ -192,6 +192,16 @@ nonisolated enum Kept {
         return text.replacingOccurrences(of: was, with: "![\(oneLine(after))](\(name))")
     }
 
+    /// What is typed on a card replaces the words the card SHOWED: its
+    /// own, and when it had none, the ones the text says of its picture --
+    /// an empty card shows those, so the writer sees them as the
+    /// description there is and types over them. Left standing, the card
+    /// would say one thing and the post go out saying another.
+    static func typed(_ text: String, name: String, before: String, after: String) -> String {
+        let own = oneLine(before)
+        return retitled(text, name: name, before: own.isEmpty ? (said(of: name, in: text) ?? "") : own, after: after)
+    }
+
     /// The same for every card at once: the shots as they are now, their
     /// descriptions as they were. With a shot added or taken away between
     /// the two there is nothing to compare, and the text is let be.
@@ -199,7 +209,7 @@ nonisolated enum Kept {
         guard shots.count == before.count else { return text }
         var text = text
         for (shot, was) in zip(shots, before) where shot.alt != was {
-            text = retitled(text, name: shot.name, before: was, after: shot.alt)
+            text = typed(text, name: shot.name, before: was, after: shot.alt)
         }
         return text
     }

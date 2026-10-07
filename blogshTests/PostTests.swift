@@ -92,6 +92,37 @@ import Testing
         #expect(Kept.retitled(text, name: "clip.mp4", before: "", after: "x") == text)
     }
 
+    /// An empty card shows what the text says of its picture, so what is
+    /// typed on it replaces those words: the writer sees them as the
+    /// description there is, and types over them. Left standing, the card
+    /// would say one thing and the post go out saying another.
+    @Test func wordsTypedOnACardThatShowedTheTextsReplaceThem() {
+        var card = shot("dog.jpg")
+        var text = "![A dog in the grass](dog.jpg)\n"
+        card.alt = "F"
+        text = Kept.retitled(text, shots: [card], before: [""])
+        #expect(text == "![F](dog.jpg)\n")
+        card.alt = "From the card"
+        text = Kept.retitled(text, shots: [card], before: ["F"])
+        #expect(text == "![From the card](dog.jpg)\n")
+        // The card wiped: the mark says nothing, as the card does.
+        card.alt = ""
+        text = Kept.retitled(text, shots: [card], before: ["From the card"])
+        #expect(text == "![](dog.jpg)\n")
+        // A video's two marks the same way.
+        var clip = shot("clip.mp4", kind: .video)
+        clip.alt = "x"
+        #expect(Kept.retitled("!![the clip](clip.mp4)\n", shots: [clip], before: [""]) == "!![x](clip.mp4)\n")
+    }
+
+    /// A card with words of its own, and a mark the author rewrote since:
+    /// that mark is still the author's.
+    @Test func aMarkRewrittenSinceTheCardSpokeStaysTheAuthors() {
+        var card = shot("dog.jpg", alt: "Old")
+        card.alt = "Older"
+        #expect(Kept.retitled("![Mine](dog.jpg)", shots: [card], before: ["Old"]) == "![Mine](dog.jpg)")
+    }
+
     @Test func aVideosTwoMarksFollowItsCardTheSameWay() {
         let text = Kept.retitled("!![](clip.mp4)\n", name: "clip.mp4", before: "", after: "a clip")
         #expect(text == "!![a clip](clip.mp4)\n")

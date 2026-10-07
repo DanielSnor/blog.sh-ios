@@ -103,8 +103,10 @@ side by side, an odd last one across both. And a picture chosen for a post is a 
 shots stand one to a page and large, each with the line that describes it
 under it, to be written while looking at what it describes. A description
 typed on a card goes into the mark the text has for that shot as it is
-typed -- where the mark still says what the card said; one typed into the
-text itself is the author's own wording and no card overwrites it, the
+typed -- where the mark still says what the card showed: its own words,
+or, for a card with none, the ones the text says of its picture, which
+an empty card shows in their place. A mark the author rewrote after the
+card spoke is the author's own wording and no card overwrites it, the
 rule of `/write/`. The text is sent as it stands.
 
 The text of a post is as tall as it asks, up to what stays in sight:
