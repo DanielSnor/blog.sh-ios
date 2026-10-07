@@ -115,8 +115,9 @@ its own frame, so the caret is never behind the keyboard; without one it
 has half the page. Every screen says what it is in its bar,
 beside the way back, and leaves the page to what it holds: a screen of
 the app's its name and how many it holds, a screen about one post the
-post's title -- on one line while it fits between the way back and the
-key that shares the post, smaller on two when it does not. Over the whole
+post's title -- on one line, cut at its end where it does not fit
+between the way back and the key that shares the post, and whole in a
+field of its own at the head of the page. Over the whole
 screen the text has the whole width of the screen or the window, however
 wide. A picture's mark goes into the text where the caret is --
 a paragraph of its own, a blank line on each side and none doubled, the

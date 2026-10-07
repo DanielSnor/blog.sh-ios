@@ -503,10 +503,10 @@ struct PaperScreen<Content: View>: View {
 /// back and whatever keys stand at the far end, and starts at the near
 /// edge of it.
 ///
-/// A post's title is somebody's own words and can be long: on one line
-/// while it fits, and when it does not, smaller on two -- between a way
-/// back and a key or two a single line would cut most titles short. What
-/// does not fit on two is cut at its end.
+/// A post's title is somebody's own words and can be long: the bar has
+/// one line for it, at one size on every screen, and cuts what does not
+/// fit at its end. The whole of it stands on the page under the bar, in
+/// a field of its own (`TitleField`).
 struct BarName: View {
     var name: String?
     var count: String?
@@ -515,20 +515,11 @@ struct BarName: View {
     var body: some View {
         Group {
             if let title, !title.isEmpty {
-                ViewThatFits(in: .horizontal) {
-                    Text(verbatim: title)
-                        .font(.ui(18, weight: .bold))
-                        .lineLimit(1)
-                    Text(verbatim: title)
-                        .font(.ui(14, weight: .bold))
-                        .lineSpacing(-2)
-                        .lineLimit(2)
-                        .truncationMode(.tail)
-                        .multilineTextAlignment(.leading)
-                        // As tall as its two lines: the bar would hold it to one.
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .foregroundStyle(Theme.ink)
+                Text(verbatim: title)
+                    .font(.ui(18, weight: .bold))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .foregroundStyle(Theme.ink)
             } else if let name, !name.isEmpty {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(verbatim: name)
@@ -555,6 +546,19 @@ struct BarName: View {
         .frame(idealWidth: 4000, maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// A post's whole title, however long: the bar over the screen has one
+/// line for it. The first thing on a screen about the post.
+struct TitleField: View {
+    let title: String
+
+    var body: some View {
+        Plate {
+            InfoRow(label: "Title", value: title)
+        }
+        .padding(.top, 4)
     }
 }
 

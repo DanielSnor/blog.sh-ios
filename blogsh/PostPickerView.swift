@@ -115,8 +115,10 @@ struct PostCrossroadsView: View {
         PaperScreen(title: post.title ?? post.slug) {
             // Which post this is, before anything is done to it: what the
             // engine calls it, when it is from, what state it is in, and how
-            // it begins. Its title stands in the bar.
-            PostSlug(text: post.slug)
+            // it begins. Its title stands in the bar, as much of it as fits
+            // there, and whole in the field under it.
+            TitleField(title: post.title ?? post.slug)
+            PostSlug(text: post.slug).padding(.top, 4)
             HStack(spacing: 8) {
                 if let day = post.day {
                     Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))

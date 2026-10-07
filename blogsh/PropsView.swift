@@ -136,6 +136,8 @@ struct PropsView: View {
     /// The rows of the terminal's frame, under the labels it uses.
     private func rows(_ props: PropsAnswer) -> some View {
         Plate {
+            // The whole title: the bar has one line for it.
+            InfoRow(label: "Title", value: props.title)
             if props.state == .draft {
                 InfoRow(label: "preview", value: props.url, mono: true)
                 if props.scheduled, let date = props.date {

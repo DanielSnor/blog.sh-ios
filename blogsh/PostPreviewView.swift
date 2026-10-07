@@ -16,7 +16,8 @@ struct PostPreviewView: View {
 
     var body: some View {
         PaperScreen(title: post.title ?? post.slug) {
-            PostSlug(text: post.slug)
+            TitleField(title: post.title ?? post.slug)
+            PostSlug(text: post.slug).padding(.top, 4)
             HStack(spacing: 8) {
                 if let day = post.day {
                     Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
