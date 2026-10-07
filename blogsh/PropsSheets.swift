@@ -17,8 +17,7 @@ struct ScheduleSheet: View {
     @State private var said: Said?
 
     var body: some View {
-        PaperScreen {
-            ScreenHeader(title: scheduled ? String(localized: "Reschedule") : String(localized: "Schedule"))
+        PaperScreen(name: scheduled ? String(localized: "Reschedule") : String(localized: "Schedule")) {
             Plate {
                 DatePicker(selection: $date, in: Date()..., displayedComponents: [.date, .hourAndMinute]) {
                     Text("Publish when?").engineLabel().foregroundStyle(Theme.muted)
@@ -106,8 +105,7 @@ struct PropertiesForm: View {
     }
 
     var body: some View {
-        PaperScreen {
-            ScreenHeader(title: String(localized: "Properties"))
+        PaperScreen(name: String(localized: "Properties")) {
             Plate {
                 FieldRow(label: "series", text: $series, labelWidth: 84)
                 FieldRow(label: "part of series", text: $seriesPart, labelWidth: 84).keyboardType(.numberPad)
@@ -213,10 +211,6 @@ struct AddressesSheet: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "Old links"), count: addresses.isEmpty ? nil : addresses.count.formatted())
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-                .paperRow()
             if let problem {
                 ProblemLine(text: problem).padding(.bottom, 10).paperRow()
             }
@@ -238,7 +232,7 @@ struct AddressesSheet: View {
                 }
             }
         }
-        .paperList()
+        .paperList(name: String(localized: "Old links"), count: addresses.isEmpty ? nil : addresses.count.formatted())
         .overlay {
             if addresses.isEmpty { EmptyNote(symbol: "link", title: "This post has no old addresses.", room: .part) }
         }
@@ -271,10 +265,6 @@ struct VersionsSheet: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "Earlier versions"), count: versions.isEmpty ? nil : versions.count.formatted())
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-                .paperRow()
             if let problem {
                 ProblemLine(text: problem).padding(.bottom, 10).paperRow()
             }
@@ -304,7 +294,7 @@ struct VersionsSheet: View {
                     .paperRow(rule: false)
             }
         }
-        .paperList()
+        .paperList(name: String(localized: "Earlier versions"), count: versions.isEmpty ? nil : versions.count.formatted())
         .overlay {
             if loaded && versions.isEmpty { EmptyNote(symbol: "clock.arrow.circlepath", title: "No earlier versions yet", room: .part) }
         }

@@ -38,8 +38,7 @@ struct BlogSettingsView: View {
     private var port: Int { blogs.current?.port ?? 22 }
 
     var body: some View {
-        PaperScreen {
-            ScreenHeader(title: String(localized: "The blog's settings"))
+        PaperScreen(name: String(localized: "The blog's settings")) {
             // Which blog's: the one the row was.
             if let label = blogs.current?.label, !label.isEmpty {
                 Text(verbatim: label)

@@ -32,15 +32,15 @@ struct PropsView: View {
     @State private var said: Said?
 
     var body: some View {
-        PaperScreen {
+        PaperScreen(title: props?.title ?? slug) {
             if let problem {
                 ProblemLine(text: problem)
             }
             if let props {
-                PostHeading(title: props.title,
-                            detail: props.state == .draft ? String(localized: "draft -- not on the site, preview only")
-                                                          : String(props.address.trimmingPrefix("/")))
-                rows(props).padding(.top, 16)
+                // Where the post is, under its title in the bar: its address, or that it has none yet.
+                PostSlug(text: props.state == .draft ? String(localized: "draft -- not on the site, preview only")
+                                                    : String(props.address.trimmingPrefix("/")))
+                rows(props).padding(.top, 12)
                 if !props.url.isEmpty, let url = URL(string: props.url) {
                     Plate {
                         Link(destination: url) {

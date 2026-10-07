@@ -39,11 +39,6 @@ struct QueueView: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "tile.queue", defaultValue: "Queue"),
-                         count: rows.isEmpty ? nil : rows.count.formatted())
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-                .paperRow()
             if let problem {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
@@ -122,7 +117,7 @@ struct QueueView: View {
                           detail: "A draft is scheduled from its properties, or with ./blog.sh schedule.")
             }
         }
-        .paperList()
+        .paperList(name: String(localized: "tile.queue", defaultValue: "Queue"), count: rows.isEmpty ? nil : rows.count.formatted())
         // A build holds the lock a change of the queue needs: while one runs, the rows wait.
         .disabled(busy || Herald.shared.isBuilding)
         .doing(doing)

@@ -406,37 +406,25 @@ nonisolated enum RowDate {
 }
 
 extension View {
-    /// The bar keeps its buttons and gives up its title: a screen says its
-    /// own name, in its own face, at the head of what it holds.
-    ///
-    /// A screen about one post may hand its title over instead: the bar
-    /// then says it in the post's own words -- the plain face, its
-    /// capitals -- over all the room between the way back and the far edge.
-    func namedByItsHeader(title: String? = nil) -> some View {
+    /// What a screen is stands in its bar, beside the way back: the page
+    /// under it is the screen's own from its first line. A screen of the
+    /// app's says its name, in the display face, and how many it holds; a
+    /// screen about one post says the post's title.
+    func namedByItsHeader(name: String? = nil, count: String? = nil, title: String? = nil) -> some View {
         toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    if let title {
-                        Text(verbatim: title)
-                            .font(.ui(18, weight: .bold))
-                            .foregroundStyle(Theme.ink)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityAddTraits(.isHeader)
-                    } else {
-                        Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
-                    }
+                    BarName(name: name, count: count, title: title)
                 }
             }
     }
 
     /// A list on paper: no cards of the system's, no ground but ours.
-    func paperList() -> some View {
+    func paperList(name: String? = nil, count: String? = nil) -> some View {
         listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Theme.paper.ignoresSafeArea())
-            .namedByItsHeader()
+            .namedByItsHeader(name: name, count: count)
     }
 
     /// A row of such a list: the ground shows through, a hairline under it
@@ -458,9 +446,10 @@ extension View {
 /// A screen of fields, facts and actions: everything it holds in one
 /// column on paper, between the two gutters.
 struct PaperScreen<Content: View>: View {
-    /// A screen for writing says its name in the bar, beside the way
-    /// back, and leaves the page to the text.
+    /// What the screen is, said in the bar beside the way back.
     var name: String?
+    /// How many it holds, beside its name.
+    var count: String?
     /// ...or, where it is about one post, that post's title: its own
     /// words, so in the plain face and with its capitals.
     var title: String?
@@ -505,47 +494,82 @@ struct PaperScreen<Content: View>: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Theme.paper.ignoresSafeArea())
-        .namedByItsHeader(title: title)
-        .toolbar {
-            if let name {
-                ToolbarItem(placement: .topBarLeading) {
+        .namedByItsHeader(name: name, count: count, title: title)
+    }
+}
+
+/// What stands in a bar where the system would put its title: the
+/// screen's name, or a post's. It takes all the room between the way
+/// back and whatever keys stand at the far end, and starts at the near
+/// edge of it.
+///
+/// A post's title is somebody's own words and can be long: on one line
+/// while it fits, and when it does not, smaller on two -- between a way
+/// back and a key or two a single line would cut most titles short. What
+/// does not fit on two is cut at its end.
+struct BarName: View {
+    var name: String?
+    var count: String?
+    var title: String?
+
+    var body: some View {
+        Group {
+            if let title, !title.isEmpty {
+                ViewThatFits(in: .horizontal) {
+                    Text(verbatim: title)
+                        .font(.ui(18, weight: .bold))
+                        .lineLimit(1)
+                    Text(verbatim: title)
+                        .font(.ui(14, weight: .bold))
+                        .lineSpacing(-2)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .multilineTextAlignment(.leading)
+                        // As tall as its two lines: the bar would hold it to one.
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .foregroundStyle(Theme.ink)
+            } else if let name, !name.isEmpty {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(verbatim: name)
                         .font(.display(21))
                         .textCase(Theme.voiceCase)
                         .foregroundStyle(Theme.ink)
                         .lineLimit(1)
-                        .fixedSize()
-                        .accessibilityAddTraits(.isHeader)
+                        .minimumScaleFactor(0.7)
+                    if let count {
+                        Text(verbatim: count)
+                            .font(.mono(12))
+                            .foregroundStyle(.tint)
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
                 }
-                .sharedBackgroundVisibility(.hidden)
+            } else {
+                Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
             }
         }
+        // The bar gives its middle what the middle asks for and centres
+        // it; asked for more than there is, it gives all there is -- and
+        // the name then starts at the near edge of that, beside the way back.
+        .frame(idealWidth: 4000, maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 
-/// A post at the head of its own screen. Its title is its own words, so
-/// it keeps its capitals and the plain face; under it, in the engine's
-/// voice, what the engine calls it.
-struct PostHeading: View {
-    let title: String
-    var detail: String?
+/// What the engine calls a post, or where the post is: the first line of
+/// a screen about it, under the title that stands in the bar.
+struct PostSlug: View {
+    let text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(verbatim: title)
-                .font(.ui(22, weight: .bold))
-                .foregroundStyle(Theme.ink)
-                .fixedSize(horizontal: false, vertical: true)
-            if let detail, !detail.isEmpty {
-                Text(verbatim: detail)
-                    .font(.mono(12, bold: false))
-                    .foregroundStyle(Theme.muted)
-                    .textSelection(.enabled)
-            }
-        }
-        .padding(.top, 4)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
+        Text(verbatim: text)
+            .font(.mono(12, bold: false))
+            .foregroundStyle(Theme.muted)
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 4)
     }
 }
 

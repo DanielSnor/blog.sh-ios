@@ -16,10 +16,6 @@ struct PostPickerView: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "tile.post", defaultValue: "Post"))
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-                .paperRow()
             if let problem {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
@@ -49,7 +45,7 @@ struct PostPickerView: View {
                 .paperRow(rule: false)
             }
         }
-        .paperList()
+        .paperList(name: String(localized: "tile.post", defaultValue: "Post"))
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
         }
@@ -116,10 +112,11 @@ struct PostCrossroadsView: View {
     private var post: PostRow { now ?? opened }
 
     var body: some View {
-        PaperScreen {
-            PostHeading(title: post.title ?? post.slug, detail: post.slug)
-            // Which post this is, before anything is done to it: when it is
-            // from, what state it is in, and how it begins.
+        PaperScreen(title: post.title ?? post.slug) {
+            // Which post this is, before anything is done to it: what the
+            // engine calls it, when it is from, what state it is in, and how
+            // it begins. Its title stands in the bar.
+            PostSlug(text: post.slug)
             HStack(spacing: 8) {
                 if let day = post.day {
                     Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))

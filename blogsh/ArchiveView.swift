@@ -62,9 +62,6 @@ struct ArchiveView: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "tile.browse", defaultValue: "Archive"), count: countLine)
-                .padding(.top, 2)
-                .paperRow(rule: false)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     Button { state = nil } label: { FilterPill(label: String(localized: "all"), selected: state == nil) }
@@ -114,7 +111,7 @@ struct ArchiveView: View {
                 }
             }
         }
-        .paperList()
+        .paperList(name: String(localized: "tile.browse", defaultValue: "Archive"), count: countLine)
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
         }

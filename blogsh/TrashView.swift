@@ -27,11 +27,6 @@ struct TrashView: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "tile.restore", defaultValue: "Trash"),
-                         count: rows.isEmpty ? nil : rows.count.formatted())
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-                .paperRow()
             if let problem {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
@@ -89,7 +84,7 @@ struct TrashView: View {
                 EmptyNote(symbol: "trash", title: "Trash is empty")
             }
         }
-        .paperList()
+        .paperList(name: String(localized: "tile.restore", defaultValue: "Trash"), count: rows.isEmpty ? nil : rows.count.formatted())
         .disabled(busy || Herald.shared.isBuilding)
         .doing(doing)
         .navigationTitle("Trash")

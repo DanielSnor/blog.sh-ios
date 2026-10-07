@@ -112,9 +112,11 @@ The text of a post is as tall as it asks, up to what stays in sight:
 with a keyboard up it has everything down to the keyboard -- the tags
 under it are not needed while writing -- and past that it moves inside
 its own frame, so the caret is never behind the keyboard; without one it
-has half the page. The screens for writing say what they are in the bar,
-beside the way back, and leave the page to the text: a new post its
-name, a post's text and its translation the post's title. Over the whole
+has half the page. Every screen says what it is in its bar,
+beside the way back, and leaves the page to what it holds: a screen of
+the app's its name and how many it holds, a screen about one post the
+post's title -- on one line while it fits between the way back and the
+key that shares the post, smaller on two when it does not. Over the whole
 screen the text has the whole width of the screen or the window, however
 wide. A picture's mark goes into the text where the caret is --
 a paragraph of its own, a blank line on each side and none doubled, the

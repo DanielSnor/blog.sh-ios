@@ -9,9 +9,7 @@ struct SettingsView: View {
     private var look = Look.shared
 
     var body: some View {
-        PaperScreen {
-            ScreenHeader(title: String(localized: "Settings"))
-
+        PaperScreen(name: String(localized: "Settings")) {
             SectionLabel("Text size")
             TextSizePicker()
             Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")

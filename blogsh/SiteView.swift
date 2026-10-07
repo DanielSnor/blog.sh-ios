@@ -11,8 +11,7 @@ struct SiteView: View {
     @State private var problem: String?
 
     var body: some View {
-        PaperScreen {
-            ScreenHeader(title: MenuEntry.rebuild.short)
+        PaperScreen(name: MenuEntry.rebuild.short) {
             Plate {
                 SwitchRow(label: "Build every page again", isOn: $full)
                 SwitchRow(label: "Let the deploy past its guards", isOn: $force)

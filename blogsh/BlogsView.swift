@@ -12,10 +12,6 @@ struct BlogsView: View {
 
     var body: some View {
         List {
-            ScreenHeader(title: String(localized: "Blogs"), count: blogs.all.isEmpty ? nil : blogs.all.count.formatted())
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-                .paperRow()
             ForEach(blogs.all) { blog in
                 HStack(spacing: 4) {
                     Button {
@@ -56,7 +52,7 @@ struct BlogsView: View {
             .padding(.vertical, 12)
             .paperRow(rule: false)
         }
-        .paperList()
+        .paperList(name: String(localized: "Blogs"), count: blogs.all.isEmpty ? nil : blogs.all.count.formatted())
         .navigationTitle("Blogs")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         .navigationDestination(isPresented: $settingUp) {
