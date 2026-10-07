@@ -10,16 +10,6 @@ struct SettingsView: View {
 
     var body: some View {
         PaperScreen(name: String(localized: "Settings")) {
-            SectionLabel("Text size")
-            TextSizePicker()
-            Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")
-
-            SectionLabel("Colours")
-            Plate {
-                SwitchRow(label: "Use the default colour scheme", isOn: Binding(get: { look.own }, set: { look.own = $0 }))
-            }
-            Hint("The app wears the colours of the blog that is open. With this on it keeps to its own, the same for every blog.")
-
             SectionLabel("Language")
             Plate {
                 ForEach(AppLanguage.allCases) { choice in
@@ -49,6 +39,16 @@ struct SettingsView: View {
                 }
             }
             Hint("The app speaks the chosen language after it is started again.")
+
+            SectionLabel("Colours")
+            Plate {
+                SwitchRow(label: "Use the default colour scheme", isOn: Binding(get: { look.own }, set: { look.own = $0 }))
+            }
+            Hint("The app wears the colours of the blog that is open. With this on it keeps to its own, the same for every blog.")
+
+            SectionLabel("Text size")
+            TextSizePicker()
+            Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")
         }
         .navigationTitle("Settings")
         .toolbar {
