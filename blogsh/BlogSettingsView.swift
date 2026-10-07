@@ -69,7 +69,7 @@ struct BlogSettingsView: View {
                     .textInputAutocapitalization(.never)
                     .keyboardType(.asciiCapable)
             }
-            Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog.")
+            Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog; one that is not in a container leaves that field empty.")
 
             SectionLabel("Key")
             if let publicKey {

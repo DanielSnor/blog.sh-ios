@@ -92,7 +92,7 @@ struct ContentView: View {
                     switch selection {
                     case .add: ComposeView()
                     case .post: PostPickerView(languages: otherLanguages)
-                    case .queue: QueueView()
+                    case .queue: QueueView(languages: otherLanguages)
                     case .browse: ArchiveView(languages: otherLanguages, baseURL: identity?.site.url ?? "",
                                               initialState: archiveState, searching: archiveSearching)
                     case .restore: TrashView()

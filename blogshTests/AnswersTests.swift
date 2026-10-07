@@ -82,6 +82,23 @@ import Testing
         #expect(row.match == nil)
     }
 
+    /// A row of the queue opens its post: the row it hands over is a
+    /// draft with a plan, under the same slug and year.
+    @Test func aQueuedPostIsARowOfItsOwn() throws {
+        let json = #"{"position":2,"date":"2026-10-10T09:00:00+02:00","slug":"plan-d","year":"2026","title":"Plan D","overdue":false}"#
+        let queued = try JSONDecoder().decode(QueueRow.self, from: Data(json.utf8))
+        let row = PostRow(queued)
+        #expect(row.id == queued.id)
+        #expect(row.slug == "plan-d")
+        #expect(row.title == "Plan D")
+        #expect(row.state == .draft)
+        #expect(row.scheduled)
+        #expect(row.day != nil)
+        // A post without a title is called by its slug, as everywhere.
+        let bare = try JSONDecoder().decode(QueueRow.self, from: Data(json.replacingOccurrences(of: "Plan D", with: "").utf8))
+        #expect(PostRow(bare).title == nil)
+    }
+
     /// `stats --json` has no `ok` of its own and far more than the first
     /// screen says; what it says is read, the rest let be.
     @Test func theArchiveCountedIsRead() throws {

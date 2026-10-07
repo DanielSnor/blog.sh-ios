@@ -3,12 +3,17 @@ import SwiftUI
 /// The scheduled-post queue as `queue --json` hands it out, with the keys
 /// of the terminal's screen on each row: [u] and [d] trade times with the
 /// neighbour, [m] carries the post to a position, [p] publishes it now,
-/// [s] asks for another time, [n] returns it to the drafts. When a post
+/// [s] asks for another time, [n] returns it to the drafts -- the last two
+/// under the names the properties screen has for them, reschedule and
+/// cancel the schedule: one thing, one name. A row itself opens its post,
+/// as a row of the archive does. When a post
 /// leaves the queue the screen asks whether the rest should step forward
 /// into the gap; the app asks the same, before the call, because the
 /// engine answers both in one. The preview is rebuilt once, when you are
 /// done -- the screen does it on the way out, the app offers it.
 struct QueueView: View {
+    /// The site's other languages, for the post a row opens.
+    var languages: [String] = []
     @State private var rows: [QueueRow] = []
     @State private var problem: String?
     @State private var loading = false
@@ -45,10 +50,18 @@ struct QueueView: View {
                     Task { await rebuild() }
                 } label: {
                     Card(highlighted: true) {
-                        Image(systemName: "hammer").foregroundStyle(.tint)
-                        Text("The preview is behind the queue — rebuild and deploy now")
-                            .font(.ui(14, weight: .medium))
-                            .foregroundStyle(Theme.ink)
+                        // A rebuild takes its time: the card says it is at it.
+                        if rebuilding {
+                            ProgressView().controlSize(.small)
+                            Text("Rebuilding…")
+                                .font(.ui(14, weight: .medium))
+                                .foregroundStyle(Theme.ink)
+                        } else {
+                            Image(systemName: "hammer").foregroundStyle(.tint)
+                            Text("The preview is behind the queue — rebuild and deploy now")
+                                .font(.ui(14, weight: .medium))
+                                .foregroundStyle(Theme.ink)
+                        }
                     }
                 }
                 .buttonStyle(PressStyle())
@@ -59,17 +72,20 @@ struct QueueView: View {
             if !rows.isEmpty {
                 Section {
                     ForEach(rows) { row in
-                        QueueRowView(row: row)
+                        // A row opens its post, as in the archive: its text, its
+                        // properties, and so its slug -- which the queue has no key for.
+                        NavigationLink(value: PostRow(row)) { QueueRowView(row: row) }
+                            .navigationLinkIndicatorVisibility(.hidden)
                             // Asked over the row it is asked about.
                             .confirmationDialog(leavingTitle, isPresented: asking(row), titleVisibility: .visible) {
                                 if let leaving {
                                     let behind = rows.count - leaving.row.position
-                                    Button(leaving.publish ? "Publish now" : "Return to drafts", role: leaving.publish ? nil : .destructive) {
+                                    Button(leaving.publish ? "Publish now" : "Cancel the schedule", role: leaving.publish ? nil : .destructive) {
                                         Task { await leave(leaving, compact: false) }
                                     }
                                     if behind > 0 && !leaving.row.overdue {
                                         Button(leaving.publish ? "Publish now and shift the rest (\(behind)) a slot earlier"
-                                                               : "Return to drafts and shift the rest (\(behind)) a slot earlier") {
+                                                               : "Cancel the schedule and shift the rest (\(behind)) a slot earlier") {
                                             Task { await leave(leaving, compact: true) }
                                         }
                                     }
@@ -92,7 +108,7 @@ struct QueueView: View {
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) { leaving = Leaving(row: row, publish: false) } label: {
-                                    Label("Return to drafts", systemImage: "tray.and.arrow.down")
+                                    Label("Cancel the schedule", systemImage: "calendar.badge.minus")
                                 }
                                 Button { leaving = Leaving(row: row, publish: true) } label: {
                                     Label("Publish now", systemImage: "paperplane")
@@ -111,6 +127,13 @@ struct QueueView: View {
                         Task { await carry(row, to: position) }
                     }
                 }
+                // What the rows can do is all behind a gesture; said once, under them.
+                Text("A row opens its post. Swiped to a side it shows its keys; held, all of them -- and a row held can be carried to another place in the queue.")
+                    .font(.ui(13))
+                    .foregroundStyle(Theme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 14)
+                    .paperRow(rule: false)
             }
         }
         .overlay {
@@ -124,6 +147,9 @@ struct QueueView: View {
         .paperList()
         .disabled(busy)
         .navigationTitle("The scheduled-post queue")
+        .navigationDestination(for: PostRow.self) { post in
+            PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
+        }
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $rescheduling) { row in
@@ -155,16 +181,16 @@ struct QueueView: View {
             .disabled(row.overdue || rows.count < 2)
         Divider()
         Button { leaving = Leaving(row: row, publish: true) } label: { Label("Publish now", systemImage: "paperplane") }
-        Button { rescheduling = row } label: { Label("Another time", systemImage: "calendar.badge.clock") }
+        Button { rescheduling = row } label: { Label("Reschedule", systemImage: "calendar.badge.clock") }
         Button(role: .destructive) { leaving = Leaving(row: row, publish: false) } label: {
-            Label("Return to drafts", systemImage: "tray.and.arrow.down")
+            Label("Cancel the schedule", systemImage: "calendar.badge.minus")
         }
     }
 
     private var leavingTitle: String {
         guard let leaving else { return "" }
         return leaving.publish ? String(localized: "Publish '\(leaving.row.slug)' now?")
-                               : String(localized: "Return '\(leaving.row.slug)' to the drafts?")
+                               : String(localized: "Cancel the schedule of '\(leaving.row.slug)'?")
     }
 
     private func asking(_ row: QueueRow) -> Binding<Bool> {

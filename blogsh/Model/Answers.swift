@@ -362,6 +362,17 @@ nonisolated struct QueueRow: Decodable, Identifiable, Equatable, Sendable {
     var id: String { "\(year)/\(slug)" }
 }
 
+extension PostRow {
+    /// A post of the queue as the row a list would have for it: a draft
+    /// with a plan. What the queue does not say -- its type, its tags --
+    /// the screen it opens asks for itself.
+    init(_ queued: QueueRow) {
+        self.init(slug: queued.slug, year: queued.year, date: queued.date,
+                  title: queued.title.isEmpty ? nil : queued.title, type: "text", tags: [],
+                  state: .draft, scheduled: true, series: nil, pinned: false)
+    }
+}
+
 nonisolated extension ISO8601DateFormatter {
     /// The engine writes `2026-05-01T10:00:00+02:00`: no fractional
     /// seconds, an offset rather than Z.

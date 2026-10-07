@@ -242,6 +242,22 @@
         }
       }
     },
+    "A row opens its post. Swiped to a side it shows its keys; held, all of them -- and a row held can be carried to another place in the queue.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek otevře příspěvek. Tahem do strany ukáže své klávesy, podržením všechny — a podržený řádek jde přenést na jiné místo ve frontě."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Zeile öffnet ihren Beitrag. Zur Seite gewischt zeigt sie ihre Tasten, gehalten alle — und eine gehaltene Zeile lässt sich an eine andere Stelle der Warteschlange tragen."
+          }
+        }
+      }
+    },
     "Actions": {
       "localizations": {
         "cs": {
@@ -354,22 +370,6 @@
         }
       }
     },
-    "Another time": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jiný čas"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Andere Zeit"
-          }
-        }
-      }
-    },
     "As the system has it": {
       "localizations": {
         "cs": {
@@ -478,6 +478,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Plan aufheben"
+          }
+        }
+      }
+    },
+    "Cancel the schedule and shift the rest (%lld) a slot earlier": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit plán a posunout zbytek (%lld) o slot dřív"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan aufheben und den Rest (%lld) einen Slot nach vorn rücken"
           }
         }
       }
@@ -2306,54 +2322,6 @@
         }
       }
     },
-    "Return '%@' to the drafts?": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vrátit „%@“ mezi koncepty?"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "„%@“ zu den Entwürfen zurücklegen?"
-          }
-        }
-      }
-    },
-    "Return to drafts": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vrátit do konceptů"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zurück zu den Entwürfen"
-          }
-        }
-      }
-    },
-    "Return to drafts and shift the rest (%lld) a slot earlier": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vrátit mezi koncepty a posunout zbytek (%lld) o slot dřív"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zu den Entwürfen zurücklegen und den Rest (%lld) einen Slot nach vorn rücken"
-          }
-        }
-      }
-    },
     "Save": {
       "localizations": {
         "cs": {
@@ -2930,18 +2898,18 @@
         }
       }
     },
-    "The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog.": {
+    "The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog; one that is not in a container leaves that field empty.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Řádek pro ~/.ssh/authorized_keys na serveru se složí z toho, kde blog leží. K blogu v kontejneru se jde přes příkaz, který do něj vstoupí, například sudo docker exec -i blog."
+            "value": "Řádek pro ~/.ssh/authorized_keys na serveru se složí z toho, kde blog leží. K blogu v kontejneru se jde přes příkaz, který do něj vstoupí, například sudo docker exec -i blog; u blogu mimo kontejner zůstává to pole prázdné."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Zeile für ~/.ssh/authorized_keys auf dem Server entsteht daraus, wo das Blog liegt. Ein Blog in einem Container erreicht man über den Befehl, der ihn betritt, zum Beispiel sudo docker exec -i blog."
+            "value": "Die Zeile für ~/.ssh/authorized_keys auf dem Server entsteht daraus, wo das Blog liegt. Ein Blog in einem Container erreicht man über den Befehl, der ihn betritt, zum Beispiel sudo docker exec -i blog; liegt das Blog in keinem Container, bleibt dieses Feld leer."
           }
         }
       }
