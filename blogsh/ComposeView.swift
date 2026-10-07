@@ -6,6 +6,9 @@ import PhotosUI
 /// sends it: the pictures first, the markdown last, one delivery. The
 /// post arrives as a draft with a preview; publishing is its properties'
 /// decision, the way it is at the desk.
+///
+/// What is written is kept on the device at every letter (`Unsent`) and
+/// is back in the form the next time it opens, until it is sent.
 struct ComposeView: View {
     /// The receiver's ceiling on one delivery, as the blog last said it.
     private var maxMb: Int { Blogs.shared.current?.maxMb ?? 24 }
@@ -24,10 +27,28 @@ struct ComposeView: View {
     @State private var answered = 0
     @State private var previewing = false
     @State private var looking: Looked?
+    /// What was brought back when the form opened, for the line that says so.
+    @State private var broughtBack: Unsent?
+    /// The blog the form writes for, once it has looked what is kept for it.
+    @State private var keeping: UUID?
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
         PaperScreen(name: String(localized: "New post"), answered: answered) {
+            if let broughtBack {
+                // Said, because it was not asked for: the form opens with
+                // something in it that was not typed just now.
+                Plate {
+                    (Text("Back in the form: what was written here \(broughtBack.at.spoken) and not sent.")
+                     + Text(verbatim: broughtBack.namesPictures ? " " : "")
+                     + Text(broughtBack.namesPictures ? "Its pictures were not kept; add them again." : ""))
+                        .font(.ui(14))
+                        .foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Command("Start with an empty form", symbol: "xmark", danger: true) { startEmpty() }
+                }
+                .gap(14)
+            }
             Plate {
                 TextField("", text: $title, prompt: Text("Title").foregroundStyle(Theme.muted))
                     .font(.ui(18, weight: .semibold))
@@ -101,6 +122,10 @@ struct ComposeView: View {
             }
         }
         .navigationTitle("New post")
+        .task { bringBack() }
+        // Kept at every letter: there is no moment at which an app is told
+        // it is about to be closed.
+        .onChange(of: [title, tags, text]) { _, _ in keep() }
         // A description typed on a card goes into the mark the text has for it.
         // ...and one typed into the text goes onto the card: the two are one.
         .onChange(of: text) { _, now in
@@ -122,6 +147,30 @@ struct ComposeView: View {
         .fullScreenCover(item: $looking) { one in
             ShotsViewer(shots: $shots, current: one.id)
         }
+    }
+
+    // MARK: - Kept until sent
+
+    /// Once, when the form opens: what was written for this blog and not
+    /// sent is put back -- unless something is in the form already.
+    private func bringBack() {
+        guard keeping == nil, let blog = Blogs.shared.currentID else { return }
+        keeping = blog
+        guard title.isEmpty, tags.isEmpty, text.isEmpty, let kept = Unsent.kept(for: blog) else { return }
+        title = kept.title
+        tags = kept.tags
+        text = kept.text
+        broughtBack = kept
+    }
+
+    private func keep() {
+        guard let keeping else { return }
+        Unsent(title: title, tags: tags, text: text, at: .now).keep(for: keeping)
+    }
+
+    private func startEmpty() {
+        title = ""; tags = ""; text = ""; shots = []
+        broughtBack = nil
     }
 
     // MARK: - Pictures
@@ -177,8 +226,9 @@ struct ComposeView: View {
             }
             guard let last = answers.last else { throw EngineError.unreadable("") }
             made = try decoder.decode(ActionAnswer.self, from: last)
-            // The form is the next post's now.
+            // The form is the next post's now, and nothing is left to bring back.
             title = ""; tags = ""; text = ""; shots = []
+            broughtBack = nil
             answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription

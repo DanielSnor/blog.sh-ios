@@ -482,6 +482,22 @@
         }
       }
     },
+    "Back in the form: what was written here %@ and not sent.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ve formuláři je zpátky, co tu bylo rozepsáno %@ a neodesláno."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wieder im Formular: was hier %@ geschrieben und nicht gesendet wurde."
+          }
+        }
+      }
+    },
     "Back to the post": {
       "localizations": {
         "cs": {
@@ -1294,6 +1310,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Auch seine Ankündigung wird gelöscht; der Beitrag behält seinen Text als Entwurf."
+          }
+        }
+      }
+    },
+    "Its pictures were not kept; add them again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázky se neuchovaly, přidej je znovu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bilder wurden nicht aufbewahrt; füge sie erneut hinzu."
           }
         }
       }
@@ -2958,6 +2990,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wieder mit den Farben des Blogs beginnen"
+          }
+        }
+      }
+    },
+    "Start with an empty form": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Začít s prázdným formulářem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit einem leeren Formular beginnen"
           }
         }
       }
