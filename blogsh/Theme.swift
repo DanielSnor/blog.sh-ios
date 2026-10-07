@@ -1028,11 +1028,18 @@ struct SwitchRow: View {
 
     var body: some View {
         Toggle(isOn: $isOn) {
-            if property {
-                Text(label).engineLabel().foregroundStyle(Theme.muted)
-            } else {
-                Text(label).font(.ui(15)).foregroundStyle(Theme.ink)
+            // The words are the switch as much as the switch is: a tap
+            // anywhere on the row turns it, not only one on its far end.
+            Group {
+                if property {
+                    Text(label).engineLabel().foregroundStyle(Theme.muted)
+                } else {
+                    Text(label).font(.ui(15)).foregroundStyle(Theme.ink)
+                }
             }
+            .frame(maxWidth: .infinity, minHeight: 31, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { isOn.toggle() }
         }
         .padding(.vertical, -3)
     }

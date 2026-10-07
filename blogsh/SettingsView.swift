@@ -49,6 +49,10 @@ struct SettingsView: View {
             SectionLabel("Text size")
             TextSizePicker()
             Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")
+
+            BuildMark()
+                .padding(.top, 36)
+                .padding(.bottom, 8)
         }
         .navigationTitle("Settings")
         .toolbar {
@@ -56,6 +60,36 @@ struct SettingsView: View {
                 Button("Done") { dismiss() }
             }
         }
+    }
+}
+
+/// Which build this is, at the foot of the settings: the engine's mark,
+/// when the app was built and from which commit. Nothing to set -- what
+/// is read out when one copy has to be told from another.
+struct BuildMark: View {
+    var stamp = BuildStamp.own
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image("EngineMark")
+                .resizable()
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .accessibilityHidden(true)
+            if let built = stamp.built {
+                Text(verbatim: built.formatted(date: .numeric, time: .shortened))
+                    .font(.mono(12))
+                    .foregroundStyle(Theme.muted)
+            }
+            if let commit = stamp.commit {
+                Text(verbatim: commit)
+                    .font(.mono(12))
+                    .foregroundStyle(Theme.muted)
+                    .textSelection(.enabled)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 }
 

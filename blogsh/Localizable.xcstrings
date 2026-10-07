@@ -194,6 +194,22 @@
         }
       }
     },
+    "A deploy uploads what changed, and stops by itself when the site has suddenly lost or gained a lot: that is what a broken build looks like. Turn this on only when it stopped and the change is right (many posts deleted, a large import). The whole site is then uploaded without that check.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nasazení nahrává jen to, co se změnilo, a samo se zastaví, když webu naráz hodně ubude nebo přibude: tak vypadá rozbité sestavení. Zapni to, jen když se nasazení zastavilo a změna je v pořádku (hodně smazaných příspěvků, velký import). Celý web se pak nahraje bez téhle kontroly."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Deploy lädt hoch, was sich geändert hat, und hält von selbst an, wenn die Website plötzlich viel verloren oder gewonnen hat: So sieht ein kaputter Build aus. Schalte das nur ein, wenn er angehalten hat und die Änderung stimmt (viele gelöschte Beiträge, ein großer Import). Die ganze Website wird dann ohne diese Prüfung hochgeladen."
+          }
+        }
+      }
+    },
     "A draft has no public address yet; only its preview address changes.": {
       "localizations": {
         "cs": {
@@ -487,7 +503,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sestavit znovu každou stránku"
+            "value": "Sestavit znovu všechny stránky"
           }
         },
         "de": {
@@ -1246,22 +1262,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sprache"
-          }
-        }
-      }
-    },
-    "Let the deploy past its guards": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pustit nasazení přes pojistky"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deploy an seinen Sicherungen vorbeilassen"
           }
         }
       }
@@ -3794,6 +3794,22 @@
         }
       }
     },
+    "Upload the whole site unchecked": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahrát celý web bez kontroly"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die ganze Website ungeprüft hochladen"
+          }
+        }
+      }
+    },
     "Use the default colour scheme": {
       "localizations": {
         "cs": {
@@ -3842,6 +3858,22 @@
         }
       }
     },
+    "Usually only the pages that changed are built. With this on the whole site is built again, which takes longer.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Běžně se sestaví jen stránky, které se změnily. Se zapnutým přepínačem se sestaví znovu celý web, což trvá déle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normalerweise werden nur die geänderten Seiten gebaut. Ist das an, wird die ganze Website neu gebaut, was länger dauert."
+          }
+        }
+      }
+    },
     "What do you want to do?": {
       "localizations": {
         "cs": {
@@ -3886,22 +3918,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mit einem eingerichteten Netzwerk wird auch angekündigt — und eine Ankündigung lässt sich nicht zurücknehmen."
-          }
-        }
-      }
-    },
-    "Without the first, only the pages that changed are built; the second uploads everything, which the deploy's own guard asks for when it refuses.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bez prvního se sestaví jen změněné stránky; druhé nahraje všechno, což si pojistka nasazení vyžádá, když odmítne."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ohne das Erste werden nur geänderte Seiten gebaut; das Zweite lädt alles hoch — das verlangt die Sicherung des Deploys, wenn sie ablehnt."
           }
         }
       }

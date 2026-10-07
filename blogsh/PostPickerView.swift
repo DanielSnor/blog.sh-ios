@@ -45,7 +45,7 @@ struct PostPickerView: View {
                 .paperRow(rule: false)
             }
         }
-        .paperList(name: String(localized: "tile.post", defaultValue: "Post"))
+        .paperList(name: String(localized: "tile.post", defaultValue: "Post"), count: total > 0 ? total.formatted() : nil)
         .navigationDestination(for: PostRow.self) { post in
             PostCrossroadsView(post: post, languages: languages, gone: { Task { await load() } })
         }

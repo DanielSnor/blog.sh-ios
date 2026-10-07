@@ -2,7 +2,8 @@ import SwiftUI
 
 /// "The site": the wizard's last entry, `./blog.sh rebuild` -- the whole
 /// site built and deployed, not tied to a post. With the two switches the
-/// command has: every page again, and the deploy past its guards.
+/// command has: every page again, and the whole site uploaded past the
+/// deploy's guards.
 struct SiteView: View {
     @State private var full = false
     @State private var force = false
@@ -12,12 +13,19 @@ struct SiteView: View {
 
     var body: some View {
         PaperScreen(name: MenuEntry.rebuild.short) {
+            // Each switch with what it is for under it: the engine's own
+            // names for them (--full, --force) say what they do to the
+            // engine, not when somebody would want them.
             Plate {
                 SwitchRow(label: "Build every page again", isOn: $full)
-                SwitchRow(label: "Let the deploy past its guards", isOn: $force)
             }
             .padding(.top, 14)
-            Hint("Without the first, only the pages that changed are built; the second uploads everything, which the deploy's own guard asks for when it refuses.")
+            Hint("Usually only the pages that changed are built. With this on the whole site is built again, which takes longer.")
+            Plate {
+                SwitchRow(label: "Upload the whole site unchecked", isOn: $force)
+            }
+            .padding(.top, 14)
+            Hint("A deploy uploads what changed, and stops by itself when the site has suddenly lost or gained a lot: that is what a broken build looks like. Turn this on only when it stopped and the change is right (many posts deleted, a large import). The whole site is then uploaded without that check.")
             Button {
                 Task { await rebuild() }
             } label: {
