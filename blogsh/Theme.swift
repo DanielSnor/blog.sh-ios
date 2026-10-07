@@ -455,8 +455,20 @@ extension View {
     func paperList(name: String? = nil, count: String? = nil) -> some View {
         listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .clearOfItsBar()
             .background(Theme.paper.ignoresSafeArea())
             .namedByItsHeader(name: name, count: count)
+    }
+
+    /// What scrolls ends where the bar begins, instead of running on
+    /// under it: the screen's name is read over plain paper, not over the
+    /// rows passing behind it -- which a bar of glass shows half, and a bar
+    /// with no ground at all (an iPad app on a Mac) shows whole. A scroll
+    /// view only runs under a bar it touches; a point's distance is enough.
+    func clearOfItsBar() -> some View {
+        padding(.top, 1)
+            // With nothing running under it, the bar would put a ground of its own there.
+            .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     /// A row of such a list: the ground shows through, a hairline under it
@@ -525,6 +537,7 @@ struct PaperScreen<Content: View>: View {
             keyboardTop = nil
         }
         .scrollDismissesKeyboard(.interactively)
+        .clearOfItsBar()
         .background(Theme.paper.ignoresSafeArea())
         .namedByItsHeader(name: name, count: count, title: title)
     }
