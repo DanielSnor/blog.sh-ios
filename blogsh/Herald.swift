@@ -185,22 +185,20 @@ struct BusyNote: View {
     @State private var shown = false
 
     var body: some View {
-        Group {
-            if shown {
-                HStack(spacing: 10) {
-                    ProgressView().controlSize(.small)
-                    words.font(.ui(14, weight: .medium)).foregroundStyle(Theme.ink)
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 12)
-                .background(Theme.paper, in: Capsule())
-                .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
-                .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
-            }
+        // Always something to draw: a task on a view that draws nothing is never run.
+        HStack(spacing: 10) {
+            ProgressView().controlSize(.small)
+            words.font(.ui(14, weight: .medium)).foregroundStyle(Theme.ink)
         }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(Theme.paper, in: Capsule())
+        .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
+        .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
+        .opacity(shown ? 1 : 0)
         .task {
             try? await Task.sleep(for: .milliseconds(600))
-            shown = true
+            withAnimation(.easeOut(duration: 0.15)) { shown = true }
         }
     }
 }
