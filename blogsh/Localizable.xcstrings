@@ -930,6 +930,22 @@
         }
       }
     },
+    "Clear": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vymazat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        }
+      }
+    },
     "Clearing out": {
       "localizations": {
         "cs": {

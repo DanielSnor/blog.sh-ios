@@ -28,11 +28,17 @@ struct BlogsView: View {
                         blogs.select(blog.id)
                         settingUp = true
                     } label: {
+                        // A key that looks like one: the mark alone was
+                        // small to see and smaller to believe in.
+                        let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
                         Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 16))
+                            .font(.system(size: 18))
                             .foregroundStyle(.tint)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
+                            .frame(width: 46, height: 46)
+                            .background(shape.fill(Theme.card))
+                            .overlay(KeyOutline(shape: shape))
+                            .contentShape(shape)
+                            .underPointer()
                     }
                     .buttonStyle(PressStyle())
                     .accessibilityLabel(Text("The blog's settings"))

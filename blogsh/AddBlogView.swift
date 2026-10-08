@@ -51,13 +51,32 @@ struct AddBlogView: View {
                     }
                     .disabled(connecting)
                 }
-                TextField("", text: $text, prompt: Text(verbatim: "blogsh://pair?…").foregroundStyle(Theme.muted), axis: .vertical)
-                    .font(.mono(13, bold: false))
-                    .foregroundStyle(Theme.ink)
-                    .lineLimit(2...6)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .disabled(connecting)
+                HStack(alignment: .top, spacing: 6) {
+                    TextField("", text: $text, prompt: Text(verbatim: "blogsh://pair?…").foregroundStyle(Theme.muted), axis: .vertical)
+                        .font(.mono(13, bold: false))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(2...6)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .disabled(connecting)
+                    // What was pasted and is not a code -- a clipboard holds
+                    // anything -- goes with one tap, and what was said of it too.
+                    if !text.isEmpty {
+                        Button {
+                            text = ""
+                            problem = nil
+                        } label: {
+                            Image(systemName: "xmark.circle")
+                                .font(.system(size: 17))
+                                .foregroundStyle(Theme.muted)
+                                .frame(width: 32, height: 32)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PressStyle())
+                        .disabled(connecting)
+                        .accessibilityLabel(Text("Clear"))
+                    }
+                }
                 PasteButton(payloadType: String.self) { pasted in
                     if let first = pasted.first { text = first }
                 }
