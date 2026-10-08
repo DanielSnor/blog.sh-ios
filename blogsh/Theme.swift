@@ -753,6 +753,16 @@ struct Hint: View {
     }
 }
 
+extension View {
+    /// What the server would have to answer for, while the server is
+    /// silent: drawn without its colour and faint, and deaf to a tap.
+    func outOfReach(_ out: Bool) -> some View {
+        disabled(out)
+            .saturation(out ? 0 : 1)
+            .opacity(out ? 0.45 : 1)
+    }
+}
+
 /// What is being written on this device, as far as the first screen
 /// needs to know: that it changed, so the list of things begun is read again.
 @Observable final class Desk {

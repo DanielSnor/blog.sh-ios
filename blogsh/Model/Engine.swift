@@ -15,6 +15,10 @@ nonisolated enum EngineError: Error, LocalizedError {
     case hostKeyChanged(String)
     case refused(Refusal)
     case unreadable(String)
+    /// Nobody answered at the server's address. What the network said of
+    /// it is kept for whoever reads a log, not shown: it is the library's
+    /// own English.
+    case unreachable(String, String)
     /// Where on the way to the engine it broke, for the message that says so.
     case stage(String, Error)
 
@@ -32,6 +36,8 @@ nonisolated enum EngineError: Error, LocalizedError {
             String(localized: "Two posts in different years share this slug, and the app cannot say which of them is meant. At the desk, ./blog.sh props asks which.")
         case .refused(let refusal): refusal.message
         case .unreadable(let text): String(localized: "The engine did not answer as data: \(text)")
+        case .unreachable(let server, _):
+            String(localized: "The server \(server) did not answer. Is this device on a network the server can be reached from?")
         case .stage(let stage, let error): "\(stage): \(error)"
         }
     }
@@ -165,12 +171,23 @@ actor Engine {
     @concurrent private static func onTheLine<T: Sendable>(_ work: @Sendable (Wired, _ wary: Bool) async throws -> T) async throws -> T {
         guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
         let door = Door(host: settings.host, port: settings.port, user: settings.user, keyAccount: settings.keyAccount)
+        // What became of the call is said to whoever shows the blog as
+        // within reach or not: a server nobody answered at is silent
+        // until a call gets through to it again.
+        let server = Reach.server(host: door.host, port: door.port)
         var again = true
         while true {
-            let hold = try await line.take(door)
+            let hold: Line<Wired>.Hold
+            do {
+                hold = try await line.take(door)
+            } catch {
+                if case EngineError.unreachable = error { await Reach.shared.nothing(from: server) }
+                throw error
+            }
             do {
                 let result = try await work(hold.wire, hold.rested)
                 await line.give(hold)
+                await Reach.shared.heard(from: server)
                 return result
             } catch let nothing as NothingSaid {
                 await line.give(hold, broken: true)
@@ -199,14 +216,18 @@ actor Engine {
                 port: door.port,
                 authenticationMethod: .ed25519(username: door.user, privateKey: key),
                 hostKeyValidator: .custom(TrustOnFirstUse(host: door.host, port: door.port)),
-                reconnect: .never
+                reconnect: .never,
+                // An address nobody answers on is given up after ten
+                // seconds, not thirty: somebody is waiting for the screen.
+                connectTimeout: .seconds(10)
             )
         } catch let error as EngineError {
             throw error
         } catch SSHClientError.allAuthenticationOptionsFailed {
             throw EngineError.keyNotKnown
         } catch {
-            throw EngineError.stage("connect", error)
+            log.info("no connection: \(String(describing: error), privacy: .public)")
+            throw EngineError.unreachable(door.host, "\(error)")
         }
     }
 

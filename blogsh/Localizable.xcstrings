@@ -4562,6 +4562,22 @@
         }
       }
     },
+    "Try again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkusit znovu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        }
+      }
+    },
     "Two posts in different years share this slug, and the app cannot say which of them is meant. At the desk, ./blog.sh props asks which.": {
       "localizations": {
         "cs": {
@@ -5646,6 +5662,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "noch nicht -- geht mit der Veröffentlichung raus"
+          }
+        }
+      }
+    },
+    "offline": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "offline"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "offline"
           }
         }
       }

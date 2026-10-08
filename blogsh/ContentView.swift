@@ -196,6 +196,13 @@ struct ContentView: View {
         // now, in order, rather than left to die there unannounced.
         .onChange(of: phase) {
             if phase == .background { Engine.hangUp() }
+            // Back in front with a server that was silent: asked again,
+            // unprompted -- the device has most likely been somewhere else.
+            if phase == .active, offline { Task { await load() } }
+        }
+        // ...and so is it the moment the device finds a network.
+        .task {
+            for await _ in NetworkWatch.comes where offline { await load() }
         }
         // Another blog: nothing of the last one stays on the screen, and its
         // own name and colour are there before its server answers.
@@ -251,12 +258,22 @@ struct ContentView: View {
         return { withAnimation { columns = .all } }
     }
 
+    /// The open blog's server did not answer the last time it was asked --
+    /// this screen, or any other: the blog is offline until it does.
+    private var offline: Bool { Reach.shared.isOffline(blogs.current) }
+
+    /// What the first screen says of a silent server, whichever screen found it so.
+    private var offlineWords: String {
+        EngineError.unreachable(blogs.current?.host.trimmingCharacters(in: .whitespaces) ?? "", "").localizedDescription
+    }
+
     /// The first screen, as the column beside the open one or as a page of its own.
     private func home(roomy: Bool) -> some View {
         HomeView(name: identity?.site.name ?? blogs.current?.label ?? "", claim: identity?.site.claim ?? blogs.current?.claim ?? "",
                  url: identity?.site.url ?? blogs.current?.url ?? "",
                  switchBlog: { showingBlogs = true },
-                 identity: identity, problem: identityProblem, glance: glance,
+                 identity: identity, problem: offline ? offlineWords : identityProblem, glance: glance,
+                 offline: offline, retry: load,
                  begun: begun,
                  facts: blogs.current?.facts,
                  current: sizeClass == .regular && !roomy ? selection : nil,
@@ -370,7 +387,7 @@ struct ContentView: View {
     /// changed them -- one connection, and a failure leaves them as they were.
     private func loadGlance() async {
         let asked = blogs.currentID
-        guard identity != nil,
+        guard identity != nil, !offline,
               let answers = try? await Engine.shared.answers(to: [["queue"], ["list", "--drafts"]]),
               asked == blogs.currentID else { return }
         glance = Self.glance(queue: answers[0], drafts: answers[1]) ?? glance
@@ -441,6 +458,11 @@ struct HomeView: View {
     let identity: VersionAnswer?
     let problem: String?
     let glance: Glance?
+    /// The blog's server is silent: what needs it is shown out of reach,
+    /// and writing a new post -- which does not -- stays as it is.
+    var offline = false
+    /// Asks the server again.
+    var retry: () async -> Void = {}
     /// What was begun on this device and not finished: each a way back to it.
     var begun: [Begun] = []
     /// The blog in numbers, once it has counted itself.
@@ -454,6 +476,7 @@ struct HomeView: View {
     var resume: (Begun) -> Void = { _ in }
 
     @State private var mark: UIImage?
+    @State private var trying = false
 
     private var k: CGFloat { roomy ? 1.35 : 1 }
     private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 8 * k), count: 3) }
@@ -489,13 +512,48 @@ struct HomeView: View {
                 .accessibilityHint(Text("Blogs"))
                 HStack(spacing: 8) {
                     Rectangle().fill(.tint).frame(width: 14 * k, height: 1)
-                    Text(verbatim: "./blog.sh \(identity?.engine ?? "")")
+                    Text(verbatim: "./blog.sh \(offline ? String(localized: "offline") : identity?.engine ?? "")")
                         .engineLabel(12 * k)
                         .foregroundStyle(Theme.muted)
                 }
                 .padding(.top, 14 * k)
 
-                if identity == nil {
+                if offline {
+                    // Said plainly, with the one thing there is to do about it.
+                    HStack(alignment: .firstTextBaseline, spacing: 8 * k) {
+                        Image(systemName: "wifi.slash")
+                            .font(.system(size: 13 * k, weight: .semibold))
+                            .foregroundStyle(Theme.muted)
+                            .accessibilityHidden(true)
+                        Text(verbatim: problem ?? "")
+                            .font(.ui(14 * k))
+                            .foregroundStyle(Theme.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, 14 * k)
+                    Button {
+                        guard !trying else { return }
+                        Task {
+                            trying = true
+                            await retry()
+                            trying = false
+                        }
+                    } label: {
+                        Card(capsule: true) {
+                            if trying {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 13 * k, weight: .semibold))
+                                    .foregroundStyle(.tint)
+                                    .accessibilityHidden(true)
+                            }
+                            Text("Try again").engineLabel(12 * k).wordUnderPointer(Theme.muted)
+                        }
+                    }
+                    .buttonStyle(PressStyle())
+                    .padding(.top, 10 * k)
+                } else if identity == nil {
                     if let problem {
                         Text(verbatim: problem)
                             .font(.ui(14 * k))
@@ -515,12 +573,17 @@ struct HomeView: View {
                     VStack(spacing: 8 * k) {
                         if let glance {
                             Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
+                                .outOfReach(offline)
                         }
                         ForEach(begun) { one in
+                            // A new post is written on the device; changes to
+                            // one the blog has need its text from the server.
                             Button { resume(one) } label: { begunCard(one) }
+                                .outOfReach(offline && one.what != .new)
                         }
                         if let glance {
                             Button { open(.queue, nil, false) } label: { queueCard(glance) }
+                                .outOfReach(offline)
                         }
                     }
                     .buttonStyle(PressStyle())
@@ -532,6 +595,7 @@ struct HomeView: View {
                         Button { open(entry, nil, false) } label: {
                             Tile(entry: entry, highlighted: current == entry)
                         }
+                        .outOfReach(offline && entry != .add)
                     }
                 }
                 .buttonStyle(PressStyle())
@@ -549,6 +613,7 @@ struct HomeView: View {
                     }
                 }
                 .buttonStyle(PressStyle())
+                .outOfReach(offline)
                 .padding(.top, 14 * k)
 
                 // The blog itself, as a reader has it.
@@ -609,11 +674,11 @@ struct HomeView: View {
             }
             if facts.trash > 0 {
                 FactLine(label: String(localized: "facts.trash", defaultValue: "in the trash"), value: facts.trash.formatted(),
-                         detail: Self.size(facts.trashBytes)) { open(.restore, nil, false) }
+                         detail: Self.size(facts.trashBytes), action: offline ? nil : { open(.restore, nil, false) })
             }
             if facts.versions > 0 {
                 FactLine(label: String(localized: "facts.versions", defaultValue: "versions"), value: facts.versions.formatted(),
-                         detail: Self.size(facts.versionsBytes)) { open(.restore, nil, false) }
+                         detail: Self.size(facts.versionsBytes), action: offline ? nil : { open(.restore, nil, false) })
             }
         }
         // The block stands in the middle as one: its widest line centred,
