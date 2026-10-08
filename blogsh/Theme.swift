@@ -361,6 +361,10 @@ struct TextSizePicker: View {
 struct Card<Content: View>: View {
     var highlighted = false
     var capsule = false
+    /// Something that wants looking at before it is lost sight of: the
+    /// card stands on the colour of what cannot be taken back, thinned to
+    /// a wash -- told apart at a glance from the cards that only report.
+    var warning = false
     @ViewBuilder var content: Content
     @Environment(\.scale) private var scale
 
@@ -370,8 +374,16 @@ struct Card<Content: View>: View {
             .padding(.horizontal, 13 * scale)
             .padding(.vertical, 12 * scale)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background { if highlighted { shape.fill(.tint.opacity(0.12)) } else { shape.fill(Theme.card) } }
-            .overlay { if highlighted { shape.strokeBorder(.tint, lineWidth: 1) } else { shape.strokeBorder(Theme.line, lineWidth: 1) } }
+            .background {
+                if warning { shape.fill(Theme.danger.opacity(0.10)) }
+                else if highlighted { shape.fill(.tint.opacity(0.12)) }
+                else { shape.fill(Theme.card) }
+            }
+            .overlay {
+                if warning { shape.strokeBorder(Theme.danger.opacity(0.55), lineWidth: 1) }
+                else if highlighted { shape.strokeBorder(.tint, lineWidth: 1) }
+                else { shape.strokeBorder(Theme.line, lineWidth: 1) }
+            }
             .contentShape(shape)
     }
 }
@@ -483,6 +495,7 @@ extension View {
                     BarName(name: name, count: count, title: title)
                 }
             }
+            .modifier(MenuKeyInBar())
     }
 
     /// A list on paper: no cards of the system's, no ground but ours.
@@ -738,6 +751,38 @@ extension Unsaved {
             words = words + Text(verbatim: " ") + Text("Its pictures were not kept; add them again.")
         }
         return words
+    }
+}
+
+extension EnvironmentValues {
+    /// Brings the menu back beside the open screen, where it was put out
+    /// of the way and there is room for both; nil everywhere else.
+    @Entry var showMenu: (@MainActor () -> Void)? = nil
+}
+
+/// The key that shows and hides the menu's column on a wide screen, in
+/// the accent like every other key of the app: the system's own stands in
+/// the bar in ink, as if it were not one of them.
+struct MenuKey: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) { Image(systemName: "sidebar.left") }
+            .tint(Theme.accent)
+            .accessibilityLabel(Text("Show or hide the menu"))
+    }
+}
+
+/// On a screen whose menu was put out of the way, the key that brings it back.
+private struct MenuKeyInBar: ViewModifier {
+    @Environment(\.showMenu) private var showMenu
+
+    func body(content: Content) -> some View {
+        content.toolbar {
+            if let showMenu {
+                ToolbarItem(placement: .topBarLeading) { MenuKey(action: showMenu) }
+            }
+        }
     }
 }
 

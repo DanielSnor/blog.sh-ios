@@ -1906,6 +1906,22 @@
         }
       }
     },
+    "Open the blog in the browser": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít blog v prohlížeči"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog im Browser öffnen"
+          }
+        }
+      }
+    },
     "Open the preview": {
       "localizations": {
         "cs": {
@@ -2958,6 +2974,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Im Web anzeigen"
+          }
+        }
+      }
+    },
+    "Show or hide the menu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit nebo skrýt menu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü ein- oder ausblenden"
           }
         }
       }

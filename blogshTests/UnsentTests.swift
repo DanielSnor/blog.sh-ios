@@ -198,15 +198,17 @@ import Testing
         #expect(Begun.all(for: UUID(), in: defaults()).isEmpty)
     }
 
-    @Test func everythingKeptForTheBlogIsListedTheLastWrittenFirst() {
+    /// The new post first, however long ago it was written; then the
+    /// changes to posts, the last written first.
+    @Test func theNewPostComesFirstThenTheChangesTheLastWrittenFirst() {
         let defaults = defaults(), blog = UUID()
         Unsent(title: "Pes v trávě", tags: "", text: "Plazí se.", at: at(100)).keep(for: blog, in: defaults)
-        Unsaved(text: "změna", base: "b", at: at(300), title: "Venku").keep(for: blog, slug: "venku", what: .text, in: defaults)
         Unsaved(text: "change", base: "b", at: at(200), title: "Doma").keep(for: blog, slug: "doma", what: .language("en"), in: defaults)
+        Unsaved(text: "změna", base: "b", at: at(300), title: "Venku").keep(for: blog, slug: "venku", what: .text, in: defaults)
         let all = Begun.all(for: blog, in: defaults)
-        #expect(all.map(\.what) == [.text(slug: "venku"), .language(slug: "doma", lang: "en"), .new])
-        #expect(all.map(\.title) == ["Venku", "Doma", "Pes v trávě"])
-        #expect(all.map(\.at) == [at(300), at(200), at(100)])
+        #expect(all.map(\.what) == [.new, .text(slug: "venku"), .language(slug: "doma", lang: "en")])
+        #expect(all.map(\.title) == ["Pes v trávě", "Venku", "Doma"])
+        #expect(all.map(\.at) == [at(100), at(300), at(200)])
     }
 
     @Test func anotherBlogsWritingIsNotThisOnes() {

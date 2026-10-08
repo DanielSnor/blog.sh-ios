@@ -83,7 +83,15 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: $columns, preferredCompactColumn: $column) {
             home(roomy: false)
-                .toolbar(removing: single ? .sidebarToggle : nil)
+                // The system's key for the column is taken out everywhere:
+                // where there is room for two columns the app puts its own
+                // there, in the accent.
+                .toolbar(removing: .sidebarToggle)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        if twoColumns { MenuKey(action: putMenuAway) }
+                    }
+                }
                 .modifier(ColumnForType())
         } detail: {
             // A stack of its own: the screens push further screens (a post,
@@ -128,6 +136,10 @@ struct ContentView: View {
                 }
             }
             .id(visit)
+            .toolbar(removing: .sidebarToggle)
+            // With the menu put out of the way, every screen of the stack
+            // carries the key that brings it back.
+            .environment(\.showMenu, bringMenuBack)
         }
         // What was just done, and the site being brought up to date: under
         // whichever screen is open.
@@ -203,6 +215,19 @@ struct ContentView: View {
 
     /// A wide screen held upright: one column, and the menu a page in it.
     private var single: Bool { upright && sizeClass == .regular }
+
+    /// A wide screen on its side: room for the menu and a screen beside it.
+    private var twoColumns: Bool { sizeClass == .regular && !single }
+
+    private func putMenuAway() {
+        withAnimation { columns = .detailOnly }
+    }
+
+    /// The way back to the menu, for the screens beside which it was put away.
+    private var bringMenuBack: (@MainActor () -> Void)? {
+        guard twoColumns, columns == .detailOnly else { return nil }
+        return { withAnimation { columns = .all } }
+    }
 
     /// The first screen, as the column beside the open one or as a page of its own.
     private func home(roomy: Bool) -> some View {
@@ -449,25 +474,25 @@ struct HomeView: View {
                     }
                 }
 
-                if let glance {
+                // What waits, in the order it wants a hand: the drafts on
+                // the blog, then the writing kept on this device from the
+                // last time -- said here, or nobody knows of it before
+                // opening the form it waits in -- and last the queue, which
+                // goes out by itself.
+                if glance != nil || !begun.isEmpty {
                     VStack(spacing: 8 * k) {
-                        Button { open(.queue, nil, false) } label: { queueCard(glance) }
-                        Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
-                    }
-                    .buttonStyle(PressStyle())
-                    .padding(.top, 18 * k)
-                }
-
-                // Writing kept on this device from the last time: said here,
-                // or nobody knows of it before opening the form it waits in.
-                if !begun.isEmpty {
-                    VStack(spacing: 8 * k) {
+                        if let glance {
+                            Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
+                        }
                         ForEach(begun) { one in
                             Button { resume(one) } label: { begunCard(one) }
                         }
+                        if let glance {
+                            Button { open(.queue, nil, false) } label: { queueCard(glance) }
+                        }
                     }
                     .buttonStyle(PressStyle())
-                    .padding(.top, (glance == nil ? 18 : 8) * k)
+                    .padding(.top, 18 * k)
                 }
 
                 LazyVGrid(columns: columns, spacing: 8 * k) {
@@ -478,7 +503,7 @@ struct HomeView: View {
                     }
                 }
                 .buttonStyle(PressStyle())
-                .padding(.top, (glance == nil ? 22 : 10) * k)
+                .padding(.top, (glance == nil && begun.isEmpty ? 22 : 10) * k)
 
                 Button { open(.browse, nil, true) } label: {
                     Card(capsule: true) {
@@ -493,6 +518,21 @@ struct HomeView: View {
                 }
                 .buttonStyle(PressStyle())
                 .padding(.top, 14 * k)
+
+                // The blog itself, as a reader has it.
+                if let site = URL(string: url), ["http", "https"].contains(site.scheme?.lowercased() ?? ""), site.host != nil {
+                    Link(destination: site) {
+                        Card(capsule: true) {
+                            Image(systemName: "safari")
+                                .font(.system(size: 13 * k, weight: .semibold))
+                                .foregroundStyle(.tint)
+                                .accessibilityHidden(true)
+                            Text("Open the blog in the browser").engineLabel(12 * k).foregroundStyle(Theme.muted)
+                        }
+                    }
+                    .buttonStyle(PressStyle())
+                    .padding(.top, 8 * k)
+                }
 
                 if let facts { factLines(facts).padding(.top, 26 * k) }
             }
@@ -564,12 +604,12 @@ struct HomeView: View {
     /// One thing begun: what it is and when it was last written in, and
     /// under that what it is called.
     private func begunCard(_ one: Begun) -> some View {
-        Card {
-            Image(systemName: "square.and.pencil").font(.system(size: 17 * k)).foregroundStyle(.tint)
+        Card(warning: true) {
+            Image(systemName: "square.and.pencil").font(.system(size: 17 * k)).foregroundStyle(Theme.danger)
             VStack(alignment: .leading, spacing: 2 * k) {
                 (kind(one) + Text(verbatim: " · \(one.at.spoken)"))
-                    .font(.ui(12 * k))
-                    .foregroundStyle(Theme.muted)
+                    .font(.ui(12 * k, weight: .medium))
+                    .foregroundStyle(Theme.danger)
                     .lineLimit(1)
                 if !one.title.isEmpty {
                     Text(verbatim: one.title)

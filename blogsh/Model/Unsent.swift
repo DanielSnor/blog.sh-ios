@@ -175,19 +175,19 @@ nonisolated struct Begun: Identifiable, Equatable, Sendable {
 
     var id: What { what }
 
-    /// All of them for a blog, the last written first.
+    /// All of them for a blog: the new post first, then the changes to
+    /// posts the blog has, the last written first.
     static func all(for blog: UUID, in defaults: UserDefaults = .standard) -> [Begun] {
-        var all: [Begun] = []
-        if let unsent = Unsent.kept(for: blog, in: defaults) {
-            all.append(Begun(what: .new, title: unsent.headline, at: unsent.at))
-        }
+        var changes: [Begun] = []
         for (slug, what, kept) in Unsaved.all(for: blog, in: defaults) {
             let title = kept.title.flatMap { $0.isEmpty ? nil : $0 } ?? slug
             switch what {
-            case .text: all.append(Begun(what: .text(slug: slug), title: title, at: kept.at))
-            case .language(let lang): all.append(Begun(what: .language(slug: slug, lang: lang), title: title, at: kept.at))
+            case .text: changes.append(Begun(what: .text(slug: slug), title: title, at: kept.at))
+            case .language(let lang): changes.append(Begun(what: .language(slug: slug, lang: lang), title: title, at: kept.at))
             }
         }
-        return all.sorted { ($0.at, $1.title) > ($1.at, $0.title) }
+        changes.sort { ($0.at, $1.title) > ($1.at, $0.title) }
+        guard let unsent = Unsent.kept(for: blog, in: defaults) else { return changes }
+        return [Begun(what: .new, title: unsent.headline, at: unsent.at)] + changes
     }
 }
