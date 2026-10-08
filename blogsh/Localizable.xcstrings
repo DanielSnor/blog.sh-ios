@@ -450,6 +450,22 @@
         }
       }
     },
+    "Archive check": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrola archivu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivprüfung"
+          }
+        }
+      }
+    },
     "As the blog has them": {
       "localizations": {
         "cs": {
@@ -574,6 +590,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fett"
+          }
+        }
+      }
+    },
+    "Both only read. The first goes through the posts, their pictures, links and addresses; the second through the blog's configuration, its announcing, its schedule and its deploy.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obě jen čtou. První projde příspěvky, jejich obrázky, odkazy a adresy; druhá konfiguraci blogu, oznamování, plánovač a nasazení."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beide lesen nur. Die erste geht durch die Beiträge, ihre Bilder, Links und Adressen; die zweite durch die Konfiguration des Blogs, seine Ankündigungen, seinen Zeitplan und sein Deploy."
           }
         }
       }
@@ -734,6 +766,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "An welche Stelle?"
+          }
+        }
+      }
+    },
+    "Check again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontrolovat znovu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut prüfen"
+          }
+        }
+      }
+    },
+    "Check the archive": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontrolovat archiv"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv prüfen"
+          }
+        }
+      }
+    },
+    "Check the installation": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontrolovat instalaci"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation prüfen"
+          }
+        }
+      }
+    },
+    "Checking…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontroluji…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geprüft…"
           }
         }
       }
@@ -962,6 +1058,22 @@
         }
       }
     },
+    "Diagnostics": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostika"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
+          }
+        }
+      }
+    },
     "Dividers": {
       "localizations": {
         "cs": {
@@ -1186,6 +1298,22 @@
         }
       }
     },
+    "Fine": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V pořádku"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Ordnung"
+          }
+        }
+      }
+    },
     "Forget the server's key": {
       "localizations": {
         "cs": {
@@ -1294,6 +1422,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "In den Text einfügen"
+          }
+        }
+      }
+    },
+    "Installation check": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrola instalace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installationsprüfung"
           }
         }
       }
@@ -1678,6 +1822,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Keine Beiträge zur Auswahl."
+          }
+        }
+      }
+    },
+    "No problems.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez problémů."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Probleme."
           }
         }
       }
@@ -2094,6 +2254,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vorschau"
+          }
+        }
+      }
+    },
+    "Problem": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problém"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem"
+          }
+        }
+      }
+    },
+    "Problems: %lld, worth a look: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problémů: %1$lld, ke zvážení: %2$lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probleme: %1$lld, zum Nachsehen: %2$lld"
           }
         }
       }
@@ -3666,6 +3858,22 @@
         }
       }
     },
+    "The sentences are the blog's own, in the blog's language. Nothing is repaired from here.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Věty jsou vlastní slova blogu, v jeho jazyce. Odsud se nic neopravuje."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sätze sind die des Blogs, in seiner Sprache. Von hier aus wird nichts repariert."
+          }
+        }
+      }
+    },
     "The server closed the connection without an answer.": {
       "localizations": {
         "cs": {
@@ -3854,6 +4062,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die angebotene Zeit ist der nächste freie Slot."
+          }
+        }
+      }
+    },
+    "This blog's engine does not offer this check to the app yet. It comes with a newer ./blog.sh.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Engine tohohle blogu tuhle kontrolu appce zatím nenabízí. Přijde s novějším ./blog.sh."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Engine dieses Blogs bietet der App diese Prüfung noch nicht an. Sie kommt mit einem neueren ./blog.sh."
           }
         }
       }
@@ -4270,6 +4494,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mit einem eingerichteten Netzwerk wird auch angekündigt — und eine Ankündigung lässt sich nicht zurücknehmen."
+          }
+        }
+      }
+    },
+    "Worth a look": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ke zvážení"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Nachsehen"
           }
         }
       }

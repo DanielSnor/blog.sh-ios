@@ -222,6 +222,7 @@ enum Doing {
         case "toot", "bluesky": Text("Announcing…")
         case "empty": Text("Clearing out…")
         case "rebuild": Text("Rebuilding…")
+        case "check", "doctor": Text("Checking…")
         default: Text("Saving…")
         }
     }

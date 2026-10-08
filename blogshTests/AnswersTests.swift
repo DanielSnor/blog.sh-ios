@@ -258,3 +258,73 @@ import Testing
         #expect(said.contains("authorized_keys"))
     }
 }
+
+/// What `check` and `doctor` answer, read as they are sent. A mistake
+/// here is a problem the blog reported and the app passed over.
+@Suite struct DiagnosisTests {
+    private func read(_ name: String) throws -> DiagnosisAnswer {
+        try Engine.decode(try Fixture.data(name))
+    }
+
+    /// As blogsh.app answered `check` on 8. 10. 2026.
+    @Test func aFindingAboutAPostNamesThePost() throws {
+        let answer = try read("check-warning")
+        #expect(answer.errors == 0)
+        #expect(answer.warnings == 1)
+        let finding = try #require(answer.findings.first)
+        #expect(finding.level == .warning)
+        #expect(finding.kind == "post_entities")
+        #expect(finding.slug == "everything-else-in-1-6")
+        #expect(finding.text.hasPrefix("everything-else-in-1-6:"))
+        #expect(finding.fix?.isEmpty == false)
+    }
+
+    /// As sean.cz answered: one finding, and it is the all-clear.
+    @Test func anArchiveInOrderSaysSoInOneFinding() throws {
+        let answer = try read("check-clear")
+        #expect(answer.errors == 0 && answer.warnings == 0)
+        #expect(answer.findings.map(\.level) == [.fine])
+        #expect(answer.findings.first?.kind == "all_clear")
+        #expect(answer.findings.first?.slug == nil)
+        #expect(answer.findings.first?.fix == nil)
+    }
+
+    /// As the engine's `doctor --json` answers: a kind on every finding,
+    /// a fix that is null where there is no advice, nothing about a post.
+    @Test func theInstallationsFindingsAreReadWithTheirKinds() throws {
+        let answer = try read("doctor")
+        #expect(answer.errors == 0)
+        #expect(answer.warnings == answer.findings.filter { $0.level == .warning }.count)
+        #expect(answer.findings.allSatisfy { !$0.kind.isEmpty })
+        #expect(answer.findings.allSatisfy { $0.slug == nil })
+        #expect(answer.findings.contains { $0.level == .fine && $0.fix == nil })
+        #expect(answer.findings.contains { $0.kind == "scheduler" })
+    }
+
+    @Test func theProblemsComeFirstThenWhatWantsALookThenWhatIsFine() throws {
+        let mixed = Data(#"""
+        {"errors": 1, "warnings": 2, "findings": [
+          {"level": "ok", "kind": "a", "text": "fine one", "fix": null},
+          {"level": "warn", "kind": "b", "text": "first warning"},
+          {"level": "error", "kind": "c", "text": "the error", "fix": "do this"},
+          {"level": "warn", "kind": "d", "text": "second warning", "data": {"slugs": ["x", "y"]}},
+          {"level": "notice", "text": "a level nobody knows"}
+        ]}
+        """#.utf8)
+        let answer: DiagnosisAnswer = try Engine.decode(mixed)
+        #expect(answer.ordered.map(\.text) == ["the error", "first warning", "second warning", "a level nobody knows", "fine one"])
+        // A level the app has not heard of is not passed over as fine.
+        #expect(answer.findings.last?.level == .warning)
+        #expect(answer.findings.last?.kind == "")
+        // What a finding is about differs with its kind: no post, no failure.
+        #expect(answer.findings[3].slug == nil)
+    }
+
+    /// The blog said no -- an engine without the check: that is a
+    /// refusal, not a diagnosis with nothing in it.
+    @Test func aRefusalIsNotADiagnosis() {
+        let refusal = Data(#"{"ok":false,"error":"unknown_command","message":"\"doctor\" is not a command a program may run."}"#.utf8)
+        #expect(throws: EngineError.self) { let _: DiagnosisAnswer = try Engine.decode(refusal) }
+    }
+}
+

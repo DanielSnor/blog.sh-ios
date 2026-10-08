@@ -468,3 +468,56 @@ extension Array where Element == String {
     /// The engine's lines without the server's paths in them.
     nonisolated var plain: [String] { map(ServerPaths.plain) }
 }
+
+/// `check --json` and `doctor --json`: what a look at the archive, or at
+/// the installation, found. Both say how many problems and how many
+/// things worth a look, and then each finding: how grave, which check it
+/// came from, a sentence, and -- where there is one -- what to do about
+/// it. The sentences are the blog's own, in the blog's language.
+nonisolated struct DiagnosisAnswer: Decodable, Sendable {
+    let errors: Int
+    let warnings: Int
+    let findings: [Finding]
+
+    nonisolated struct Finding: Decodable, Equatable, Sendable {
+        enum Level: Int, Sendable { case error, warning, fine }
+
+        let level: Level
+        /// The check it came from: `trash`, `post_entities`, `all_clear`.
+        let kind: String
+        let text: String
+        let fix: String?
+        /// The post it is about, where it is about one.
+        let slug: String?
+
+        enum CodingKeys: String, CodingKey {
+            case level, kind, text, fix, data
+        }
+
+        private struct About: Decodable {
+            let slug: String?
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            switch try c.decode(String.self, forKey: .level) {
+            case "error": level = .error
+            case "ok": level = .fine
+            // A level this app has not heard of is not passed over as fine.
+            default: level = .warning
+            }
+            kind = (try? c.decodeIfPresent(String.self, forKey: .kind)) ?? ""
+            text = try c.decode(String.self, forKey: .text)
+            fix = (try? c.decodeIfPresent(String.self, forKey: .fix)).flatMap { $0.isEmpty ? nil : $0 }
+            // What a finding is about differs with its kind; only the post is asked for.
+            slug = (try? c.decodeIfPresent(About.self, forKey: .data))?.slug
+        }
+    }
+
+    /// The problems first, then what wants a look, then what is fine --
+    /// each in the order the blog gave them.
+    var ordered: [Finding] {
+        findings.enumerated().sorted { ($0.element.level.rawValue, $0.offset) < ($1.element.level.rawValue, $1.offset) }.map(\.element)
+    }
+}
+

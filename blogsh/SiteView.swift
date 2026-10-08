@@ -3,7 +3,8 @@ import SwiftUI
 /// "The site": the wizard's last entry, `./blog.sh rebuild` -- the whole
 /// site built and deployed, not tied to a post. With the two switches the
 /// command has: every page again, and the whole site uploaded past the
-/// deploy's guards.
+/// deploy's guards. Under it the two looks that only read: `check` and
+/// `doctor` (see `DiagnosisView`).
 struct SiteView: View {
     @State private var full = false
     @State private var force = false
@@ -47,6 +48,20 @@ struct SiteView: View {
                     }
                 }
             }
+
+            // A look that changes nothing, beside the two things that do.
+            SectionLabel("Diagnostics")
+            Plate {
+                NavigationLink { DiagnosisView(what: .archive) } label: {
+                    CommandRow("Check the archive", symbol: "checklist", leads: true)
+                }
+                .buttonStyle(PressStyle())
+                NavigationLink { DiagnosisView(what: .installation) } label: {
+                    CommandRow("Check the installation", symbol: "stethoscope", leads: true)
+                }
+                .buttonStyle(PressStyle())
+            }
+            Hint("Both only read. The first goes through the posts, their pictures, links and addresses; the second through the blog's configuration, its announcing, its schedule and its deploy.")
         }
         .navigationTitle("The site")
     }
