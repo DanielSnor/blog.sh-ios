@@ -329,10 +329,11 @@ struct TextSizePicker: View {
                 Button { scale.size = size } label: {
                     Text(verbatim: "Aa")
                         .font(.custom(Typeface.sans(.medium) ?? "Helvetica Neue", fixedSize: size.sample(wide: TypeScale.wide)))
-                        .foregroundStyle(chosen ? .white : Theme.ink)
+                        .wordUnderPointer(chosen ? .white : Theme.ink, moves: !chosen)
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .background(chosen ? Theme.accent : .clear)
                         .contentShape(Rectangle())
+                        .underPointer()
                 }
                 .buttonStyle(PressStyle())
                 .accessibilityLabel(Self.name(size))
@@ -380,9 +381,10 @@ struct Card<Content: View>: View {
             .overlay {
                 if warning { shape.strokeBorder(Theme.danger.opacity(0.55), lineWidth: 1) }
                 else if highlighted { shape.strokeBorder(.tint, lineWidth: 1) }
-                else { shape.strokeBorder(Theme.line, lineWidth: 1) }
+                else { KeyOutline(shape: shape) }
             }
             .contentShape(shape)
+            .underPointer()
     }
 }
 
@@ -427,12 +429,13 @@ struct FilterPill: View {
             .lineLimit(1)
             // The chosen one is filled with the accent, as on the blog's
             // own pages; the others are a hairline and a muted word.
-            .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(Theme.muted))
+            .wordUnderPointer(selected ? .white : Theme.muted, moves: !selected)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background { if selected { Capsule().fill(.tint) } }
-            .overlay { if selected { Capsule().strokeBorder(.tint, lineWidth: 1) } else { Capsule().strokeBorder(Theme.line, lineWidth: 1) } }
+            .overlay { if selected { Capsule().strokeBorder(.tint, lineWidth: 1) } else { KeyOutline(shape: Capsule()) } }
             .contentShape(Capsule())
+            .underPointer()
     }
 }
 
@@ -937,6 +940,57 @@ struct Plate<Content: View>: View {
     }
 }
 
+// MARK: - Under the pointer
+
+extension EnvironmentValues {
+    /// The pointer is over the key this view is a part of.
+    @Entry var underPointer = false
+}
+
+/// A key says that the pointer is over it: its outline and its word go
+/// into the accent, as on the blog's own pages -- where something filled
+/// keeps its fill, and the title of a post in a list stays as it is. Only
+/// where there is a pointer: a Mac, a tablet with a mouse.
+private struct UnderPointer: ViewModifier {
+    @State private var over = false
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.underPointer, over)
+            .onHover { over = $0 }
+    }
+}
+
+/// The hairline around a key: the rules' colour, the accent under the pointer.
+struct KeyOutline<S: InsettableShape>: View {
+    let shape: S
+    @Environment(\.underPointer) private var over
+
+    var body: some View {
+        shape.strokeBorder(over ? Theme.accent : Theme.line, lineWidth: 1)
+    }
+}
+
+private struct WordUnderPointer: ViewModifier {
+    let rest: Color
+    let moves: Bool
+    @Environment(\.underPointer) private var over
+
+    func body(content: Content) -> some View {
+        content.foregroundStyle(over && moves ? Theme.accent : rest)
+    }
+}
+
+extension View {
+    /// This is a key: what it is made of may answer to the pointer.
+    func underPointer() -> some View { modifier(UnderPointer()) }
+
+    /// A key's word, in its own colour until the pointer is over the key.
+    func wordUnderPointer(_ rest: Color, moves: Bool = true) -> some View {
+        modifier(WordUnderPointer(rest: rest, moves: moves))
+    }
+}
+
 /// The room a plate leaves around each of its rows.
 nonisolated enum PlateRow {
     static let side: CGFloat = 13
@@ -1079,7 +1133,7 @@ struct CommandRow: View {
             }
             .frame(width: 22)
             label.font(.ui(15, weight: .medium))
-                .foregroundStyle(danger ? Theme.danger : Theme.ink)
+                .wordUnderPointer(danger ? Theme.danger : Theme.ink, moves: !danger)
                 .multilineTextAlignment(.leading)
             Spacer(minLength: 6)
             if leads {
@@ -1090,6 +1144,7 @@ struct CommandRow: View {
         }
         .opacity(enabled ? 1 : 0.45)
         .contentShape(Rectangle())
+        .underPointer()
     }
 }
 
@@ -1522,8 +1577,9 @@ struct MarkBar: View {
         // Keys, so in the accent like every other key.
         .foregroundStyle(.tint)
         .frame(width: 34, height: 30)
-        .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+        .overlay(KeyOutline(shape: shape))
         .contentShape(shape)
+        .underPointer()
     }
 
     private func name(_ kind: Marks.Kind) -> LocalizedStringKey {

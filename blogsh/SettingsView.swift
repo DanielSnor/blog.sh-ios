@@ -23,7 +23,7 @@ struct SettingsView: View {
                                 if let name = choice.name { Text(verbatim: name) } else { Text("As the system has it") }
                             }
                             .font(.ui(15))
-                            .foregroundStyle(Theme.ink)
+                            .wordUnderPointer(Theme.ink)
                             Spacer(minLength: 8)
                             if choice == language {
                                 Image(systemName: "checkmark")
@@ -32,6 +32,7 @@ struct SettingsView: View {
                             }
                         }
                         .contentShape(Rectangle())
+                        .underPointer()
                     }
                     .buttonStyle(PressStyle())
                     .accessibilityAddTraits(choice == language ? .isSelected : [])
@@ -90,7 +91,7 @@ struct ColoursSection: View {
                         HStack(spacing: 10) {
                             Text(name(choice))
                                 .font(.ui(15))
-                                .foregroundStyle(ink)
+                                .wordUnderPointer(ink)
                             Spacer(minLength: 8)
                             if choice == look.wearing {
                                 Image(systemName: "checkmark")
@@ -99,6 +100,7 @@ struct ColoursSection: View {
                             }
                         }
                         .contentShape(Rectangle())
+                        .underPointer()
                     }
                     .buttonStyle(PressStyle())
                     .accessibilityAddTraits(choice == look.wearing ? .isSelected : [])

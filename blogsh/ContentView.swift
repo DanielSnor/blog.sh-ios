@@ -514,7 +514,7 @@ struct HomeView: View {
                             .font(.system(size: 13 * k, weight: .semibold))
                             .foregroundStyle(.tint)
                             .accessibilityHidden(true)
-                        Text("Search the archive").engineLabel(12 * k).foregroundStyle(Theme.muted)
+                        Text("Search the archive").engineLabel(12 * k).wordUnderPointer(Theme.muted)
                     }
                 }
                 .buttonStyle(PressStyle())
@@ -528,7 +528,7 @@ struct HomeView: View {
                                 .font(.system(size: 13 * k, weight: .semibold))
                                 .foregroundStyle(.tint)
                                 .accessibilityHidden(true)
-                            Text("Open the blog in the browser").engineLabel(12 * k).foregroundStyle(Theme.muted)
+                            Text("Open the blog in the browser").engineLabel(12 * k).wordUnderPointer(Theme.muted)
                         }
                     }
                     .buttonStyle(PressStyle())
@@ -639,7 +639,7 @@ struct HomeView: View {
         Card {
             Image(systemName: "pencil").font(.system(size: 17 * k)).foregroundStyle(.tint)
             if glance.drafts > 0 {
-                Text("Drafts in progress").font(.ui(15 * k, weight: .medium)).foregroundStyle(Theme.ink)
+                Text("Drafts in progress").font(.ui(15 * k, weight: .medium)).wordUnderPointer(Theme.ink)
                 Spacer(minLength: 6)
                 CountBadge(count: glance.drafts)
             } else {
@@ -836,14 +836,15 @@ struct Tile: View {
                 .font(.ui(13 * scale, weight: .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-                .foregroundStyle(Theme.ink)
+                .wordUnderPointer(Theme.ink)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 16 * scale)
         .padding(.bottom, 12 * scale)
         .background { if highlighted { shape.fill(.tint.opacity(0.12)) } else { shape.fill(Theme.card) } }
-        .overlay { if highlighted { shape.strokeBorder(.tint, lineWidth: 1) } else { shape.strokeBorder(Theme.line, lineWidth: 1) } }
+        .overlay { if highlighted { shape.strokeBorder(.tint, lineWidth: 1) } else { KeyOutline(shape: shape) } }
         .contentShape(shape)
+        .underPointer()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(entry.name))
         .accessibilityAddTraits(.isButton)
