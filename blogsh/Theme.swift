@@ -388,18 +388,18 @@ struct Card<Content: View>: View {
     }
 }
 
-/// How many: the accent, filled, with the number in the engine's voice.
+/// How many: the number in the engine's voice and in ink. The accent on
+/// such a card is its mark's; the number beside it is only a number, as
+/// the counts beside the marks are on the blog's own pages.
 struct CountBadge: View {
     let count: Int
     @Environment(\.scale) private var scale
 
     var body: some View {
         Text(verbatim: "\(count)")
-            .font(.mono(12 * scale))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 9 * scale)
-            .padding(.vertical, 2 * scale)
-            .background(.tint, in: Capsule())
+            .font(.mono(13 * scale))
+            .foregroundStyle(Theme.ink)
+            .padding(.horizontal, 4 * scale)
     }
 }
 

@@ -557,18 +557,33 @@ struct HomeView: View {
     /// and what waits in the trash and among the versions -- those two are
     /// keys, to the screen that empties them.
     private func factLines(_ facts: Facts) -> some View {
+        // A line whose number is nought is not said at all, as on the
+        // blog's own pages: there is nothing in it to read, and behind the
+        // last two nothing to empty.
         Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14 * k, verticalSpacing: 7 * k) {
-            FactLine(label: String(localized: "facts.posts", defaultValue: "posts"), value: facts.posts.formatted(),
-                     detail: facts.since.isEmpty ? nil : String(localized: "facts.since", defaultValue: "since \(facts.since)"))
-            FactLine(label: String(localized: "facts.words", defaultValue: "words"), value: facts.words.formatted(),
-                     detail: facts.readingHours >= 1 ? String(localized: "facts.reading", defaultValue: "\(Self.hours(facts.readingHours)) of reading") : nil)
-            FactLine(label: String(localized: "facts.tags", defaultValue: "tags"), value: facts.tags.formatted(), detail: nil)
-            FactLine(label: String(localized: "facts.media", defaultValue: "media"), value: facts.media.formatted(),
-                     detail: facts.media > 0 ? Self.size(facts.mediaBytes) : nil)
-            FactLine(label: String(localized: "facts.trash", defaultValue: "in the trash"), value: facts.trash.formatted(),
-                     detail: facts.trash > 0 ? Self.size(facts.trashBytes) : nil) { open(.restore, nil, false) }
-            FactLine(label: String(localized: "facts.versions", defaultValue: "versions"), value: facts.versions.formatted(),
-                     detail: facts.versions > 0 ? Self.size(facts.versionsBytes) : nil) { open(.restore, nil, false) }
+            if facts.posts > 0 {
+                FactLine(label: String(localized: "facts.posts", defaultValue: "posts"), value: facts.posts.formatted(),
+                         detail: facts.since.isEmpty ? nil : String(localized: "facts.since", defaultValue: "since \(facts.since)"))
+            }
+            if facts.words > 0 {
+                FactLine(label: String(localized: "facts.words", defaultValue: "words"), value: facts.words.formatted(),
+                         detail: facts.readingHours >= 1 ? String(localized: "facts.reading", defaultValue: "\(Self.hours(facts.readingHours)) of reading") : nil)
+            }
+            if facts.tags > 0 {
+                FactLine(label: String(localized: "facts.tags", defaultValue: "tags"), value: facts.tags.formatted(), detail: nil)
+            }
+            if facts.media > 0 {
+                FactLine(label: String(localized: "facts.media", defaultValue: "media"), value: facts.media.formatted(),
+                         detail: Self.size(facts.mediaBytes))
+            }
+            if facts.trash > 0 {
+                FactLine(label: String(localized: "facts.trash", defaultValue: "in the trash"), value: facts.trash.formatted(),
+                         detail: Self.size(facts.trashBytes)) { open(.restore, nil, false) }
+            }
+            if facts.versions > 0 {
+                FactLine(label: String(localized: "facts.versions", defaultValue: "versions"), value: facts.versions.formatted(),
+                         detail: Self.size(facts.versionsBytes)) { open(.restore, nil, false) }
+            }
         }
         // The block stands in the middle as one: its widest line centred,
         // the others keeping their places under it.
