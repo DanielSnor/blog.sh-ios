@@ -139,4 +139,28 @@ import Testing
         blog.name = "./blog.sh"
         #expect(blog.label == "./blog.sh")
     }
+
+    /// Where a blog is, under its name: with its port where the port is
+    /// not ssh's usual one.
+    @Test func whereABlogIsSaysItsPortWhenItIsNotTheUsualOne() {
+        var blog = Blog()
+        #expect(blog.place == "")
+        blog.host = "blog.example"
+        #expect(blog.place == "blog.example")
+        blog.user = "me"
+        #expect(blog.place == "me@blog.example")
+        blog.port = 202
+        #expect(blog.place == "me@blog.example:202")
+        blog.host = "10.0.0.5"
+        blog.port = 2222
+        #expect(blog.place == "me@10.0.0.5:2222")
+        blog.host = "fe80::1"
+        #expect(blog.place == "me@[fe80::1]:2222")
+        blog.port = 22
+        #expect(blog.place == "me@fe80::1")
+        // A port never set is the usual one.
+        blog.host = "blog.example"
+        blog.port = 0
+        #expect(blog.place == "me@blog.example")
+    }
 }

@@ -117,6 +117,23 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         let folder = path.split(separator: "/").last.map(String.init) ?? ""
         return folder.isEmpty ? host.trimmingCharacters(in: .whitespaces) : folder
     }
+
+    /// Where it is reached, as ssh would be told: the user, the server,
+    /// and the port where it is not ssh's usual one -- a blog at home, or
+    /// behind a host that moved its ssh, is on a port of its own, and two
+    /// blogs can differ in nothing else.
+    var place: String {
+        let server = host.trimmingCharacters(in: .whitespaces)
+        guard !server.isEmpty else { return "" }
+        let who = user.trimmingCharacters(in: .whitespaces)
+        var place = (who.isEmpty ? "" : who + "@") + server
+        if port != 22, port != 0 {
+            // An address with colons of its own is set apart from the port's.
+            if server.contains(":") { place = (who.isEmpty ? "" : who + "@") + "[" + server + "]" }
+            place += ":\(port)"
+        }
+        return place
+    }
 }
 
 /// The blog in numbers, as the first screen says them under the search:

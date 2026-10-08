@@ -88,9 +88,8 @@ struct BlogRow: View {
                 } else {
                     Text(verbatim: blog.label).font(.ui(15, weight: .bold)).foregroundStyle(Theme.ink).lineLimit(1)
                 }
-                let place = blog.host.isEmpty ? "" : "\(blog.user.isEmpty ? "" : blog.user + "@")\(blog.host)"
-                if !place.isEmpty {
-                    Text(verbatim: place).font(.mono(12, bold: false)).foregroundStyle(Theme.muted).lineLimit(1)
+                if !blog.place.isEmpty {
+                    Text(verbatim: blog.place).font(.mono(12, bold: false)).foregroundStyle(Theme.muted).lineLimit(1)
                 }
             }
             Spacer(minLength: 8)
