@@ -38,8 +38,14 @@ nonisolated struct PairingCode: Equatable, Sendable {
         let link = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parts = URLComponents(string: link),
               parts.scheme?.lowercased() == "blogsh", parts.host?.lowercased() == "pair" else { throw .notACode }
+        // The engine writes the parts the way a form is sent: a space is a
+        // plus and a plus is %2B. Read as a plain link's would be, a blog
+        // called "Můj blog" would be asked about as "Můj+blog".
         var said: [String: String] = [:]
-        for item in parts.queryItems ?? [] where said[item.name] == nil { said[item.name] = item.value ?? "" }
+        for item in parts.percentEncodedQueryItems ?? [] where said[item.name] == nil {
+            let written = (item.value ?? "").replacingOccurrences(of: "+", with: "%20")
+            said[item.name] = written.removingPercentEncoding ?? written
+        }
         guard said["v"] == "1" else { throw said["v"] == nil ? .incomplete : .anotherVersion }
         guard let host = said["h"], !host.isEmpty,
               let user = said["u"], !user.isEmpty,

@@ -30,6 +30,18 @@ import Testing
         #expect(try PairingCode(link().replacingOccurrences(of: "blogsh://pair", with: "BLOGSH://PAIR")).port == 2222)
     }
 
+    /// As the engine writes the link: the parts are form-encoded, so a
+    /// space in the blog's name arrives as a plus, and a plus as %2B.
+    @Test func aPartOfTheLinkIsReadAsTheEngineWroteIt() throws {
+        #expect(try PairingCode(link { $0["n"] = "M%C5%AFj+blog" }).site == "Můj blog")
+        #expect(try PairingCode(link { $0["n"] = "C%2B%2B+a+j%C3%A1" }).site == "C++ a já")
+        #expect(try PairingCode(link { $0["n"] = "M%C5%AFj%20blog" }).site == "Můj blog")
+        // The key and the fingerprints are in an alphabet that has no plus:
+        // they are read as they stand.
+        #expect(try PairingCode(link { $0["n"] = "a+b" }).seed == Data(0..<32))
+        #expect(try PairingCode(link { $0["n"] = "a+b" }).fingerprints == ["abc-DEF_123", "zzz"])
+    }
+
     @Test func theFingerprintsAndTheNameMayBeMissing() throws {
         let code = try PairingCode(link { $0["f"] = nil; $0["n"] = nil })
         #expect(code.fingerprints.isEmpty)
