@@ -178,6 +178,17 @@ nonisolated enum BlogShelf {
         return shelf.blogs.first { $0.id == shelf.current }
     }
 
+    /// The list with one blog a step up or down it. A step off either
+    /// end, or of a blog that is not there, leaves the list as it was.
+    static func shifted(_ blogs: [Blog], _ id: UUID, by step: Int) -> [Blog] {
+        guard let at = blogs.firstIndex(where: { $0.id == id }) else { return blogs }
+        let to = at + step
+        guard blogs.indices.contains(to) else { return blogs }
+        var blogs = blogs
+        blogs.swapAt(at, to)
+        return blogs
+    }
+
     /// The app had one server before it had blogs: what was set up for it
     /// becomes the first blog, with the key it already had.
     private static func migrate(_ defaults: UserDefaults) {
@@ -255,6 +266,22 @@ final class Blogs {
         currentID = blog.id
         save()
         return blog
+    }
+
+    /// The blogs in another order: the one somebody put them in. Which
+    /// one is open does not change with it.
+    func move(fromOffsets source: IndexSet, toOffset destination: Int) {
+        let before = all
+        all.move(fromOffsets: source, toOffset: destination)
+        if all != before { save() }
+    }
+
+    /// One blog a place up or down the list; at the list's end, nowhere.
+    func shift(_ id: UUID, by step: Int) {
+        let shifted = BlogShelf.shifted(all, id, by: step)
+        guard shifted != all else { return }
+        all = shifted
+        save()
     }
 
     /// A blog that was let in by a code: it comes whole -- where it is and

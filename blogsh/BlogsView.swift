@@ -2,7 +2,8 @@ import SwiftUI
 
 /// The blogs the app drives, and the way from one to another: a row opens
 /// its blog, the key at its end opens that blog's settings, the last key
-/// begins a new one -- with a code from the server, or by hand. A blog is its own server, its own key and its own
+/// begins a new one -- with a code from the server, or by hand; held, a
+/// row is carried to another place in the list. A blog is its own server, its own key and its own
 /// colour; nothing of one is used for another.
 struct BlogsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -45,6 +46,20 @@ struct BlogsView: View {
                 .swipeActions {
                     Button("Remove", role: .destructive) { removing = blog }
                 }
+                // The order is the reader's own: a row held offers the way
+                // up and down, as a row of the queue does.
+                .contextMenu {
+                    if blog.id != blogs.all.first?.id {
+                        Button { blogs.shift(blog.id, by: -1) } label: { Label("Up", systemImage: "arrow.up") }
+                    }
+                    if blog.id != blogs.all.last?.id {
+                        Button { blogs.shift(blog.id, by: 1) } label: { Label("Down", systemImage: "arrow.down") }
+                    }
+                }
+            }
+            // ...and, held and dragged, is carried to another place.
+            .onMove { source, destination in
+                blogs.move(fromOffsets: source, toOffset: destination)
             }
             Command("Add a blog", symbol: "plus") { adding = true }
             .padding(.vertical, 12)

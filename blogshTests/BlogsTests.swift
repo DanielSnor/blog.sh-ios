@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import blogsh
 
@@ -86,6 +87,42 @@ import Testing
             #expect(BlogShelf.current(from: defaults) == two)
             #expect(read.blogs[1].facts?.posts == 92)
         }
+    }
+
+    /// The order somebody put the blogs in is the order they are kept in,
+    /// and which one is open does not change with it.
+    @Test func blogsKeepTheOrderTheyWerePutIn() {
+        shelf { defaults in
+            var one = Blog(), two = Blog(), three = Blog()
+            one.host = "one.example"
+            two.host = "two.example"
+            three.host = "three.example"
+            var blogs = [one, two, three]
+            // The last carried to the first place, as a held row is.
+            blogs.move(fromOffsets: IndexSet(integer: 2), toOffset: 0)
+            BlogShelf.write(blogs, current: two.id, to: defaults)
+
+            let read = BlogShelf.read(from: defaults)
+            #expect(read.blogs.map(\.host) == ["three.example", "one.example", "two.example"])
+            #expect(read.current == two.id)
+            #expect(BlogShelf.current(from: defaults) == two)
+        }
+    }
+
+    /// A held row's "Up" and "Down": one place at a time, and nowhere
+    /// past either end of the list.
+    @Test func aBlogStepsUpAndDownTheListButNotOffIt() {
+        var one = Blog(), two = Blog(), three = Blog()
+        one.host = "one.example"
+        two.host = "two.example"
+        three.host = "three.example"
+        let blogs = [one, two, three]
+
+        #expect(BlogShelf.shifted(blogs, three.id, by: -1).map(\.host) == ["one.example", "three.example", "two.example"])
+        #expect(BlogShelf.shifted(blogs, one.id, by: 1).map(\.host) == ["two.example", "one.example", "three.example"])
+        #expect(BlogShelf.shifted(blogs, one.id, by: -1) == blogs)
+        #expect(BlogShelf.shifted(blogs, three.id, by: 1) == blogs)
+        #expect(BlogShelf.shifted(blogs, UUID(), by: 1) == blogs)
     }
 
     /// The blog that was open is gone from the list: the first one opens.
