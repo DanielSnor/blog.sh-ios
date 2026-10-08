@@ -115,6 +115,10 @@ import Testing
         #expect(PostLink(address: "javascript:alert(1)", title: "x") == nil)
         #expect(PostLink(address: "http://localhost:8000/draft/abc/x/", title: "x")?.url.host() == "localhost")
         #expect(PostLink(address: "https://sean.cz/posts/2026/x/", title: "X")?.title == "X")
+        // A blog at home, on a port of its own: the address goes on whole.
+        let home = "http://10.0.0.5:8080/posts/2026/zkouska-portu/"
+        #expect(PostLink(address: home, title: "x")?.url.absoluteString == home)
+        #expect(PostLink(address: home, title: "x")?.url.port == 8080)
     }
 
     /// A row of the queue opens its post: the row it hands over is a
