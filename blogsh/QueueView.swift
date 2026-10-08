@@ -117,7 +117,7 @@ struct QueueView: View {
                           detail: "A draft is scheduled from its properties, or with ./blog.sh schedule.")
             }
         }
-        .paperList(name: String(localized: "tile.queue", defaultValue: "Queue"), count: rows.isEmpty ? nil : rows.count.formatted())
+        .paperList(name: String(localized: "tile.queue", defaultValue: "Queue"), count: rows.isEmpty ? nil : rows.count.formatted(), symbol: MenuEntry.queue.symbol)
         // A build holds the lock a change of the queue needs: while one runs, the rows wait.
         .disabled(busy || Herald.shared.isBuilding)
         .doing(doing)

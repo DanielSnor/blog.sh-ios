@@ -134,7 +134,7 @@ struct ArchiveView: View {
                 }
             }
         }
-        .paperList(name: String(localized: "tile.browse", defaultValue: "Archive"), count: countLine)
+        .paperList(name: String(localized: "tile.browse", defaultValue: "Archive"), count: countLine, symbol: MenuEntry.browse.symbol)
         .sheet(item: $previewing) { post in
             NavigationStack { PostPreviewView(post: post, baseURL: baseURL) }
         }

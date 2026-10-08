@@ -84,7 +84,7 @@ struct TrashView: View {
                 EmptyNote(symbol: "trash", title: "Trash is empty")
             }
         }
-        .paperList(name: String(localized: "tile.restore", defaultValue: "Trash"), count: rows.isEmpty ? nil : rows.count.formatted())
+        .paperList(name: String(localized: "tile.restore", defaultValue: "Trash"), count: rows.isEmpty ? nil : rows.count.formatted(), symbol: MenuEntry.restore.symbol)
         .disabled(busy || Herald.shared.isBuilding)
         .doing(doing)
         .navigationTitle("Trash")

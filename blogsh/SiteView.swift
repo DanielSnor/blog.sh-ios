@@ -13,7 +13,7 @@ struct SiteView: View {
     @State private var problem: String?
 
     var body: some View {
-        PaperScreen(name: MenuEntry.rebuild.short) {
+        PaperScreen(name: MenuEntry.rebuild.short, symbol: MenuEntry.rebuild.symbol) {
             // Each switch with what it is for under it: the engine's own
             // names for them (--full, --force) say what they do to the
             // engine, not when somebody would want them.

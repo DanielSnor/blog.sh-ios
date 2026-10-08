@@ -34,7 +34,7 @@ struct ComposeView: View {
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
-        PaperScreen(name: String(localized: "New post"), answered: answered) {
+        PaperScreen(name: String(localized: "New post"), symbol: MenuEntry.add.symbol, answered: answered) {
             if let broughtBack {
                 // Said, because it was not asked for: the form opens with
                 // something in it that was not typed just now.

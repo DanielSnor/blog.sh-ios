@@ -491,11 +491,11 @@ extension View {
     /// under it is the screen's own from its first line. A screen of the
     /// app's says its name, in the display face, and how many it holds; a
     /// screen about one post says the post's title.
-    func namedByItsHeader(name: String? = nil, count: String? = nil, title: String? = nil) -> some View {
+    func namedByItsHeader(name: String? = nil, count: String? = nil, title: String? = nil, symbol: String? = nil) -> some View {
         toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    BarName(name: name, count: count, title: title)
+                    BarName(name: name, count: count, title: title, symbol: symbol)
                 }
             }
             .modifier(BackKeyInBar())
@@ -503,12 +503,12 @@ extension View {
     }
 
     /// A list on paper: no cards of the system's, no ground but ours.
-    func paperList(name: String? = nil, count: String? = nil) -> some View {
+    func paperList(name: String? = nil, count: String? = nil, symbol: String? = nil) -> some View {
         listStyle(.plain)
             .scrollContentBackground(.hidden)
             .clearOfItsBar()
             .background(Theme.paper.ignoresSafeArea())
-            .namedByItsHeader(name: name, count: count)
+            .namedByItsHeader(name: name, count: count, symbol: symbol)
     }
 
     /// What scrolls ends where the bar begins, instead of running on
@@ -548,6 +548,8 @@ struct PaperScreen<Content: View>: View {
     /// ...or, where it is about one post, that post's title: its own
     /// words, so in the plain face and with its capitals.
     var title: String?
+    /// The mark before the name, where the screen is one of the menu's.
+    var symbol: String?
     /// Counted by a form each time an action of its has answered -- a
     /// result or a refusal, written at the form's end. The page then goes
     /// there and the keyboard out of the way: an answer under the edge of
@@ -590,7 +592,7 @@ struct PaperScreen<Content: View>: View {
         .scrollDismissesKeyboard(.interactively)
         .clearOfItsBar()
         .background(Theme.paper.ignoresSafeArea())
-        .namedByItsHeader(name: name, count: count, title: title)
+        .namedByItsHeader(name: name, count: count, title: title, symbol: symbol)
     }
 }
 
@@ -607,6 +609,9 @@ struct BarName: View {
     var name: String?
     var count: String?
     var title: String?
+    /// The mark of the tile the screen was opened from, before its name:
+    /// the six screens of the menu wear the mark they are known by there.
+    var symbol: String?
 
     var body: some View {
         Group {
@@ -618,6 +623,15 @@ struct BarName: View {
                     .foregroundStyle(Theme.ink)
             } else if let name, !name.isEmpty {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if let symbol {
+                        // In ink, as the name is: here the mark is a part of
+                        // what the screen is called, not a key. The accent
+                        // in a bar is for the keys beside it.
+                        Image(systemName: symbol)
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(Theme.ink)
+                            .accessibilityHidden(true)
+                    }
                     Text(verbatim: name)
                         .font(.display(21))
                         .textCase(Theme.voiceCase)
