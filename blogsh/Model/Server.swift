@@ -12,8 +12,11 @@ nonisolated struct ServerSettings: Equatable, Sendable {
     var user: String
     var keyAccount: String
 
-    static func load(from defaults: UserDefaults = .standard) -> ServerSettings? {
-        guard let blog = BlogShelf.current(from: defaults) else { return nil }
+    /// `only`: the blog the call is meant for. Another one open by now
+    /// is nothing to connect to -- what was written for one blog is never
+    /// sent to the next.
+    static func load(from defaults: UserDefaults = .standard, only: UUID? = nil) -> ServerSettings? {
+        guard let blog = BlogShelf.current(from: defaults), only == nil || blog.id == only else { return nil }
         let host = blog.host.trimmingCharacters(in: .whitespaces)
         let user = blog.user.trimmingCharacters(in: .whitespaces)
         guard !host.isEmpty, !user.isEmpty else { return nil }

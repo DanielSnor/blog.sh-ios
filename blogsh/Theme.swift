@@ -769,6 +769,15 @@ extension View {
     static let shared = Desk()
     private(set) var changes = 0
     func changed() { changes += 1 }
+
+    /// A post that waited to be sent, taken back to be written on: held
+    /// here on its way to the form, which takes it when it opens.
+    @ObservationIgnored private var handed: Waiting?
+    func hand(_ post: Waiting) { handed = post }
+    func takeHanded() -> Waiting? {
+        defer { handed = nil }
+        return handed
+    }
 }
 
 extension Unsaved {

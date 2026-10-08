@@ -117,8 +117,12 @@ actor Engine {
     /// receiver's frame (a name, its base64, a line with a dot), ended by a
     /// line saying `end` -- scripts/remote.sh's `deliver`. One answer per
     /// file comes back; the last is the engine's own for the markdown.
-    @concurrent nonisolated func deliver(_ files: [DeliveryFile]) async throws -> [Data] {
-        try await Self.onTheLine { wire, wary in
+    ///
+    /// `blog`: whose delivery it is, where it was not written just now on
+    /// the open blog's own form. With another blog open by the time it
+    /// goes, it does not go.
+    @concurrent nonisolated func deliver(_ files: [DeliveryFile], to blog: UUID? = nil) async throws -> [Data] {
+        try await Self.onTheLine(only: blog) { wire, wary in
             try await Self.send(files, on: wire, wary: wary)
         }
     }
@@ -168,8 +172,11 @@ actor Engine {
     /// said anything, the call is made once more on a new one. A call that
     /// had begun to speak is never repeated; whether a publish arrived is
     /// not something to guess at.
-    @concurrent private static func onTheLine<T: Sendable>(_ work: @Sendable (Wired, _ wary: Bool) async throws -> T) async throws -> T {
-        guard let settings = ServerSettings.load() else { throw EngineError.notConfigured }
+    @concurrent private static func onTheLine<T: Sendable>(only blog: UUID? = nil, _ work: @Sendable (Wired, _ wary: Bool) async throws -> T) async throws -> T {
+        guard let settings = ServerSettings.load(only: blog) else {
+            if blog != nil { throw CancellationError() }
+            throw EngineError.notConfigured
+        }
         let door = Door(host: settings.host, port: settings.port, user: settings.user, keyAccount: settings.keyAccount)
         // What became of the call is said to whoever shows the blog as
         // within reach or not: a server nobody answered at is silent
@@ -344,6 +351,21 @@ actor Engine {
 nonisolated struct DeliveryFile: Sendable {
     let name: String
     let data: Data
+}
+
+extension Engine {
+    /// A delivery's answers, read: the engine's own for the markdown, which
+    /// is the last -- or the first no among them, thrown.
+    nonisolated static func made(from answers: [Data]) throws -> ActionAnswer {
+        let decoder = JSONDecoder()
+        for answer in answers {
+            if let refusal = try? decoder.decode(Refusal.self, from: answer), refusal.ok == false {
+                throw EngineError.refused(refusal)
+            }
+        }
+        guard let last = answers.last else { throw EngineError.unreadable("") }
+        return try decoder.decode(ActionAnswer.self, from: last)
+    }
 }
 
 /// The server's key is remembered the first time it is seen and has to be

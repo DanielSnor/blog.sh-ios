@@ -71,6 +71,7 @@ struct ContentView: View {
     @State private var identityProblem: String?
     @State private var glance: Glance?
     @State private var showingBlogs = false
+    @State private var showingWaiting = false
     /// A pairing code that came in as a link, opened from another app.
     @State private var incoming: Incoming?
     // One counting at a time: it is the slowest thing the first screen asks.
@@ -156,6 +157,11 @@ struct ContentView: View {
         // them is asked of the server again when the list closes.
         .sheet(isPresented: $showingBlogs, onDismiss: { Task { await load() } }) {
             NavigationStack { BlogsView() }
+        }
+        // The posts kept on the device for a silent server: a list of
+        // their own, from which one can go back into the form.
+        .sheet(isPresented: $showingWaiting, onDismiss: { Task { await loadGlance() } }) {
+            NavigationStack { WaitingView(write: { open(.add) }) }
         }
         // A code read elsewhere -- a camera app, a note -- opens the app
         // with it: the way in for a blog, with the code already there.
@@ -274,6 +280,8 @@ struct ContentView: View {
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: offline ? offlineWords : identityProblem, glance: glance,
                  offline: offline, retry: load,
+                 waiting: waiting, sending: Outbox.shared.sending != nil,
+                 openWaiting: { showingWaiting = true },
                  begun: begun,
                  facts: blogs.current?.facts,
                  current: sizeClass == .regular && !roomy ? selection : nil,
@@ -310,6 +318,23 @@ struct ContentView: View {
         _ = Desk.shared.changes
         guard let blog = blogs.currentID else { return [] }
         return Begun.all(for: blog)
+    }
+
+    /// The posts kept on this device for the open blog until its server answers.
+    private var waiting: [Waiting] {
+        _ = Desk.shared.changes
+        guard let blog = blogs.currentID else { return [] }
+        return WaitingRoom.all(for: blog)
+    }
+
+    /// The server has just answered: what waited for it goes now, as
+    /// drafts, and the first screen counts its drafts again.
+    private func sendWaiting() async {
+        guard let blog = blogs.currentID, !WaitingRoom.all(for: blog).isEmpty else { return }
+        let sent = await Outbox.shared.sendAll(for: blog)
+        guard sent > 0 else { return }
+        Herald.shared.say(String(localized: "Sent to the blog as drafts: \(sent)"))
+        await loadGlance()
     }
 
     /// Straight to where it waits: the new post's form, or the editor of
@@ -369,7 +394,10 @@ struct ContentView: View {
             glance = Self.glance(queue: answers[1], drafts: answers[2])
             // The numbers under the search come after the screen itself:
             // counting the archive takes the engine seconds.
-            Task { await loadFacts(whole: true) }
+            Task {
+                await sendWaiting()
+                await loadFacts(whole: true)
+            }
         } catch EngineError.notConfigured {
             identity = nil
             glance = nil
@@ -463,6 +491,11 @@ struct HomeView: View {
     var offline = false
     /// Asks the server again.
     var retry: () async -> Void = {}
+    /// The posts kept on this device until the server answers, and
+    /// whether one of them is on its way just now.
+    var waiting: [Waiting] = []
+    var sending = false
+    var openWaiting: () -> Void = {}
     /// What was begun on this device and not finished: each a way back to it.
     var begun: [Begun] = []
     /// The blog in numbers, once it has counted itself.
@@ -569,7 +602,7 @@ struct HomeView: View {
                 // last time -- said here, or nobody knows of it before
                 // opening the form it waits in -- and last the queue, which
                 // goes out by itself.
-                if glance != nil || !begun.isEmpty {
+                if glance != nil || !begun.isEmpty || !waiting.isEmpty {
                     VStack(spacing: 8 * k) {
                         if let glance {
                             Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
@@ -580,6 +613,10 @@ struct HomeView: View {
                             // one the blog has need its text from the server.
                             Button { resume(one) } label: { begunCard(one) }
                                 .outOfReach(offline && one.what != .new)
+                        }
+                        // What is finished and only waits for the server.
+                        if !waiting.isEmpty {
+                            Button(action: openWaiting) { waitingCard }
                         }
                         if let glance {
                             Button { open(.queue, nil, false) } label: { queueCard(glance) }
@@ -599,7 +636,7 @@ struct HomeView: View {
                     }
                 }
                 .buttonStyle(PressStyle())
-                .padding(.top, (glance == nil && begun.isEmpty ? 22 : 10) * k)
+                .padding(.top, (glance == nil && begun.isEmpty && waiting.isEmpty ? 22 : 10) * k)
 
                 Button { open(.browse, nil, true) } label: {
                     Card(capsule: true) {
@@ -735,6 +772,31 @@ struct HomeView: View {
                 .font(.system(size: 12 * k, weight: .semibold))
                 .foregroundStyle(Theme.muted)
                 .accessibilityHidden(true)
+        }
+    }
+
+    /// The posts kept on the device: how many, and the first by name.
+    private var waitingCard: some View {
+        Card(warning: true) {
+            if sending {
+                ProgressView().controlSize(.small).frame(width: 20 * k)
+            } else {
+                Image(systemName: "tray.and.arrow.up").font(.system(size: 17 * k)).foregroundStyle(Theme.danger)
+            }
+            VStack(alignment: .leading, spacing: 2 * k) {
+                Text(sending ? "Sending…" : "Waiting to be sent")
+                    .font(.ui(12 * k, weight: .medium))
+                    .foregroundStyle(Theme.danger)
+                    .lineLimit(1)
+                if let first = waiting.first, !first.headline.isEmpty {
+                    Text(verbatim: first.headline)
+                        .font(.ui(15 * k, weight: .medium))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 6)
+            CountBadge(count: waiting.count)
         }
     }
 

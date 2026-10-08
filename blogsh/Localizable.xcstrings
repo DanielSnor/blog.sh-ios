@@ -34,6 +34,22 @@
         }
       }
     },
+    "%@ · pictures and video: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · obrázky a video: %2$lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · Bilder und Video: %2$lld"
+          }
+        }
+      }
+    },
     "%@, part %@": {
       "localizations": {
         "cs": {
@@ -286,6 +302,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein Beitrag"
+          }
+        }
+      }
+    },
+    "A post without words": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek beze slov"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Beitrag ohne Worte"
           }
         }
       }
@@ -558,6 +590,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wieder im Formular: was hier %@ geschrieben und nicht gesendet wurde."
+          }
+        }
+      }
+    },
+    "Back to the form, to write on": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět do formuláře k dopsání"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück ins Formular, zum Weiterschreiben"
           }
         }
       }
@@ -1346,6 +1394,22 @@
         }
       }
     },
+    "Each goes to the blog as a draft; publishing is a decision of its own, made there.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Každý odejde na blog jako koncept; zveřejnění je samostatné rozhodnutí až tam."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder geht als Entwurf an den Blog; das Veröffentlichen ist eine eigene Entscheidung, die dort fällt."
+          }
+        }
+      }
+    },
     "Earlier versions": {
       "localizations": {
         "cs": {
@@ -1630,6 +1694,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seine Eigenschaften und die Aktionen dazu"
+          }
+        }
+      }
+    },
+    "Keep on the device": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit do zařízení"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem Gerät behalten"
+          }
+        }
+      }
+    },
+    "Kept on the device. It goes to the blog as a draft once the server answers.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uloženo do zařízení. Na blog odejde jako koncept, jakmile se server ozve."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem Gerät behalten. Er geht als Entwurf an den Blog, sobald der Server antwortet."
           }
         }
       }
@@ -2030,6 +2126,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Noch nichts, womit sich die App verbinden könnte — der Name oben führt zu den Blogs und ihren Einstellungen."
+          }
+        }
+      }
+    },
+    "Nothing waits on this device.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V tomto zařízení nic nečeká."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Gerät wartet nichts."
           }
         }
       }
@@ -3282,6 +3394,22 @@
         }
       }
     },
+    "Sent to the blog as drafts: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odesláno na blog jako koncepty: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Entwürfe an den Blog gesendet: %lld"
+          }
+        }
+      }
+    },
     "Server": {
       "localizations": {
         "cs": {
@@ -3730,6 +3858,54 @@
         }
       }
     },
+    "The blog's server cannot be reached. Kept on the device, the post goes to the blog as a draft, with its pictures, once the server answers.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server blogu není dostupný. Příspěvek uložený do zařízení odejde na blog jako koncept i s obrázky, jakmile se server ozve."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server des Blogs ist nicht erreichbar. Auf dem Gerät behalten, geht der Beitrag samt Bildern als Entwurf an den Blog, sobald der Server antwortet."
+          }
+        }
+      }
+    },
+    "The blog's server cannot be reached. The posts go to the blog as drafts, in the order they were written, once it answers.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server blogu není dostupný. Příspěvky odejdou na blog jako koncepty v pořadí, v jakém byly napsány, jakmile se ozve."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server des Blogs ist nicht erreichbar. Die Beiträge gehen als Entwürfe an den Blog, in der Reihenfolge, in der sie geschrieben wurden, sobald er antwortet."
+          }
+        }
+      }
+    },
+    "The blog's server did not answer; the post still waits.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server blogu se neozval; příspěvek dál čeká."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server des Blogs hat nicht geantwortet; der Beitrag wartet weiter."
+          }
+        }
+      }
+    },
     "The blog's settings": {
       "localizations": {
         "cs": {
@@ -3842,6 +4018,22 @@
         }
       }
     },
+    "The form holds a post that is being written: send it or clear it before another is taken back into it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ve formuláři je rozepsaný příspěvek: odešli ho nebo formulář vyprázdni, než do něj vrátíš jiný."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Formular steht ein Beitrag, an dem geschrieben wird: sende ihn oder leere das Formular, bevor ein anderer hineingeholt wird."
+          }
+        }
+      }
+    },
     "The header and the text, as the editor opens them. A picture is named by its file name.": {
       "localizations": {
         "cs": {
@@ -3934,6 +4126,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Original"
+          }
+        }
+      }
+    },
+    "The post could not be kept on the device: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek se nepodařilo uložit do zařízení: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag konnte nicht auf dem Gerät behalten werden: %@"
           }
         }
       }
@@ -4498,6 +4706,38 @@
         }
       }
     },
+    "Throw '%@' away? It was never sent; nothing of it is kept.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahodit „%@“? Nebyl nikdy odeslán a nic z něj nezůstane."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ verwerfen? Er wurde nie gesendet; nichts davon bleibt erhalten."
+          }
+        }
+      }
+    },
+    "Throw away": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahodit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwerfen"
+          }
+        }
+      }
+    },
     "Title": {
       "localizations": {
         "cs": {
@@ -4798,6 +5038,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Normalerweise werden nur die geänderten Seiten gebaut. Ist das an, wird die ganze Website neu gebaut, was länger dauert."
+          }
+        }
+      }
+    },
+    "Waiting to be sent": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čeká na odeslání"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wartet auf den Versand"
           }
         }
       }

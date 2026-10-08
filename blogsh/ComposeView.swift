@@ -23,6 +23,8 @@ struct ComposeView: View {
     @State private var sending = false
     @State private var problem: String?
     @State private var made: ActionAnswer?
+    /// The post was put by on the device: said where an answer would be.
+    @State private var putBy = false
     /// Counted when a sending has answered: the page goes to the answer.
     @State private var answered = 0
     @State private var previewing = false
@@ -85,16 +87,30 @@ struct ComposeView: View {
             }
             DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb)
 
+            // With the server silent the same key keeps the post on the
+            // device instead, whole, to go when the server answers.
             Button {
-                Task { await send() }
+                if offline { keepOnDevice() } else { Task { await send() } }
             } label: {
-                PrimaryLabel(label: sending ? "Sending…" : "Send to the blog as a draft", busy: sending)
+                PrimaryLabel(label: sending ? "Sending…" : (offline ? "Keep on the device" : "Send to the blog as a draft"), busy: sending)
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(sending || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
             .gap(22)
+            if offline {
+                Hint("The blog's server cannot be reached. Kept on the device, the post goes to the blog as a draft, with its pictures, once the server answers.")
+            }
             if let problem {
                 ProblemLine(text: problem)
+            }
+
+            if putBy {
+                SectionLabel("Done")
+                Plate {
+                    Text("Kept on the device. It goes to the blog as a draft once the server answers.")
+                        .font(.ui(15)).foregroundStyle(Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             if let made {
@@ -151,6 +167,17 @@ struct ComposeView: View {
     private func bringBack() {
         guard keeping == nil, let blog = Blogs.shared.currentID else { return }
         keeping = blog
+        // A post that waited to be sent and was taken back to be written
+        // on: it is the form's now, pictures and all, and waits no longer.
+        if let handed = Desk.shared.takeHanded() {
+            shots = WaitingRoom.shots(of: handed, for: blog)
+            title = handed.title
+            tags = handed.tags
+            text = handed.text
+            WaitingRoom.remove(handed.id, for: blog)
+            Desk.shared.changed()
+            return
+        }
         guard title.isEmpty, tags.isEmpty, text.isEmpty, let kept = Unsent.kept(for: blog) else { return }
         title = kept.title
         tags = kept.tags
@@ -203,25 +230,39 @@ struct ComposeView: View {
 
     // MARK: - Sending
 
+    /// The open blog's server did not answer the last time it was asked.
+    private var offline: Bool { Reach.shared.isOffline(Blogs.shared.current) }
+
+    /// Put by on the device, whole: the text and the shots it names. The
+    /// form is the next post's, as after a sending.
+    private func keepOnDevice() {
+        guard let blog = Blogs.shared.currentID else { return }
+        problem = nil
+        made = nil
+        do {
+            try WaitingRoom.put(Waiting(title: title, tags: tags, text: text, at: .now), shots: sent, for: blog)
+            title = ""; tags = ""; text = ""; shots = []
+            broughtBack = nil
+            putBy = true
+            Desk.shared.changed()
+        } catch {
+            problem = String(localized: "The post could not be kept on the device: \(error.localizedDescription)")
+        }
+        answered += 1
+    }
+
     private func send() async {
         sending = true
         defer { sending = false }
         problem = nil
+        putBy = false
         // The text is what goes: a description typed on a card is in it
         // already, one typed into the text itself was never the card's.
         let markdown = Markdown.file(title: title, tags: tags, body: text)
         var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
-            let answers = try await Engine.shared.deliver(files)
-            let decoder = JSONDecoder()
-            for answer in answers {
-                if let refusal = try? decoder.decode(Refusal.self, from: answer), refusal.ok == false {
-                    throw EngineError.refused(refusal)
-                }
-            }
-            guard let last = answers.last else { throw EngineError.unreadable("") }
-            made = try decoder.decode(ActionAnswer.self, from: last)
+            made = try Engine.made(from: await Engine.shared.deliver(files))
             // The form is the next post's now, and nothing is left to bring back.
             title = ""; tags = ""; text = ""; shots = []
             broughtBack = nil
