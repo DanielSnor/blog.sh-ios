@@ -71,6 +71,8 @@ struct ContentView: View {
     @State private var identityProblem: String?
     @State private var glance: Glance?
     @State private var showingBlogs = false
+    /// A pairing code that came in as a link, opened from another app.
+    @State private var incoming: Incoming?
     // One counting at a time: it is the slowest thing the first screen asks.
     @State private var counting = false
     // The blogs, and the one that is open: its name, its colour and its limit
@@ -152,6 +154,23 @@ struct ContentView: View {
         // them is asked of the server again when the list closes.
         .sheet(isPresented: $showingBlogs, onDismiss: { Task { await load() } }) {
             NavigationStack { BlogsView() }
+        }
+        // A code read elsewhere -- a camera app, a note -- opens the app
+        // with it: the way in for a blog, with the code already there.
+        .onOpenURL { url in
+            guard url.scheme?.lowercased() == "blogsh" else { return }
+            showingBlogs = false
+            showingSettings = false
+            incoming = Incoming(text: url.absoluteString)
+        }
+        .sheet(item: $incoming, onDismiss: { Task { await load() } }) { one in
+            NavigationStack {
+                AddBlogView(initialCode: one.text, close: { incoming = nil })
+                    // Opened by a link, the screen stands on nothing to go back to.
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Cancel") { incoming = nil } }
+                    }
+            }
         }
         .task { await load() }
         // The accent that is worn -- the blog's own, as /write/ wears it,
@@ -395,6 +414,12 @@ struct ContentView: View {
               let unpublished: ListAnswer = try? Engine.decode(drafts) else { return nil }
         return Glance(queue: waiting.queue, drafts: unpublished.posts.filter { !$0.scheduled }.count)
     }
+}
+
+/// A link that opened the app, kept until its screen has taken it.
+struct Incoming: Identifiable {
+    let id = UUID()
+    let text: String
 }
 
 /// The first screen, at one glance: which blog and which engine, what

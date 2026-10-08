@@ -2,13 +2,14 @@ import SwiftUI
 
 /// The blogs the app drives, and the way from one to another: a row opens
 /// its blog, the key at its end opens that blog's settings, the last key
-/// begins a new one. A blog is its own server, its own key and its own
+/// begins a new one -- with a code from the server, or by hand. A blog is its own server, its own key and its own
 /// colour; nothing of one is used for another.
 struct BlogsView: View {
     @Environment(\.dismiss) private var dismiss
     private var blogs = Blogs.shared
     @State private var removing: Blog?
     @State private var settingUp = false
+    @State private var adding = false
 
     var body: some View {
         List {
@@ -45,16 +46,16 @@ struct BlogsView: View {
                     Button("Remove", role: .destructive) { removing = blog }
                 }
             }
-            Command("Add a blog", symbol: "plus") {
-                blogs.add()
-                settingUp = true
-            }
+            Command("Add a blog", symbol: "plus") { adding = true }
             .padding(.vertical, 12)
             .paperRow(rule: false)
         }
         .paperList(name: String(localized: "Blogs"), count: blogs.all.isEmpty ? nil : blogs.all.count.formatted())
         .navigationTitle("Blogs")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        .navigationDestination(isPresented: $adding) {
+            AddBlogView(close: { dismiss() })
+        }
         .navigationDestination(isPresented: $settingUp) {
             BlogSettingsView(close: { dismiss() })
         }

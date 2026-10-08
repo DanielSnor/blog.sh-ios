@@ -240,6 +240,14 @@ final class Blogs {
         return blog
     }
 
+    /// A blog that was let in by a code: it comes whole -- where it is and
+    /// a key the server already knows -- and is the open one at once.
+    func adopt(_ blog: Blog) {
+        all.append(blog)
+        currentID = blog.id
+        save()
+    }
+
     /// The blog leaves the app, and its key with it. The blog itself is not touched.
     func remove(_ id: UUID) {
         guard let blog = all.first(where: { $0.id == id }) else { return }

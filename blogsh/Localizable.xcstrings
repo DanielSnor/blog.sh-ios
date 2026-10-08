@@ -450,6 +450,22 @@
         }
       }
     },
+    "Another machine answered than the one the code describes. Nothing was sent to it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpověděl jiný stroj, než jaký kód popisuje. Nic se mu neposlalo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein anderer Rechner hat geantwortet als der, den der Code beschreibt. Ihm wurde nichts gesendet."
+          }
+        }
+      }
+    },
     "Archive check": {
       "localizations": {
         "cs": {
@@ -654,6 +670,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Website wird jetzt gebaut."
+          }
+        }
+      }
+    },
+    "By hand": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ručně"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von Hand"
           }
         }
       }
@@ -942,6 +974,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mit Komma getrennt."
+          }
+        }
+      }
+    },
+    "Connect": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden"
+          }
+        }
+      }
+    },
+    "Connect to %@?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit k blogu %@?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit dem Blog %@ verbinden?"
+          }
+        }
+      }
+    },
+    "Connected: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojeno: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden: %@"
+          }
+        }
+      }
+    },
+    "Connecting…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojuji…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinde…"
           }
         }
       }
@@ -1326,6 +1422,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "In Ordnung"
+          }
+        }
+      }
+    },
+    "For a blog that lives in a container, or to write the line into authorized_keys yourself.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro blog, který běží v kontejneru, nebo když si řádek do authorized_keys chceš napsat sám."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für einen Blog, der in einem Container läuft, oder um die Zeile selbst in authorized_keys zu schreiben."
           }
         }
       }
@@ -1982,6 +2094,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ältere Fassungen entfernt: %1$lld, %2$@ freigegeben. Jeder Beitrag hat seine neueste behalten."
+          }
+        }
+      }
+    },
+    "On the server, run ./blog.sh pair. It shows a code and under it the same thing as a line of text: paste that line here.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na serveru spusť ./blog.sh pair. Ukáže kód a pod ním totéž jako řádek textu: ten řádek sem vlož."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führe auf dem Server ./blog.sh pair aus. Es zeigt einen Code und darunter dasselbe als Textzeile: Füge diese Zeile hier ein."
           }
         }
       }
@@ -3138,6 +3266,22 @@
         }
       }
     },
+    "Set up by hand": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit ručně"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von Hand einrichten"
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "cs": {
@@ -3426,6 +3570,22 @@
         }
       }
     },
+    "The app could not make its key.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appce se nepodařilo vytvořit klíč."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App konnte ihren Schlüssel nicht erzeugen."
+          }
+        }
+      }
+    },
     "The app has no key yet.": {
       "localizations": {
         "cs": {
@@ -3490,6 +3650,22 @@
         }
       }
     },
+    "The blog said no: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog odmítl: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Blog hat abgelehnt: %@"
+          }
+        }
+      }
+    },
     "The blog's settings": {
       "localizations": {
         "cs": {
@@ -3518,6 +3694,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die gewählten Farben sind hier nicht lesbar, deshalb bleibt dieser Abschnitt im Standardschema, bis sie es sind."
+          }
+        }
+      }
+    },
+    "The code is no longer good: it lasts ten minutes and works once. Ask for a new one: ./blog.sh pair": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kód už neplatí: vydrží deset minut a funguje jednou. Požádej o nový: ./blog.sh pair"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Code gilt nicht mehr: Er hält zehn Minuten und funktioniert einmal. Fordere einen neuen an: ./blog.sh pair"
+          }
+        }
+      }
+    },
+    "The code is not whole. Copy the whole line under the picture.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kód není celý. Zkopíruj celý řádek pod obrázkem."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Code ist nicht vollständig. Kopiere die ganze Zeile unter dem Bild."
           }
         }
       }
@@ -3906,6 +4114,22 @@
         }
       }
     },
+    "The server did not answer: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server se neozval: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server hat nicht geantwortet: %@"
+          }
+        }
+      }
+    },
     "The server does not know this blog's key. The line under the key in the blog's settings belongs in ~/.ssh/authorized_keys on the server.": {
       "localizations": {
         "cs": {
@@ -4094,6 +4318,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Engine dieses Blogs bietet der App diese Prüfung noch nicht an. Sie kommt mit einem neueren ./blog.sh."
+          }
+        }
+      }
+    },
+    "This code is of a newer kind than the app knows. Update the app.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenhle kód je novějšího druhu, než appka zná. Aktualizuj appku."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Code ist neuer, als die App ihn kennt. Aktualisiere die App."
+          }
+        }
+      }
+    },
+    "This is not a code from ./blog.sh pair.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle není kód z ./blog.sh pair."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist kein Code von ./blog.sh pair."
           }
         }
       }
@@ -4494,6 +4750,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was aufgeräumt wird, ist endgültig weg. Ältere Fassungen sind, was ein Beitrag vor seinen letzten Speicherungen sagte; jeder behält seine neueste."
+          }
+        }
+      }
+    },
+    "With a code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kódem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit einem Code"
           }
         }
       }
