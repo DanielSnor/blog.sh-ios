@@ -148,10 +148,10 @@ struct AddBlogView: View {
             close()
         } catch let error as PairingError {
             try? KeyStore.deleteKey(account: blog.keyAccount)
-            problem = Self.words(error)
+            problem = Self.words(error, at: code)
         } catch {
             try? KeyStore.deleteKey(account: blog.keyAccount)
-            problem = Self.words(PairingError.noKey)
+            problem = Self.words(PairingError.noKey, at: code)
         }
     }
 
@@ -163,11 +163,12 @@ struct AddBlogView: View {
         }
     }
 
-    private static func words(_ why: PairingError) -> String {
+    private static func words(_ why: PairingError, at code: PairingCode) -> String {
         switch why {
         case .spent: String(localized: "The code is no longer good: it lasts ten minutes and works once. Ask for a new one: ./blog.sh pair")
         case .wrongServer: String(localized: "Another machine answered than the one the code describes. Nothing was sent to it.")
-        case .unreachable(let how): String(localized: "The server did not answer: \(how)")
+        // Said as what to check, not as what the network library reported.
+        case .unreachable: String(localized: "The server \(code.host) did not answer. Is this device on a network the server can be reached from?")
         case .refused(let words): String(localized: "The blog said no: \(words)")
         case .noKey: String(localized: "The app could not make its key.")
         }

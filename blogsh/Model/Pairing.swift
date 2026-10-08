@@ -90,7 +90,8 @@ nonisolated enum PairingError: Error, Equatable {
     case spent
     /// Another machine answered than the one the code describes.
     case wrongServer
-    /// Nobody answered there.
+    /// Nobody answered there. What the network said of it is kept for
+    /// whoever reads a log, not shown: it is the library's own English.
     case unreachable(String)
     /// The engine said no for a reason of its own; its sentence.
     case refused(String)
@@ -134,7 +135,10 @@ nonisolated enum Pairing {
                 port: code.port,
                 authenticationMethod: .ed25519(username: code.user, privateKey: key),
                 hostKeyValidator: .custom(trust),
-                reconnect: .never
+                reconnect: .never,
+                // Somebody is standing there holding a phone: an address
+                // nobody answers on is given up after ten seconds, not thirty.
+                connectTimeout: .seconds(10)
             )
         } catch let error as PairingError {
             throw error

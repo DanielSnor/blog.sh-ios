@@ -4162,6 +4162,22 @@
         }
       }
     },
+    "The server %@ did not answer. Is this device on a network the server can be reached from?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server %@ se neozval. Je tohle zařízení v síti, ze které je na server vidět?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server %@ hat nicht geantwortet. Ist dieses Gerät in einem Netz, aus dem der Server erreichbar ist?"
+          }
+        }
+      }
+    },
     "The server closed the connection without an answer.": {
       "localizations": {
         "cs": {
@@ -4174,22 +4190,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Der Server hat die Verbindung ohne Antwort geschlossen."
-          }
-        }
-      }
-    },
-    "The server did not answer: %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Server se neozval: %@"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Server hat nicht geantwortet: %@"
           }
         }
       }
