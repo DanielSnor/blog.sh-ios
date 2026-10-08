@@ -192,7 +192,7 @@ struct TrashRowView: View {
             if let when = ISO8601DateFormatter.engine.date(from: row.date ?? "") {
                 Text(verbatim: RowDate.short(when))
                     .font(.mono(11, bold: false))
-                    .foregroundStyle(Theme.muted)
+                    .foregroundStyle(.tint)
                     .padding(.top, 3)
             }
         }

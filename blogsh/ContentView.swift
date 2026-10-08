@@ -826,15 +826,18 @@ struct Tile: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Theme.corner * scale, style: .continuous)
         VStack(spacing: 8 * scale) {
+            // A tile is an action: its mark is in the accent, its word in
+            // ink -- as the cards over the tiles have it.
             Image(systemName: entry.symbol)
                 .font(.system(size: 21 * scale, weight: .regular))
                 .frame(height: 24 * scale)
+                .foregroundStyle(.tint)
             Text(verbatim: entry.short)
                 .font(.ui(13 * scale, weight: .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
+                .foregroundStyle(Theme.ink)
         }
-        .foregroundStyle(Theme.ink)
         .frame(maxWidth: .infinity)
         .padding(.top, 16 * scale)
         .padding(.bottom, 12 * scale)

@@ -19,8 +19,6 @@ nonisolated enum Theme {
     @MainActor static var line: Color { colour(\.border) }
     /// The inside of a card, barely off the ground.
     @MainActor static var card: Color { colour(\.text, lightAlpha: 0.03, darkAlpha: 0.05) }
-    /// Text on a pill filled with ink: the ground's own colour.
-    @MainActor static var onInk: Color { colour(\.bg) }
     /// The one accent: every control of the app, its links, its counts.
     @MainActor static var accent: Color { colour(\.accent) }
     /// What cannot be taken back: a delete, a refusal. The one colour
@@ -331,9 +329,9 @@ struct TextSizePicker: View {
                 Button { scale.size = size } label: {
                     Text(verbatim: "Aa")
                         .font(.custom(Typeface.sans(.medium) ?? "Helvetica Neue", fixedSize: size.sample(wide: TypeScale.wide)))
-                        .foregroundStyle(chosen ? Theme.onInk : Theme.ink)
+                        .foregroundStyle(chosen ? .white : Theme.ink)
                         .frame(maxWidth: .infinity, minHeight: 52)
-                        .background(chosen ? Theme.ink : .clear)
+                        .background(chosen ? Theme.accent : .clear)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(PressStyle())
@@ -427,11 +425,13 @@ struct FilterPill: View {
             .tracking(0.6)
             .textCase(Theme.voiceCase)
             .lineLimit(1)
-            .foregroundStyle(selected ? Theme.onInk : Theme.muted)
+            // The chosen one is filled with the accent, as on the blog's
+            // own pages; the others are a hairline and a muted word.
+            .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(Theme.muted))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background { if selected { Capsule().fill(Theme.ink) } }
-            .overlay { Capsule().strokeBorder(selected ? Theme.ink : Theme.line, lineWidth: 1) }
+            .background { if selected { Capsule().fill(.tint) } }
+            .overlay { if selected { Capsule().strokeBorder(.tint, lineWidth: 1) } else { Capsule().strokeBorder(Theme.line, lineWidth: 1) } }
             .contentShape(Capsule())
     }
 }
@@ -622,9 +622,11 @@ struct BarName: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                     if let count {
+                        // How many is said small and grey: the accent is
+                        // for the thing itself, where a screen names one.
                         Text(verbatim: count)
                             .font(.mono(12))
-                            .foregroundStyle(.tint)
+                            .foregroundStyle(Theme.muted)
                             .lineLimit(1)
                             .fixedSize()
                     }
@@ -707,8 +709,11 @@ struct SectionLabel: View {
     init(verbatim: String) { text = Text(verbatim: verbatim) }
 
     var body: some View {
+        // The name of a section is in the accent, as the names of the
+        // boxes are on the blog's own pages; the names of the rows inside
+        // a plate stay muted -- those are fields, not sections.
         text.engineLabel()
-            .foregroundStyle(ground?.muted ?? Theme.muted)
+            .foregroundStyle(ground?.accent ?? Theme.accent)
             .gap(22)
             .gap(8, .bottom)
             .accessibilityAddTraits(.isHeader)
@@ -920,8 +925,8 @@ struct Plate<Content: View>: View {
                     if row.id != rows.first?.id {
                         Rectangle().fill(line).frame(height: 1)
                     }
-                    row.padding(.horizontal, 13)
-                        .padding(.vertical, 12)
+                    row.padding(.horizontal, PlateRow.side)
+                        .padding(.vertical, PlateRow.above)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -929,6 +934,34 @@ struct Plate<Content: View>: View {
         .background(shape.fill(ground?.card ?? Theme.card))
         .overlay(shape.strokeBorder(line, lineWidth: 1))
         .clipShape(shape)
+    }
+}
+
+/// The room a plate leaves around each of its rows.
+nonisolated enum PlateRow {
+    static let side: CGFloat = 13
+    static let above: CGFloat = 12
+}
+
+/// A row of a plate that says "done": the thing a key was for has just
+/// happened. Filled with the accent from one edge of the plate to the
+/// other, as a link that was copied is on the blog's own pages, and
+/// gone again when the key is a key once more.
+struct DoneRow: View {
+    let label: LocalizedStringKey
+
+    var body: some View {
+        HStack(spacing: 11) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 22)
+            Text(label).font(.ui(15, weight: .medium))
+            Spacer(minLength: 6)
+        }
+        .foregroundStyle(.white)
+        // Out to the plate's own edges: the fill is the row, not a box in it.
+        .background(Theme.accent.padding(.horizontal, -PlateRow.side).padding(.vertical, -PlateRow.above))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -1486,7 +1519,8 @@ struct MarkBar: View {
             case .fence: Text(verbatim: "```").font(.mono(11))
             }
         }
-        .foregroundStyle(Theme.ink)
+        // Keys, so in the accent like every other key.
+        .foregroundStyle(.tint)
         .frame(width: 34, height: 30)
         .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
         .contentShape(shape)

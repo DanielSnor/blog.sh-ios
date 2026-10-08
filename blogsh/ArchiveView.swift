@@ -257,7 +257,7 @@ struct ArchiveView: View {
 }
 
 /// A post as a row says it: its title, its tags under it, and at the
-/// edge its date -- in the accent when it is a date still to come.
+/// edge its date, in the accent -- heavier when it is a date still to come.
 struct PostRowView: View {
     let post: PostRow
 
@@ -285,16 +285,19 @@ struct PostRowView: View {
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 5) {
                 if let day = post.day {
+                    // A date is in the accent, as on the blog's own pages;
+                    // one still to come is told by its weight, and by
+                    // saying a day and an hour.
                     Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
                         .font(.mono(11, bold: post.scheduled))
-                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
+                        .foregroundStyle(.tint)
                 } else {
                     StateBadge(post: post)
                 }
                 if post.pinned {
                     Image(systemName: "pin")
                         .font(.system(size: 11))
-                        .foregroundStyle(Theme.muted)
+                        .foregroundStyle(.tint)
                         .accessibilityLabel("Pinned")
                 }
             }

@@ -86,12 +86,16 @@ struct BlogSettingsView: View {
                             .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
                         // The key says that it took: the row is the only place to see it.
-                        Command(copied ? "Copied" : "Copy the authorized_keys line", symbol: copied ? "checkmark" : "doc.on.doc") {
-                            UIPasteboard.general.string = line
-                            copied = true
-                            Task {
-                                try? await Task.sleep(for: .seconds(2))
-                                copied = false
+                        if copied {
+                            DoneRow(label: "Copied")
+                        } else {
+                            Command("Copy the authorized_keys line", symbol: "doc.on.doc") {
+                                UIPasteboard.general.string = line
+                                copied = true
+                                Task {
+                                    try? await Task.sleep(for: .seconds(2))
+                                    copied = false
+                                }
                             }
                         }
                     }
