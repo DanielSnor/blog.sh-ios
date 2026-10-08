@@ -498,6 +498,22 @@
         }
       }
     },
+    "Back": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
     "Back in the editor: the changes written here %@ and not saved.": {
       "localizations": {
         "cs": {

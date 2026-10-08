@@ -129,7 +129,8 @@ struct ContentView: View {
                 .toolbar {
                     if single && (selection != nil || resumed != nil) {
                         ToolbarItem(placement: .topBarLeading) {
-                            Button(action: close) { Image(systemName: "chevron.left") }
+                            Button(action: close) { Image(systemName: "chevron.backward") }
+                                .tint(Theme.accent)
                                 .accessibilityLabel(Text(verbatim: "./blog.sh"))
                         }
                     }

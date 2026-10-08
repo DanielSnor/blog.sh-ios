@@ -495,6 +495,7 @@ extension View {
                     BarName(name: name, count: count, title: title)
                 }
             }
+            .modifier(BackKeyInBar())
             .modifier(MenuKeyInBar())
     }
 
@@ -770,6 +771,90 @@ struct MenuKey: View {
         Button(action: action) { Image(systemName: "sidebar.left") }
             .tint(Theme.accent)
             .accessibilityLabel(Text("Show or hide the menu"))
+    }
+}
+
+/// The way back, in the accent like every other key. The system's own
+/// arrow stands in the bar in ink and takes no colour from anybody -- not
+/// from the app's tint, not from the window's, not from the bar's -- so
+/// it is taken out and the app's own key put in its place, wherever
+/// there is something to go back to.
+private struct BackKeyInBar: ViewModifier {
+    @Environment(\.dismiss) private var dismiss
+    @State private var deeper = false
+
+    func body(content: Content) -> some View {
+        content
+            .navigationBarBackButtonHidden(true)
+            .background(StackPlace(deeper: $deeper))
+            .toolbar {
+                if deeper {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { dismiss() } label: { Image(systemName: "chevron.backward") }
+                            .tint(Theme.accent)
+                            .accessibilityLabel(Text("Back"))
+                    }
+                }
+            }
+    }
+}
+
+/// Where a screen stands in its stack: on something, or at its foot.
+/// SwiftUI does not say; the stack under it does.
+private struct StackPlace: UIViewControllerRepresentable {
+    @Binding var deeper: Bool
+
+    func makeUIViewController(context: Context) -> Probe { Probe() }
+
+    func updateUIViewController(_ probe: Probe, context: Context) {
+        probe.report = { now in if deeper != now { deeper = now } }
+        probe.look()
+    }
+
+    final class Probe: UIViewController {
+        var report: ((Bool) -> Void)?
+
+        override func didMove(toParent parent: UIViewController?) {
+            super.didMove(toParent: parent)
+            look()
+        }
+
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            look()
+        }
+
+        func look() {
+            guard let stack = navigationController else { return }
+            // Which of the stack's screens holds this one.
+            var holder: UIViewController? = self
+            while let one = holder, !stack.viewControllers.contains(one) { holder = one.parent }
+            guard let holder, let at = stack.viewControllers.firstIndex(of: holder) else { return }
+            // On a phone the open screen's own stack stands on the menu's:
+            // its first screen has the menu to go back to.
+            let deeper = at > 0 || stack.navigationController != nil
+            // With the system's arrow gone, its swipe would go with it.
+            for one in [stack, stack.navigationController].compactMap({ $0 }) {
+                one.interactivePopGestureRecognizer?.delegate = SwipeBack.shared
+                one.interactivePopGestureRecognizer?.isEnabled = true
+            }
+            DispatchQueue.main.async { [weak self] in self?.report?(deeper) }
+        }
+    }
+}
+
+/// Lets the swipe from the edge go back wherever there is a screen to go
+/// back to -- which the system stops asking once its own arrow is hidden.
+private final class SwipeBack: NSObject, UIGestureRecognizerDelegate {
+    static let shared = SwipeBack()
+
+    func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+        var responder: UIResponder? = recognizer.view
+        while let one = responder {
+            if let stack = one as? UINavigationController { return stack.viewControllers.count > 1 }
+            responder = one.next
+        }
+        return false
     }
 }
 
