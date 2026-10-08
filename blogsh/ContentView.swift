@@ -127,9 +127,11 @@ struct ContentView: View {
                     } }
                 }
                 // ...and from an open screen the way back to it is here,
-                // where a phone has it.
+                // where a phone has it. Beside the menu too, on a screen
+                // wide enough for both: the way back there closes the open
+                // screen and leaves the menu with nothing beside it.
                 .toolbar {
-                    if single && (selection != nil || resumed != nil) {
+                    if sizeClass == .regular && (selection != nil || resumed != nil) {
                         ToolbarItem(placement: .topBarLeading) {
                             Button(action: close) { Image(systemName: "chevron.backward") }
                                 .tint(Theme.accent)
@@ -272,10 +274,14 @@ struct ContentView: View {
             .refreshable { await load() }
     }
 
-    /// Back to the menu from an open screen, upright on a wide screen.
+    /// Back to the menu from an open screen, on a wide screen: upright,
+    /// where the menu is then the page, and on its side, where the place
+    /// beside the menu is left empty -- and the menu, if it was put out of
+    /// the way, is brought back, or nothing would be left to choose from.
     private func close() {
         selection = nil
         resumed = nil
+        if twoColumns, columns == .detailOnly { columns = .all }
         visit += 1
         Task { await loadGlance() }
     }
