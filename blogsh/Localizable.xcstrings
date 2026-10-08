@@ -2114,6 +2114,22 @@
         }
       }
     },
+    "On the server, run ./blog.sh pair. It shows a code: scan it, or paste the line of text under it here.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na serveru spusť ./blog.sh pair. Ukáže kód: naskenuj ho, nebo sem vlož řádek textu pod ním."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führe auf dem Server ./blog.sh pair aus. Es zeigt einen Code: Scanne ihn oder füge die Textzeile darunter hier ein."
+          }
+        }
+      }
+    },
     "On the way: %@": {
       "localizations": {
         "cs": {
@@ -2350,6 +2366,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Angepinnt"
+          }
+        }
+      }
+    },
+    "Point the camera at the code on the server's screen.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namiř kameru na kód na obrazovce serveru."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richte die Kamera auf den Code auf dem Bildschirm des Servers."
           }
         }
       }
@@ -3106,6 +3138,22 @@
         }
       }
     },
+    "Scan the code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naskenovat kód"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scannen"
+          }
+        }
+      }
+    },
     "Schedule": {
       "localizations": {
         "cs": {
@@ -3598,6 +3646,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die App hat noch keinen Schlüssel."
+          }
+        }
+      }
+    },
+    "The app is not allowed to use the camera. Allow it in the system's settings, or paste the code as text.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appka nemá dovoleno použít kameru. Povol ji v nastavení systému, nebo kód vlož jako text."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App darf die Kamera nicht verwenden. Erlaube es in den Systemeinstellungen oder füge den Code als Text ein."
           }
         }
       }

@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// "Add a blog": two ways in. With a code -- `./blog.sh pair` on the
-/// server shows one, the app reads it and is connected, and nobody types
-/// an address, a user name or a key -- or by hand, as before: the blog's
+/// server shows one, the app reads it with the camera (or is given its
+/// line of text) and is connected, and nobody types an address, a user
+/// name or a key -- or by hand, as before: the blog's
 /// settings, a key made here and its line written into the server's
 /// authorized_keys by whoever keeps that file.
 struct AddBlogView: View {
@@ -15,6 +16,9 @@ struct AddBlogView: View {
     @State private var connecting = false
     @State private var problem: String?
     @State private var byHand = false
+    @State private var scanning = false
+    /// The camera was asked for and the answer was no.
+    @State private var cameraRefused = false
 
     init(initialCode: String = "", close: @escaping () -> Void) {
         self.initialCode = initialCode
@@ -32,6 +36,21 @@ struct AddBlogView: View {
         PaperScreen(name: String(localized: "Add a blog")) {
             SectionLabel("With a code")
             Plate {
+                // Where there is a camera that reads codes, that is the
+                // first way; the line of text is for where there is none.
+                if CodeScanner.isOffered {
+                    Command("Scan the code", symbol: "qrcode.viewfinder") {
+                        Task {
+                            if await CodeScanner.allowed() {
+                                cameraRefused = false
+                                scanning = true
+                            } else {
+                                cameraRefused = true
+                            }
+                        }
+                    }
+                    .disabled(connecting)
+                }
                 TextField("", text: $text, prompt: Text(verbatim: "blogsh://pair?…").foregroundStyle(Theme.muted), axis: .vertical)
                     .font(.mono(13, bold: false))
                     .foregroundStyle(Theme.ink)
@@ -46,7 +65,14 @@ struct AddBlogView: View {
                 .tint(Theme.accent)
                 .disabled(connecting)
             }
-            Hint("On the server, run ./blog.sh pair. It shows a code and under it the same thing as a line of text: paste that line here.")
+            if cameraRefused {
+                ProblemLine(text: String(localized: "The app is not allowed to use the camera. Allow it in the system's settings, or paste the code as text."))
+            }
+            if CodeScanner.isOffered {
+                Hint("On the server, run ./blog.sh pair. It shows a code: scan it, or paste the line of text under it here.")
+            } else {
+                Hint("On the server, run ./blog.sh pair. It shows a code and under it the same thing as a line of text: paste that line here.")
+            }
 
             switch read {
             case .success(let code):
@@ -88,6 +114,11 @@ struct AddBlogView: View {
         .navigationTitle("Add a blog")
         .navigationDestination(isPresented: $byHand) {
             BlogSettingsView(close: close)
+        }
+        .fullScreenCover(isPresented: $scanning) {
+            // Whatever the camera read goes into the field: a code is then
+            // asked about, and anything else is said not to be one.
+            CodeScannerScreen { text = $0 }
         }
         .onAppear { if text.isEmpty { text = initialCode } }
         .onChange(of: text) { problem = nil }

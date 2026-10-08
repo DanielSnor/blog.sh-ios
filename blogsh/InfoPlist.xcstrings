@@ -1,0 +1,30 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSCameraUsageDescription" : {
+      "comment" : "Why the app asks for the camera: shown by the system the first time a pairing code is scanned.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera se použije jen k naskenování kódu, kterým se appka připojí k blogu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Kamera wird nur verwendet, um den Code zu lesen, der die App mit einem Blog verbindet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The camera is used only to read the code that connects the app to a blog."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
