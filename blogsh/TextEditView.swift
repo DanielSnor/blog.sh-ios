@@ -26,6 +26,8 @@ struct TextEditView: View {
     @State private var shots: [Shot] = []
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
+    /// Why the last picture chosen is not among the shots.
+    @State private var unread: String?
     @State private var saving = false
     @State private var problem: String?
     @State private var saved: ActionAnswer?
@@ -104,6 +106,7 @@ struct TextEditView: View {
                     .buttonStyle(PressStyle())
                     .disabled(importing || !entry.editable)
                 }
+                if let unread { ProblemLine(text: unread) }
                 DeliveryNote(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb)
 
                 Button {
@@ -246,14 +249,16 @@ struct TextEditView: View {
     private func loadPictures(_ items: [PhotosPickerItem]) async {
         guard !items.isEmpty else { return }
         importing = true
+        unread = nil
         defer { importing = false; picked = [] }
         for item in items {
             let taken = (entry?.media ?? []) + shots.map(\.name)
-            guard let shot = await Media.shot(from: item, index: taken.count + 1, taken: taken) else {
-                problem = String(localized: "One picture could not be read.")
-                continue
+            do {
+                shots.append(try await Media.shot(from: item, index: taken.count + 1, taken: taken))
+            } catch {
+                // Said at the key that was pressed, not at the form's end.
+                unread = error.words
             }
-            shots.append(shot)
         }
     }
 

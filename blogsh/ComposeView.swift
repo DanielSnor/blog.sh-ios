@@ -20,6 +20,8 @@ struct ComposeView: View {
     @State private var shots: [Shot] = []
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
+    /// Why the last picture chosen is not among the shots.
+    @State private var unread: String?
     @State private var sending = false
     @State private var problem: String?
     @State private var made: ActionAnswer?
@@ -85,6 +87,7 @@ struct ComposeView: View {
                 .buttonStyle(PressStyle())
                 .disabled(importing)
             }
+            if let unread { ProblemLine(text: unread) }
             DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb)
 
             // With the server silent the same key keeps the post on the
@@ -201,13 +204,15 @@ struct ComposeView: View {
     private func load(_ items: [PhotosPickerItem]) async {
         guard !items.isEmpty else { return }
         importing = true
+        unread = nil
         defer { importing = false; picked = [] }
         for item in items {
-            guard let shot = await Media.shot(from: item, index: shots.count + 1, taken: shots.map(\.name)) else {
-                problem = String(localized: "One picture could not be read.")
-                continue
+            do {
+                shots.append(try await Media.shot(from: item, index: shots.count + 1, taken: shots.map(\.name)))
+            } catch {
+                // Said at the key that was pressed, not at the form's end.
+                unread = error.words
             }
-            shots.append(shot)
         }
     }
 

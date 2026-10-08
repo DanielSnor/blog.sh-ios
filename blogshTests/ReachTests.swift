@@ -50,3 +50,26 @@ import Testing
         #expect(!words.contains("NIOConnectionError"))
     }
 }
+
+/// Why a chosen picture could not be read: said as what it most likely is.
+@Suite struct UnreadTests {
+    /// The library saying it needs the network is that, whatever the device thinks of its own.
+    @Test func theLibrarysOwnWordForTheNetworkIsBelieved() {
+        let needs = NSError(domain: "PHPhotosErrorDomain", code: 3164)
+        #expect(Media.unread(needs, online: true) == .needsNetwork)
+        let wrapped = NSError(domain: "CoreTransferable", code: 1, userInfo: [NSUnderlyingErrorKey: NSError(domain: "PHPhotosErrorDomain", code: 3169)])
+        #expect(Media.unread(wrapped, online: true) == .needsNetwork)
+        #expect(Media.unread(NSError(domain: NSURLErrorDomain, code: -1009), online: true) == .needsNetwork)
+    }
+
+    /// Any failure on a device with no network is most likely the same thing;
+    /// with a network, it is a picture that could not be read and no more.
+    @Test func withoutANetworkAFailureIsTakenForIt() {
+        let other = NSError(domain: "PHPhotosErrorDomain", code: 3302)
+        #expect(Media.unread(other, online: false) == .needsNetwork)
+        #expect(Media.unread(nil, online: false) == .needsNetwork)
+        #expect(Media.unread(other, online: true) == .unreadable)
+        #expect(Media.unread(nil, online: true) == .unreadable)
+        #expect(Media.Unread.needsNetwork.words != Media.Unread.unreadable.words)
+    }
+}

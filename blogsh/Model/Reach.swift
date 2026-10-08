@@ -40,6 +40,30 @@ import Observation
 /// one that can carry a connection. That is when a server that was
 /// silent is worth asking again -- which nobody should have to think of.
 nonisolated enum NetworkWatch {
+    /// The device's network as it was last seen, kept by one watcher of
+    /// its own from the first time anybody asks.
+    private final class Seen: @unchecked Sendable {
+        private let lock = NSLock()
+        private var up = true
+        private let monitor = NWPathMonitor()
+
+        init() {
+            monitor.pathUpdateHandler = { [weak self] path in
+                guard let self else { return }
+                self.lock.withLock { self.up = path.status == .satisfied }
+            }
+            monitor.start(queue: DispatchQueue(label: "app.blogsh.ios.network.seen"))
+        }
+
+        var isUp: Bool { lock.withLock { up } }
+    }
+
+    private static let seen = Seen()
+
+    /// The device has a network that can carry a connection. Until the
+    /// system has said anything, it is taken to have one.
+    static var hasNetwork: Bool { seen.isUp }
+
     static var comes: AsyncStream<Void> {
         AsyncStream { continuation in
             let monitor = NWPathMonitor()

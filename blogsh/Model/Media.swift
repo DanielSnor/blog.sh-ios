@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 import AVFoundation
 import CoreTransferable
+import os
 
 /// What the picker hands over, made into what travels. A photograph is
 /// shrunk and written as JPEG whatever it was -- HEIC included, which is
@@ -28,12 +29,58 @@ nonisolated enum Media {
         }
     }
 
-    /// One picked item as a shot, or nil when nothing could be read of it.
-    @concurrent static func shot(from item: PhotosPickerItem, index: Int, taken: [String]) async -> Shot? {
-        if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
-            return await video(from: item, index: index, taken: taken)
+    /// Why nothing could be read of a picked item.
+    enum Unread: Error, Equatable {
+        /// The library does not hold it whole on this device, and what is
+        /// missing could not be fetched: there is no network to fetch it over.
+        case needsNetwork
+        case unreadable
+
+        /// The sentence for it, in the reader's language.
+        var words: String {
+            switch self {
+            case .needsNetwork:
+                String(localized: "The picture could not be read: it is most likely kept in iCloud, and without a network it cannot be fetched. One that is on this device whole -- taken just now, say -- can be added.")
+            case .unreadable:
+                String(localized: "One picture could not be read.")
+            }
         }
-        guard let data = try? await item.loadTransferable(type: Data.self), let shrunk = Pictures.shrink(data) else { return nil }
+    }
+
+    private static let log = Logger(subsystem: "app.blogsh.ios", category: "media")
+
+    /// What a failed read was: the library saying it needs the network,
+    /// in so many words or by failing while the device has none.
+    static func unread(_ error: Error?, online: Bool) -> Unread {
+        var next = error.map { $0 as NSError }
+        while let one = next {
+            if one.domain == "PHPhotosErrorDomain", [3164, 3169].contains(one.code) { return .needsNetwork }
+            if one.domain == NSURLErrorDomain { return .needsNetwork }
+            next = one.userInfo[NSUnderlyingErrorKey] as? NSError
+        }
+        return online ? .unreadable : .needsNetwork
+    }
+
+    /// One picked item as a shot; thrown, why nothing could be read of it.
+    @concurrent static func shot(from item: PhotosPickerItem, index: Int, taken: [String]) async throws(Unread) -> Shot {
+        if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
+            guard let shot = await video(from: item, index: index, taken: taken) else {
+                throw unread(nil, online: NetworkWatch.hasNetwork)
+            }
+            return shot
+        }
+        let data: Data?
+        do {
+            data = try await item.loadTransferable(type: Data.self)
+        } catch {
+            // Kept where a device's log can be read: the picker's own reason.
+            log.error("picture not read: \(String(describing: error), privacy: .public)")
+            throw unread(error, online: NetworkWatch.hasNetwork)
+        }
+        guard let data, let shrunk = Pictures.shrink(data) else {
+            log.error("picture not read: nothing came, or not a picture")
+            throw unread(nil, online: NetworkWatch.hasNetwork)
+        }
         let name = Pictures.freeName(Pictures.safeName(item.itemIdentifier, index: index), taken: taken)
         return Shot(name: name, data: shrunk.data, width: shrunk.width, height: shrunk.height,
                     thumb: Pictures.thumbnail(shrunk.data))

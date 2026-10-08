@@ -208,6 +208,9 @@ struct ContentView: View {
         }
         // ...and so is it the moment the device finds a network.
         .task {
+            // Watched from the start, so that it is known by the time a
+            // picture is chosen.
+            _ = NetworkWatch.hasNetwork
             for await _ in NetworkWatch.comes where offline { await load() }
         }
         // Another blog: nothing of the last one stays on the screen, and its
