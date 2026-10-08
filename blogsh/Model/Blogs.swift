@@ -298,6 +298,7 @@ final class Blogs {
         try? KeyStore.deleteKey(account: blog.keyAccount)
         Unsent.forget(for: id)
         Unsaved.forgetAll(for: id)
+        WaitingRoom.removeAll(for: id)
         Engine.hangUp()
         all.removeAll { $0.id == id }
         if currentID == id { currentID = all.first?.id }

@@ -97,7 +97,10 @@ nonisolated enum Pictures {
 /// The post as a markdown file, the way /write/ writes it: a header of
 /// what the form has fields for, then the text.
 nonisolated enum Markdown {
-    static func frontMatter(title: String, tags: String, publish: Bool = false) -> String {
+    /// `written`: when the post was written, where that is not when it is
+    /// sent -- one that waited on the device for its blog. The engine dates
+    /// a post by the moment it arrives unless its header says otherwise.
+    static func frontMatter(title: String, tags: String, publish: Bool = false, written: Date? = nil) -> String {
         var lines: [String] = []
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: #"^(["'])(.*)\1$"#, with: "$2", options: .regularExpression)
@@ -115,12 +118,22 @@ nonisolated enum Markdown {
             .filter { !$0.isEmpty }
         if !cleanTags.isEmpty { lines.append("tags: \(cleanTags.joined(separator: ", "))") }
         if publish { lines.append("publish: yes") }
+        if let written { lines.append("date: \(stamp(written))") }
         return lines.isEmpty ? "" : "---\n" + lines.joined(separator: "\n") + "\n---\n\n"
     }
 
-    static func file(title: String, tags: String, body: String, publish: Bool = false) -> String {
+    /// A moment as the header says it: to the second, with the device's
+    /// own offset -- the day it was where it was written.
+    static func stamp(_ moment: Date, zone: TimeZone = .current) -> String {
+        let format = ISO8601DateFormatter()
+        format.formatOptions = [.withInternetDateTime]
+        format.timeZone = zone
+        return format.string(from: moment)
+    }
+
+    static func file(title: String, tags: String, body: String, publish: Bool = false, written: Date? = nil) -> String {
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
-        let header = frontMatter(title: title, tags: tags, publish: publish)
+        let header = frontMatter(title: title, tags: tags, publish: publish, written: written)
         // A body that itself opens with --- would be read as a header.
         let guarded = header.isEmpty && text.hasPrefix("---") ? "---\n---\n\n" : header
         return guarded + text + "\n"
