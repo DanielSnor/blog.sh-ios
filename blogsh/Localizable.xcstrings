@@ -4578,22 +4578,6 @@
         }
       }
     },
-    "The text names fewer pictures than the post has. From the app a picture can be swapped for another, not taken out: the blog refuses a save that would leave the post with fewer. Taking pictures out is done at the desk, with ./blog.sh edit.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Text jmenuje méně obrázků, než příspěvek má. Z appky jde obrázek vyměnit za jiný, ne ubrat: uložení, po kterém by jich zbylo méně, blog odmítne. Ubrat obrázky jde u stolu přes ./blog.sh edit."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Text nennt weniger Bilder, als der Beitrag hat. Aus der App lässt sich ein Bild gegen ein anderes tauschen, nicht herausnehmen: das Blog lehnt ein Speichern ab, nach dem der Beitrag weniger hätte. Bilder herausnehmen geht am Schreibtisch, mit ./blog.sh edit."
-          }
-        }
-      }
-    },
     "The time offered is the next free publishing slot.": {
       "localizations": {
         "cs": {
@@ -5934,22 +5918,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "nicht angekündigt"
-          }
-        }
-      }
-    },
-    "not in the text": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "není v textu"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "nicht im Text"
           }
         }
       }

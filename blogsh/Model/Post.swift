@@ -301,9 +301,17 @@ nonisolated enum Kept {
         media.filter { !named($0, in: text) }
     }
 
+    /// A save of this text would delete a picture of the post's from the
+    /// blog: somebody is asked first, every time. Pictures are not kept
+    /// among a post's versions; one deleted is gone.
+    static func asksBeforeSaving(media: [String], text: String) -> Bool {
+        !dropped(media: media, text: text).isEmpty
+    }
+
     /// True when the text names fewer pictures, or fewer videos, than the
     /// post has -- counting what it has and still names, and what is new
-    /// and named. That save the engine refuses.
+    /// and named. An engine before 1.10 refuses that save; a newer one
+    /// takes it, and deletes what is no longer named.
     static func fewer(media: [String], shots: [Shot], text: String) -> Bool {
         func count(video: Bool) -> (before: Int, after: Int) {
             let had = media.filter { isVideo($0) == video }

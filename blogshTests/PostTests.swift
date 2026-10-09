@@ -538,4 +538,16 @@ import Testing
         #expect(Markdown.frontMatter(title: "[Sobota]", tags: "") == "---\ntitle: Sobota\n---\n\n")
         #expect(Markdown.frontMatter(title: "'Sobota'", tags: "") == "---\ntitle: Sobota\n---\n\n")
     }
+
+    /// A save that would delete a picture is asked about every time --
+    /// also where the post is left with fewer pictures than it had, which
+    /// the blog used to refuse and now takes.
+    @Test func aSaveThatDeletesAPictureIsAlwaysAskedAbout() {
+        let media = ["01.jpg", "02.jpg"]
+        #expect(Kept.asksBeforeSaving(media: media, text: "![a](01.jpg)"))
+        #expect(Kept.asksBeforeSaving(media: media, text: "no pictures at all"))
+        #expect(Kept.asksBeforeSaving(media: media, text: "![a](01.jpg) ![c](photo-3.jpg)"))
+        #expect(!Kept.asksBeforeSaving(media: media, text: "![a](01.jpg)\n\n![b](02.jpg)"))
+        #expect(!Kept.asksBeforeSaving(media: [], text: "text"))
+    }
 }

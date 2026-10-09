@@ -74,18 +74,13 @@ struct TextEditView: View {
                                 Spacer(minLength: 8)
                                 if Kept.named(name, in: text) {
                                     Text("in the text").font(.ui(13)).foregroundStyle(Theme.muted)
-                                } else if fewer {
-                                    // Not a promise the blog would not keep: see the hint under the list.
-                                    Text("not in the text").font(.ui(13)).foregroundStyle(Theme.danger)
                                 } else {
+                                    // Whether or not another takes its place: the
+                                    // blog deletes a picture its text stopped naming.
                                     Text("not named — deleted on save").font(.ui(13)).foregroundStyle(Theme.danger)
                                 }
                             }
                         }
-                    }
-                    // Said before the save, not after it: what the blog will answer.
-                    if fewer {
-                        Hint(verbatim: String(localized: "The text names fewer pictures than the post has. From the app a picture can be swapped for another, not taken out: the blog refuses a save that would leave the post with fewer. Taking pictures out is done at the desk, with ./blog.sh edit."))
                     }
                 }
 
@@ -112,10 +107,12 @@ struct TextEditView: View {
                 DeliveryNote(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb)
 
                 Button {
-                    // The question is asked where the answer counts: a swap deletes
-                    // the picture it replaces. Fewer than before is the blog's to
-                    // refuse, and the hint above has said so.
-                    if dropped.isEmpty || fewer { Task { await save() } } else { confirmingLoss = true }
+                    // Asked whenever the save would delete a picture -- one
+                    // swapped for another, or one simply taken out. The blog
+                    // used to refuse a save that left the post with fewer, and
+                    // the app left that case to it; it takes such a save now,
+                    // and deletes the picture for good.
+                    if Kept.asksBeforeSaving(media: entry.media, text: text) { confirmingLoss = true } else { Task { await save() } }
                 } label: {
                     PrimaryLabel(label: saving ? "Saving…" : (entry.scheduled || isDraft ? "Save the draft" : "Save and publish the change"),
                                  busy: saving)
@@ -196,11 +193,6 @@ struct TextEditView: View {
     /// Pictures the post has that the text stops naming.
     private var dropped: [String] {
         Kept.dropped(media: entry?.media ?? [], text: text)
-    }
-
-    /// The save would leave the post with fewer pictures than it had.
-    private var fewer: Bool {
-        Kept.fewer(media: entry?.media ?? [], shots: shots, text: text)
     }
 
     // MARK: - Kept until saved

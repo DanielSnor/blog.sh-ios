@@ -258,6 +258,30 @@ import Testing
         }
     }
 
+    /// The blog is busy -- another delivery is being taken, the site is
+    /// being built: that is not a no to the post. It waits without a
+    /// reason written on it, and goes with the next asking.
+    @Test func aBusyBlogLeavesThePostWaiting() async throws {
+        try await room { home in
+            let id = UUID(), blog = Blog()
+            try WaitingRoom.put(Waiting(title: "one", at: moment(0)), shots: [], for: id, in: home)
+            var busy = true
+            let outbox = Outbox(home: home, open: { id }, deliver: { files, to in
+                blog.take(files, for: to)
+                if busy {
+                    throw EngineError.refused(try JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"busy","message":"Another delivery is being taken."}"#.utf8)))
+                }
+                return try self.answer("one")
+            })
+
+            #expect(await outbox.sendAll(for: id) == 0)
+            #expect(WaitingRoom.all(for: id, in: home).map(\.problem) == [nil])
+            busy = false
+            #expect(await outbox.sendAll(for: id) == 1)
+            #expect(WaitingRoom.all(for: id, in: home).isEmpty)
+        }
+    }
+
     /// A receipt is what the engine takes for one, and no two posts share one.
     @Test func aReceiptIsSixteenLowercaseHexDigitsOfItsOwn() {
         let one = Receipt.mint(), two = Receipt.mint()
