@@ -775,12 +775,12 @@ struct HomeView: View {
                 let when = ISO8601DateFormatter.engine.date(from: next.date).map(RowDate.soon) ?? ""
                 Text(verbatim: "\(next.title.isEmpty ? next.slug : next.title) · \(when)")
                     .font(.ui(15 * k, weight: .medium))
-                    .foregroundStyle(Theme.ink)
+                    .tone(Theme.ink)
                     .lineLimit(1)
                 Spacer(minLength: 6)
                 CountBadge(count: glance.queue.count)
             } else {
-                Text("Nothing scheduled").font(.ui(15 * k)).foregroundStyle(Theme.muted)
+                Text("Nothing scheduled").font(.ui(15 * k)).tone(Theme.muted)
             }
         }
     }
@@ -789,23 +789,23 @@ struct HomeView: View {
     /// under that what it is called.
     private func begunCard(_ one: Begun) -> some View {
         Card(warning: true) {
-            Image(systemName: "square.and.pencil").font(.system(size: 17 * k)).foregroundStyle(Theme.danger)
+            Image(systemName: "square.and.pencil").font(.system(size: 17 * k)).tone(Theme.danger)
             VStack(alignment: .leading, spacing: 2 * k) {
                 (kind(one) + Text(verbatim: " · \(one.at.spoken)"))
                     .font(.ui(12 * k, weight: .medium))
-                    .foregroundStyle(Theme.danger)
+                    .tone(Theme.danger)
                     .lineLimit(1)
                 if !one.title.isEmpty {
                     Text(verbatim: one.title)
                         .font(.ui(15 * k, weight: .medium))
-                        .foregroundStyle(Theme.ink)
+                        .tone(Theme.ink)
                         .lineLimit(1)
                 }
             }
             Spacer(minLength: 6)
             Image(systemName: "chevron.right")
                 .font(.system(size: 12 * k, weight: .semibold))
-                .foregroundStyle(Theme.muted)
+                .tone(Theme.muted)
                 .accessibilityHidden(true)
         }
     }
@@ -851,7 +851,7 @@ struct HomeView: View {
                 Spacer(minLength: 6)
                 CountBadge(count: glance.drafts)
             } else {
-                Text("No drafts in progress").font(.ui(15 * k)).foregroundStyle(Theme.muted)
+                Text("No drafts in progress").font(.ui(15 * k)).tone(Theme.muted)
             }
         }
     }
@@ -1030,9 +1030,12 @@ struct Tile: View {
     let entry: MenuEntry
     var highlighted = false
     @Environment(\.scale) private var scale
+    @Environment(\.outOfReach) private var out
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Theme.corner * scale, style: .continuous)
+        // Out of reach a tile is not the open one either: no fill, the plain outline.
+        let highlighted = highlighted && !out
         VStack(spacing: 8 * scale) {
             // A tile is an action: its mark is in the accent, its word in
             // ink -- as the cards over the tiles have it.
@@ -1049,7 +1052,7 @@ struct Tile: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 16 * scale)
         .padding(.bottom, 12 * scale)
-        .background { if highlighted { shape.fill(.tint.opacity(0.12)) } else { shape.fill(Theme.card) } }
+        .background { if out { shape.fill(.clear) } else if highlighted { shape.fill(.tint.opacity(0.12)) } else { shape.fill(Theme.card) } }
         .overlay { if highlighted { shape.strokeBorder(.tint, lineWidth: 1) } else { KeyOutline(shape: shape) } }
         .contentShape(shape)
         .underPointer()

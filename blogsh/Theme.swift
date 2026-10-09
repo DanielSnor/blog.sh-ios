@@ -17,6 +17,8 @@ nonisolated enum Theme {
     @MainActor static var muted: Color { colour(\.metaText) }
     /// A hairline: the edge of a card, the rule between two rows.
     @MainActor static var line: Color { colour(\.border) }
+    /// What is out of reach, in every part of it: see `Shades.faded`.
+    @MainActor static var faded: Color { colour(\.faded) }
     /// The inside of a card, barely off the ground.
     @MainActor static var card: Color { colour(\.text, lightAlpha: 0.03, darkAlpha: 0.05) }
     /// The one accent: every control of the app, its links, its counts.
@@ -366,6 +368,7 @@ struct Card<Content: View>: View {
     var warning = false
     @ViewBuilder var content: Content
     @Environment(\.scale) private var scale
+    @Environment(\.outOfReach) private var out
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: capsule ? 999 : Theme.corner * scale, style: .continuous)
@@ -374,12 +377,15 @@ struct Card<Content: View>: View {
             .padding(.vertical, 12 * scale)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
-                if warning { shape.fill(Theme.danger.opacity(0.10)) }
+                // Out of reach: no fill, and the plain outline.
+                if out { shape.fill(.clear) }
+                else if warning { shape.fill(Theme.danger.opacity(0.10)) }
                 else if highlighted { shape.fill(.tint.opacity(0.12)) }
                 else { shape.fill(Theme.card) }
             }
             .overlay {
-                if warning { shape.strokeBorder(Theme.danger.opacity(0.55), lineWidth: 1) }
+                if out { KeyOutline(shape: shape) }
+                else if warning { shape.strokeBorder(Theme.danger.opacity(0.55), lineWidth: 1) }
                 else if highlighted { shape.strokeBorder(.tint, lineWidth: 1) }
                 else { KeyOutline(shape: shape) }
             }
@@ -398,7 +404,7 @@ struct CountBadge: View {
     var body: some View {
         Text(verbatim: "\(count)")
             .font(.mono(13 * scale))
-            .foregroundStyle(Theme.ink)
+            .tone(Theme.ink)
             .padding(.horizontal, 4 * scale)
     }
 }
@@ -757,9 +763,48 @@ extension View {
     /// What the server would have to answer for, while the server is
     /// silent: drawn without its colour and faint, and deaf to a tap.
     func outOfReach(_ out: Bool) -> some View {
-        disabled(out)
-            .saturation(out ? 0 : 1)
-            .opacity(out ? 0.45 : 1)
+        modifier(OutOfReach(out: out))
+    }
+
+    /// A colour of this thing's own -- which it gives up when it is out
+    /// of reach, for the one tone everything out of reach is drawn in.
+    func tone(_ colour: Color) -> some View {
+        modifier(Tone(colour: colour))
+    }
+}
+
+extension EnvironmentValues {
+    /// This is part of something that cannot be used just now.
+    @Entry var outOfReach = false
+}
+
+/// The state "out of reach": the thing keeps its place and its outline
+/// and goes quiet. Everything in it is drawn in one tone -- the accent
+/// says "a key", and what cannot be pressed does not wear it -- it has no
+/// fill, and it answers to nothing. Never done by making the whole thing
+/// transparent: that fades a fill, an outline and a picture each its own
+/// way, and comes out differently over every ground.
+private struct OutOfReach: ViewModifier {
+    let out: Bool
+
+    func body(content: Content) -> some View {
+        if out {
+            content
+                .disabled(true)
+                .tint(Theme.faded)
+                .environment(\.outOfReach, true)
+        } else {
+            content
+        }
+    }
+}
+
+private struct Tone: ViewModifier {
+    let colour: Color
+    @Environment(\.outOfReach) private var out
+
+    func body(content: Content) -> some View {
+        content.foregroundStyle(out ? Theme.faded : colour)
     }
 }
 
@@ -1046,9 +1091,11 @@ private struct UnderPointer: ViewModifier {
 struct KeyOutline<S: InsettableShape>: View {
     let shape: S
     @Environment(\.underPointer) private var over
+    @Environment(\.outOfReach) private var out
 
     var body: some View {
-        shape.strokeBorder(over ? Theme.accent : Theme.line, lineWidth: 1)
+        // Out of reach it answers to nothing, the pointer included.
+        shape.strokeBorder(over && !out ? Theme.accent : Theme.line, lineWidth: 1)
     }
 }
 
@@ -1056,9 +1103,10 @@ private struct WordUnderPointer: ViewModifier {
     let rest: Color
     let moves: Bool
     @Environment(\.underPointer) private var over
+    @Environment(\.outOfReach) private var out
 
     func body(content: Content) -> some View {
-        content.foregroundStyle(over && moves ? Theme.accent : rest)
+        content.foregroundStyle(out ? Theme.faded : (over && moves ? Theme.accent : rest))
     }
 }
 
@@ -1202,6 +1250,10 @@ struct CommandRow: View {
     @Environment(\.isEnabled) private var enabled
 
     var body: some View {
+        // A row that cannot be pressed just now is out of reach like any
+        // other key: one tone, and no making it transparent. (What is put
+        // out of reach is disabled with it, so the one question covers both.)
+        let quiet = !enabled
         HStack(spacing: 11) {
             Group {
                 if busy {
@@ -1209,7 +1261,7 @@ struct CommandRow: View {
                 } else {
                     Image(systemName: symbol)
                         .font(.system(size: 16))
-                        .foregroundStyle(danger ? AnyShapeStyle(Theme.danger) : AnyShapeStyle(.tint))
+                        .foregroundStyle(quiet ? AnyShapeStyle(Theme.faded) : (danger ? AnyShapeStyle(Theme.danger) : AnyShapeStyle(.tint)))
                 }
             }
             .frame(width: 22)
@@ -1220,10 +1272,10 @@ struct CommandRow: View {
             if leads {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Theme.muted)
+                    .tone(Theme.muted)
             }
         }
-        .opacity(enabled ? 1 : 0.45)
+        .environment(\.outOfReach, quiet)
         .contentShape(Rectangle())
         .underPointer()
     }

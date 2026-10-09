@@ -54,6 +54,17 @@ nonisolated struct Shades: Codable, Equatable, Sendable {
         }
     }
 
+    /// What is out of reach is written in: the ink mixed with the ground,
+    /// 45 to 55. One tone for everything such a thing is made of -- its
+    /// mark, its word, its number -- between the muted tone and a hairline.
+    var faded: UInt32 {
+        func mixed(_ shift: UInt32) -> UInt32 {
+            let ink = Double((text >> shift) & 0xff), ground = Double((bg >> shift) & 0xff)
+            return UInt32((ink * 0.45 + ground * 0.55).rounded())
+        }
+        return mixed(16) << 16 | mixed(8) << 8 | mixed(0)
+    }
+
     /// How far what is written stands from what it is written on: the
     /// ratio of their luminances, from one (the same colour) to twenty-one
     /// (black on white).

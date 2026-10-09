@@ -86,4 +86,22 @@ import Testing
         shades.text = 0xFFFFFF
         #expect(abs(shades.contrast - 21) < 0.001)
     }
+
+    /// What is out of reach is drawn in one tone: the ink mixed with the
+    /// ground, 45 to 55 -- between the muted tone and a hairline, on a
+    /// light ground and on a dark one.
+    @Test func whatIsOutOfReachIsTheInkMixedIntoTheGround() {
+        var day = Colours.own.light
+        day.text = 0x1E1D1C
+        day.bg = 0xFFF7EB
+        #expect(day.faded == 0x9A958E)
+        var night = Colours.own.dark
+        night.text = 0xE6DCCB
+        night.bg = 0x000000
+        // 230 x 0.45 is 103.5: a half goes up, as a browser rounds it.
+        #expect(night.faded == 0x68635B)
+        // The same ink and ground: nothing to mix.
+        night.text = 0x000000
+        #expect(night.faded == 0x000000)
+    }
 }
