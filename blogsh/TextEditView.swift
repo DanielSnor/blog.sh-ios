@@ -11,6 +11,10 @@ import PhotosUI
 /// Changes written and not saved are kept on the device (`Unsaved`) and
 /// are back in the editor the next time the post is opened.
 struct TextEditView: View {
+    /// The blog this screen was opened for. An answer can come after
+    /// another blog has been opened; what follows from it -- a build owed,
+    /// a build paid -- is this blog's all the same.
+    @State private var home = Blogs.shared.currentID
     let slug: String
     /// The text already handed out to the screen before this one, so the
     /// first look need not ask the engine again.
@@ -306,7 +310,7 @@ struct TextEditView: View {
             broughtBack = nil
             Desk.shared.changed()
             // Saving a published post builds the site: nothing is owed after it.
-            if saved?.state == .published { Herald.shared.settled() }
+            if saved?.state == .published { Herald.shared.settled(for: home) }
             await load()
             answered += 1
         } catch {

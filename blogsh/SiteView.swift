@@ -6,6 +6,10 @@ import SwiftUI
 /// deploy's guards. Under it the two looks that only read: `check` and
 /// `doctor` (see `DiagnosisView`).
 struct SiteView: View {
+    /// The blog this screen was opened for. An answer can come after
+    /// another blog has been opened; what follows from it -- a build owed,
+    /// a build paid -- is this blog's all the same.
+    @State private var home = Blogs.shared.currentID
     @State private var full = false
     @State private var force = false
     @State private var running = false
@@ -77,7 +81,7 @@ struct SiteView: View {
             problem = nil
             // Built here, by hand: nothing is owed, and a build that
             // failed before this one has been tried again.
-            Herald.shared.settled()
+            Herald.shared.settled(for: home)
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
         }

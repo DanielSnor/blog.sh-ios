@@ -9,6 +9,10 @@ import SwiftUI
 /// good, both say how much before they ask, and each is asked over its
 /// own key.
 struct TrashView: View {
+    /// The blog this screen was opened for. An answer can come after
+    /// another blog has been opened; what follows from it -- a build owed,
+    /// a build paid -- is this blog's all the same.
+    @State private var home = Blogs.shared.currentID
     @State private var rows: [TrashRow] = []
     @State private var problem: String?
     @State private var loading = false
@@ -142,7 +146,7 @@ struct TrashView: View {
             await load()
             // A published post is back in the archive and not yet on the site:
             // that it is back is said, and the site is brought up to date by itself.
-            if answer.state == .published { Herald.shared.owe() }
+            if answer.state == .published { Herald.shared.owe(for: home) }
             Herald.shared.say(words)
         } catch {
             if !error.isCalledOff { said = Said(text: error.localizedDescription) }

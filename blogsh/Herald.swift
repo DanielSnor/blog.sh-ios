@@ -71,8 +71,18 @@ import SwiftUI
 
     /// A change the site does not show yet. `why`: what a reader of the
     /// site would notice, where the screen has more to say than that.
-    func owe(_ why: String? = nil) {
-        owedFor = why ?? String(localized: "The site does not show this change yet.")
+    ///
+    /// `owed`: the blog the change was made on, where the screen knows it.
+    /// A change whose answer came after another blog was opened is owed
+    /// to the blog it was made on, and waits for it -- it is not built
+    /// on the blog that happens to be open, and not forgotten.
+    func owe(_ why: String? = nil, for owed: UUID? = nil) {
+        let words = why ?? String(localized: "The site does not show this change yet.")
+        if let owed, owed != open() {
+            parked[owed] = words
+            return
+        }
+        owedFor = words
         blog = open()
         if let blog { parked[blog] = nil }
         tries = 0
@@ -88,7 +98,14 @@ import SwiftUI
     /// The site was just built by something else -- a publish builds it
     /// whole -- so what was owed is paid, and a build that failed before
     /// it has nothing left to say.
-    func settled() {
+    ///
+    /// `built`: the blog whose site it was. Another blog's being built
+    /// pays nothing of what the open one is owed.
+    func settled(for built: UUID? = nil) {
+        if let built, built != open() {
+            parked[built] = nil
+            return
+        }
         switch build {
         case .owed:
             waiting?.cancel()

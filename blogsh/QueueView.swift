@@ -14,6 +14,10 @@ import SwiftUI
 /// once the queue has been left alone a moment (`Herald`), and says what
 /// each key did: when the post goes out now.
 struct QueueView: View {
+    /// The blog this screen was opened for. An answer can come after
+    /// another blog has been opened; what follows from it -- a build owed,
+    /// a build paid -- is this blog's all the same.
+    @State private var home = Blogs.shared.currentID
     /// The site's other languages, for the post a row opens.
     var languages: [String] = []
     @State private var rows: [QueueRow] = []
@@ -233,7 +237,7 @@ struct QueueView: View {
                 Herald.shared.say(done)
             }
             // Publishing builds the whole site; a plan cancelled leaves the previews behind.
-            if leaving.publish { Herald.shared.settled() } else { Herald.shared.owe(Self.behind) }
+            if leaving.publish { Herald.shared.settled(for: home) } else { Herald.shared.owe(Self.behind, for: home) }
             await load()
         } catch EngineError.refused(let refusal) where refusal.error == Partial.code && leaving.publish && !anyway {
             // Not written in every language the site publishes: asked, as the properties screen asks it.
@@ -255,7 +259,7 @@ struct QueueView: View {
     /// A key moved a post: where it is now and when it goes out, read off
     /// the queue the engine answered with -- and the previews are owed a build.
     private func changed(_ row: QueueRow, _ what: String) {
-        Herald.shared.owe(Self.behind)
+        Herald.shared.owe(Self.behind, for: home)
         guard let now = rows.first(where: { $0.id == row.id }) else { return }
         let when = ISO8601DateFormatter.engine.date(from: now.date)?.spoken ?? now.date
         Herald.shared.say(String(localized: "\(what): '\(now.title.isEmpty ? now.slug : now.title)' goes out \(when), \(now.position) of \(rows.count) in the queue."))

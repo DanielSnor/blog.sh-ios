@@ -93,6 +93,11 @@ struct PostCrossroadsView: View {
     /// The post's text as the editor would open it: where the lede is read
     /// from, and handed on to the editor so it need not ask again.
     @State private var entry: EditEntry?
+    /// `entry` was read in this visit to the screen. What was read before
+    /// -- shown still, so the screen does not blink -- is not handed to
+    /// the editor: the post may have another text and another version by
+    /// now, and the editor would open the old ones as the blog's.
+    @State private var fresh = false
     @State private var reading = false
     /// The post was deleted from its properties: this screen is about a
     /// post that is not there, and leaves once it is in front again -- a
@@ -144,7 +149,7 @@ struct PostCrossroadsView: View {
                 NavigationLink {
                     // The text read for the lede is handed on only while it is
                     // this post's under this name: after a rename it is not.
-                    TextEditView(slug: post.slug, loaded: entry?.slug == post.slug ? entry : nil)
+                    TextEditView(slug: post.slug, loaded: Self.handedOn(entry, fresh: fresh, as: post.slug))
                 } label: {
                     CommandRow("the text", symbol: "text.alignleft", leads: true)
                 }
@@ -194,6 +199,14 @@ struct PostCrossroadsView: View {
         .task { await read() }
     }
 
+    /// What the editor is given to open with: the text this screen read,
+    /// while it is this post's under this name and was read in this visit
+    /// -- or nothing, and the editor asks the engine itself.
+    static func handedOn(_ entry: EditEntry?, fresh: Bool, as slug: String) -> EditEntry? {
+        guard fresh, let entry, entry.slug == slug else { return nil }
+        return entry
+    }
+
     /// `edit <slug> --json` and `props <slug> --json`, in one go: the text
     /// handed out and what the post is now, nothing written. A failure
     /// costs the lede and leaves the row as the list had it -- the keys
@@ -207,13 +220,18 @@ struct PostCrossroadsView: View {
             return
         }
         reading = true
+        // Until this read has answered, the editor asks for itself.
+        fresh = false
         defer { reading = false }
         let slug = post.slug
         guard let answers = try? await Engine.shared.answers(to: [["edit", slug], ["props", slug]]),
               answers.count == 2 else { return }
         // Asked of one name, answered after the post took another: not this one's to keep.
         guard slug == post.slug else { return }
-        if let answer: EditAnswer = try? Engine.decode(answers[0]) { entry = answer.post }
+        if let answer: EditAnswer = try? Engine.decode(answers[0]) {
+            entry = answer.post
+            fresh = true
+        }
         if let props: PropsAnswer = try? Engine.decode(answers[1]), props.ok {
             now = post.seen(as: props)
             link = PostLink(props)

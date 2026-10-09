@@ -621,4 +621,16 @@ import Testing
         #expect(kept.namesPictures(beyond: ["01.png"]))
         #expect(Unsent(text: "![a](photo-1.jpg \"One.\")").namesPictures)
     }
+
+    /// The editor is handed the text the post's screen read only where it
+    /// was read in this visit and is this post's under this name: a text
+    /// read before the screen was left and come back to may be an old one.
+    @Test func theEditorIsHandedOnlyWhatWasJustRead() {
+        let entry = EditEntry(slug: "venku", title: "Venku", date: "2026-10-01T10:00:00+02:00", scheduled: false,
+                              editable: true, problem: nil, text: "text", media: [], preview: "/draft/x/", base: "K1")
+        #expect(PostCrossroadsView.handedOn(entry, fresh: true, as: "venku")?.base == "K1")
+        #expect(PostCrossroadsView.handedOn(entry, fresh: false, as: "venku") == nil)
+        #expect(PostCrossroadsView.handedOn(entry, fresh: true, as: "outside") == nil)
+        #expect(PostCrossroadsView.handedOn(nil, fresh: true, as: "venku") == nil)
+    }
 }

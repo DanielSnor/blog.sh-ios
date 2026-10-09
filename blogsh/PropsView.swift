@@ -6,6 +6,10 @@ import SwiftUI
 /// order of the keys row. Each asks what the screen asks, then calls the
 /// command the key calls, then reads the screen again.
 struct PropsView: View {
+    /// The blog this screen was opened for. An answer can come after
+    /// another blog has been opened; what follows from it -- a build owed,
+    /// a build paid -- is this blog's all the same.
+    @State private var home = Blogs.shared.currentID
     @State var slug: String
     /// Said to the screen this one was opened from, once the post is
     /// deleted: that screen is about the same post, and leaves with it.
@@ -259,7 +263,7 @@ struct PropsView: View {
         case .unpublish:
             if let answer = await run(["unpublish", slug, "--yes"]) {
                 // Taking a post off the site builds the site.
-                Herald.shared.settled()
+                Herald.shared.settled(for: home)
                 await load()
                 tell(answer.warnings, or: String(localized: "Unpublished; the post is a draft again."))
             }
@@ -270,7 +274,7 @@ struct PropsView: View {
                 // The post is out of this screen's reach now. Said once, and
                 // the screen is left: its keys would act on a post that is
                 // not there. The site is brought up to date by itself.
-                Herald.shared.owe()
+                Herald.shared.owe(for: home)
                 said = Said(title: String(localized: "Deleted"),
                             text: String(localized: "The post is in the trash and can be restored from there."),
                             after: { leave() })
@@ -289,7 +293,7 @@ struct PropsView: View {
         let ask = Said.Ask(button: String(localized: "Publish anyway")) { await publish(anyway: true) }
         if let answer = await run(args, anyway: anyway ? nil : ask) {
             // Publishing builds the whole site: nothing is owed after it.
-            Herald.shared.settled()
+            Herald.shared.settled(for: home)
             await load()
             tell(answer.warnings, or: String(localized: "Published: \(answer.url ?? slug)"))
         }
@@ -358,7 +362,7 @@ struct PropsView: View {
             props = answer
             renamed?(answer)
             // A draft's own preview follows it by itself; a published post's pages are owed a build.
-            if !wasDraft { Herald.shared.owe() }
+            if !wasDraft { Herald.shared.owe(for: home) }
             tell(answer.warnings)
         }
     }
@@ -397,7 +401,7 @@ struct PropsView: View {
     private func write(_ args: [String], owed: Bool) async {
         if let answer = await writeProps(args) {
             props = answer
-            if owed { Herald.shared.owe() }
+            if owed { Herald.shared.owe(for: home) }
             tell(answer.warnings)
         }
     }
@@ -405,7 +409,7 @@ struct PropsView: View {
     /// A sheet wrote something the site does not show yet.
     private func afterWrite(saying done: String? = nil) async {
         await load()
-        Herald.shared.owe()
+        Herald.shared.owe(for: home)
         if let done { Herald.shared.say(done) }
     }
 

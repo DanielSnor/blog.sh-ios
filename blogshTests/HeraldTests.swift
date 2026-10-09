@@ -186,6 +186,44 @@ import Testing
         #expect(Markdown.stamp(late, zone: lima) == "2026-12-31T23:45:00-05:00")
     }
 
+    /// An action's answer came after another blog was opened: the build
+    /// it owes is the blog's it was made on. The open blog is not built
+    /// for it, and the debt waits for its own.
+    @Test func aDebtWhoseAnswerCameLateIsItsOwnBlogs() async {
+        let site = Site(), herald = herald(site)
+        let a = site.open, b = UUID()
+        // The delete was sent on A; B was opened before it answered.
+        site.open = b
+        herald.opened(b)
+        herald.owe("a post deleted", for: a)
+        #expect(herald.build == .none)
+        await wait(0.3)
+        #expect(site.builds == 0)
+        site.open = a
+        herald.opened(a)
+        #expect(herald.owedFor == "a post deleted")
+        #expect(await until { site.builds == 1 && herald.build == .none })
+    }
+
+    /// A publish on another blog built that blog's site: what the open
+    /// blog is owed is still owed, and what waited for the other is paid.
+    @Test func anotherBlogsBuildPaysNothingOfTheOpenOnes() async {
+        let site = Site(), herald = herald(site)
+        let a = site.open, b = UUID()
+        herald.owe("of a", for: a)
+        herald.settled(for: b)
+        #expect(herald.build == .owed)
+        #expect(await until { site.builds == 1 && herald.build == .none })
+        // A debt parked for B is paid by B's own build, said while A is open.
+        herald.owe("of b", for: b)
+        herald.settled(for: b)
+        site.open = b
+        herald.opened(b)
+        #expect(herald.build == .none)
+        await wait(0.2)
+        #expect(site.builds == 1)
+    }
+
     @Test func whatIsOwedIsSaidInTheWordsGiven() {
         let herald = herald(Site())
         herald.owe("the queue")
