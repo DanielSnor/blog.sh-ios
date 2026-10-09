@@ -282,6 +282,31 @@ import Testing
         }
     }
 
+    /// A delivery the blog gave up on -- it stalled on the way, time ran
+    /// out -- is not a no to the post either: it waits and goes again.
+    /// A real refusal is still kept with its reason.
+    @Test func aDeliveryThatTimedOutLeavesThePostWaiting() async throws {
+        try await room { home in
+            let id = UUID(), blog = Blog()
+            try WaitingRoom.put(Waiting(title: "one", at: moment(0)), shots: [], for: id, in: home)
+            var says = "timeout"
+            let outbox = Outbox(home: home, open: { id }, deliver: { files, to in
+                blog.take(files, for: to)
+                if !says.isEmpty {
+                    throw EngineError.refused(try JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"\#(says)","message":"Said by the blog."}"#.utf8)))
+                }
+                return try self.answer("one")
+            })
+
+            #expect(await outbox.sendAll(for: id) == 0)
+            #expect(WaitingRoom.all(for: id, in: home).map(\.problem) == [nil])
+            // What is a no stays a no, with its words.
+            says = "too_large"
+            #expect(await outbox.sendAll(for: id) == 0)
+            #expect(WaitingRoom.all(for: id, in: home).map(\.problem) == ["Said by the blog."])
+        }
+    }
+
     /// A receipt is what the engine takes for one, and no two posts share one.
     @Test func aReceiptIsSixteenLowercaseHexDigitsOfItsOwn() {
         let one = Receipt.mint(), two = Receipt.mint()

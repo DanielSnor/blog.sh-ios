@@ -21,6 +21,10 @@ import SwiftUI
         case refused(String)
     }
 
+    /// What the blog says when it has not taken a delivery and has
+    /// nothing against the post: try again later.
+    nonisolated static let notNow: Set<String> = ["busy", "timeout"]
+
     /// The post on its way.
     private(set) var sending: UUID?
     /// The blogs whose waiting posts are being gone through.
@@ -57,10 +61,11 @@ import SwiftUI
         } catch {
             if error.isCalledOff { return .waits }
             if case EngineError.unreachable = error { return .waits }
-            // The blog is taking another delivery, or building: nothing of
-            // this one was kept, and it is not a no to the post -- it waits,
-            // and goes with the next asking.
-            if case EngineError.refused(let refusal) = error, refusal.error == "busy" { return .waits }
+            // The blog is taking another delivery, or building, or gave up
+            // on a delivery that stalled on the way: nothing of this one
+            // was kept, and it is not a no to the post -- it waits, and
+            // goes with the next asking.
+            if case EngineError.refused(let refusal) = error, Self.notNow.contains(refusal.error) { return .waits }
             let words = error.localizedDescription
             WaitingRoom.note(words, on: post.id, for: blog, in: home)
             return .refused(words)
