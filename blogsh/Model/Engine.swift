@@ -3,6 +3,7 @@ import os
 import Citadel
 import CryptoKit
 import NIOCore
+import NIOPosix
 import NIOSSH
 
 /// What the engine said no to, or what went wrong on the way to it.
@@ -134,9 +135,39 @@ actor Engine {
     /// A connection, to be kept by the line: not Sendable by its own
     /// account, and used only through its own methods, which take
     /// themselves to its event loop.
+    ///
+    /// It lives on a thread of its own, `Strand`: taken down with it, a
+    /// connection is gone whatever state it was left in.
     final class Wired: @unchecked Sendable {
         let client: SSHClient
-        init(_ client: SSHClient) { self.client = client }
+        private let strand: Strand
+
+        init(_ client: SSHClient, on strand: Strand) {
+            self.client = client
+            self.strand = strand
+        }
+
+        /// Closed in order, and then for certain.
+        func close() async {
+            try? await client.close()
+            await strand.end()
+        }
+    }
+
+    /// The thread one connection lives on, and nothing else does. The SSH
+    /// library opens a connection and, when the handshake on it fails --
+    /// the key is not known to the server, the server's key has changed
+    /// -- hands back the error and keeps the socket: nobody is given
+    /// anything to close it by, and the server holds the half-open
+    /// connection until its own patience runs out. A server that counts
+    /// the connections of an address counts those. Ending the thread
+    /// closes whatever was opened on it.
+    final class Strand: Sendable {
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+        func end() async {
+            try? await group.shutdownGracefully()
+        }
     }
 
     /// Kept for five minutes after its last call: somebody reading through
@@ -144,12 +175,12 @@ actor Engine {
     /// connections stops answering the tenth. See `Line`.
     static let line = Line<Wired>(keep: 300,
                                   open: { door in
-                                      let wire = Wired(try await connect(door))
+                                      let wire = try await connect(door)
                                       log.info("connection opened")
                                       return wire
                                   },
                                   close: {
-                                      try? await $0.client.close()
+                                      await $0.close()
                                       log.info("connection closed")
                                   })
 
@@ -212,29 +243,34 @@ actor Engine {
         }
     }
 
-    @concurrent private static func connect(_ door: Door) async throws -> SSHClient {
+    @concurrent private static func connect(_ door: Door) async throws -> Wired {
         let key: Curve25519.Signing.PrivateKey
         do {
             key = try KeyStore.privateKey(account: door.keyAccount)
         } catch {
             throw EngineError.noKey
         }
+        let strand = Strand()
         do {
-            return try await SSHClient.connect(
+            let client = try await SSHClient.connect(
                 host: door.host,
                 port: door.port,
                 authenticationMethod: .ed25519(username: door.user, privateKey: key),
                 hostKeyValidator: .custom(TrustOnFirstUse(host: door.host, port: door.port)),
                 reconnect: .never,
+                group: strand.group,
                 // An address nobody answers on is given up after ten
                 // seconds, not thirty: somebody is waiting for the screen.
                 connectTimeout: .seconds(10)
             )
-        } catch let error as EngineError {
-            throw error
-        } catch SSHClientError.allAuthenticationOptionsFailed {
-            throw EngineError.keyNotKnown
+            return Wired(client, on: strand)
         } catch {
+            // Whatever was opened on the way is closed with its thread:
+            // a connection that got as far as the handshake and no
+            // further is otherwise left open on the server.
+            await strand.end()
+            if let error = error as? EngineError { throw error }
+            if case SSHClientError.allAuthenticationOptionsFailed = error { throw EngineError.keyNotKnown }
             log.info("no connection: \(String(describing: error), privacy: .public)")
             throw EngineError.unreachable(door.host, "\(error)")
         }

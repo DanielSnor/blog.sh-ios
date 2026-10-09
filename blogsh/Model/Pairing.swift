@@ -144,6 +144,10 @@ nonisolated enum Pairing {
     @concurrent static func handIn(_ publicKey: String, named name: String, with code: PairingCode) async throws(PairingError) -> (device: String, server: String) {
         guard let key = try? Curve25519.Signing.PrivateKey(rawRepresentation: code.seed) else { throw .spent }
         let trust = Trust(code: code)
+        // On a thread of its own, ended whichever way this goes: a code
+        // that is spent, or a server that is not the code's, fails in the
+        // handshake, and the library would leave that connection open.
+        let strand = Engine.Strand()
         let client: SSHClient
         do {
             client = try await SSHClient.connect(
@@ -152,16 +156,16 @@ nonisolated enum Pairing {
                 authenticationMethod: .ed25519(username: code.user, privateKey: key),
                 hostKeyValidator: .custom(trust),
                 reconnect: .never,
+                group: strand.group,
                 // Somebody is standing there holding a phone: an address
                 // nobody answers on is given up after ten seconds, not thirty.
                 connectTimeout: .seconds(10)
             )
-        } catch let error as PairingError {
-            throw error
-        } catch SSHClientError.allAuthenticationOptionsFailed {
-            // The server no longer takes the code's key: its line is gone.
-            throw .spent
         } catch {
+            await strand.end()
+            if let error = error as? PairingError { throw error }
+            // The server no longer takes the code's key: its line is gone.
+            if case SSHClientError.allAuthenticationOptionsFailed = error { throw .spent }
             // The check of the server's key fails the connection from inside.
             if trust.refused { throw .wrongServer }
             throw .unreachable("\(error)")
@@ -184,10 +188,12 @@ nonisolated enum Pairing {
             // The answer may be whole even when the close after it complains.
             if !(done && !answer.isEmpty) {
                 try? await client.close()
+                await strand.end()
                 throw .unreachable("\(error)")
             }
         }
         try? await client.close()
+        await strand.end()
         return (try PairingError.device(from: answer), trust.seen)
     }
 
