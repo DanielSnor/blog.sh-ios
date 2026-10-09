@@ -550,4 +550,75 @@ import Testing
         #expect(!Kept.asksBeforeSaving(media: media, text: "![a](01.jpg)\n\n![b](02.jpg)"))
         #expect(!Kept.asksBeforeSaving(media: [], text: "text"))
     }
+
+    /// A picture with a caption after its name -- `![…](file "caption")`,
+    /// which the engine writes back for every picture that has one -- is
+    /// a picture the text names. Read as not named, a draft's four
+    /// pictures were all called "deleted on save".
+    @Test func aPictureWithACaptionIsNamed() {
+        let text = """
+        Text.
+
+        ![Titulka blogsh.app ve světlém režimu v Minimalu: modrý filtr „all“.](01.png "Titulka ve dne. Stejné řádky, jen místo oranžové modrá.")
+
+        ![Tatáž titulka v tmavém režimu.](02.png „V noci. Tady je modrá možná ještě lepší…d8-D“)
+
+        ![The page of a post.](03.png “A post. The date in the accent.”)
+
+        ![Bez popisku](04.png)
+
+        ![An escaped quote](05.png "He said \\"no\\" and left.")
+        """
+        let media = ["01.png", "02.png", "03.png", "04.png", "05.png"]
+        for name in media { #expect(Kept.named(name, in: text), "\(name)") }
+        #expect(Kept.dropped(media: media, text: text).isEmpty)
+        #expect(!Kept.asksBeforeSaving(media: media, text: text))
+        // What is really gone is still seen to be gone.
+        #expect(Kept.dropped(media: media + ["06.png"], text: text) == ["06.png"])
+        // A name that only begins another's is not that other.
+        #expect(!Kept.named("1.png", in: "![a](01.png \"x\")") || Kept.named("1.png", in: "(1.png)"))
+        #expect(!Kept.named("03.pn", in: text))
+    }
+
+    /// A new picture whose mark was given a caption by hand still travels
+    /// with the text, and its card and its mark still say the same.
+    @Test func aCaptionDoesNotPartAShotFromItsMark() throws {
+        var shot = Shot(name: "photo-1.jpg", data: Data(), width: 1, height: 1)
+        shot.alt = "A hill"
+        let text = "Before.\n\n![A hill](photo-1.jpg \"Seen from the road.\")\n\nAfter."
+        #expect(Kept.sent([shot], text: text).map(\.name) == ["photo-1.jpg"])
+        #expect(Kept.described("photo-1.jpg", in: text) == "A hill")
+        // Written on the card: the description changes, the caption stays.
+        #expect(Kept.typed(text, name: "photo-1.jpg", after: "A green hill")
+                == "Before.\n\n![A green hill](photo-1.jpg \"Seen from the road.\")\n\nAfter.")
+        // Removed: the whole mark goes, caption and all.
+        let pattern = try NSRegularExpression(pattern: shot.markPattern)
+        let found = pattern.firstMatch(in: text, range: NSRange(text.startIndex..., in: text))
+        #expect(found.map { (text as NSString).substring(with: $0.range) } == "![A hill](photo-1.jpg \"Seen from the road.\")")
+        // Without a caption everything is as it was.
+        #expect(Kept.typed("![A hill](photo-1.jpg)", name: "photo-1.jpg", after: "A $1 hill") == "![A $1 hill](photo-1.jpg)")
+    }
+
+    /// The preview draws a picture with a caption as a picture, with its
+    /// caption under it -- not as a line of text.
+    @Test func thePreviewDrawsAPictureWithItsCaption() {
+        let shots: [String: Preview.Shown] = ["01.png": .picture("x://01.png")]
+        let html = Preview.render("![Alt words](01.png \"The caption.\")", shots: shots)
+        #expect(html.contains("<img src=\"x://01.png\" alt=\"Alt words\">"))
+        #expect(html.contains("<figcaption>The caption.</figcaption>"))
+        #expect(!html.contains("![Alt"))
+        let typed = Preview.render("![Alt](01.png „Popisek.“)", shots: shots)
+        #expect(typed.contains("<figcaption>Popisek.</figcaption>"))
+        let bare = Preview.render("![Alt](01.png)", shots: shots)
+        #expect(bare.contains("<img") && !bare.contains("figcaption"))
+    }
+
+    /// Changes kept on the device that name only the post's own pictures,
+    /// captions and all, name no picture that was not kept.
+    @Test func keptChangesWithCaptionsNameNoPictureBeyondThePosts() {
+        let kept = Unsaved(text: "![a](01.png \"One.\")\n\n![b](02.png „Dva.“)", base: "K0", at: .now, title: nil)
+        #expect(!kept.namesPictures(beyond: ["01.png", "02.png"]))
+        #expect(kept.namesPictures(beyond: ["01.png"]))
+        #expect(Unsent(text: "![a](photo-1.jpg \"One.\")").namesPictures)
+    }
 }

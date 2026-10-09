@@ -37,7 +37,7 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
 
     /// The text names a picture or a video, which was not kept with it.
     var namesPictures: Bool {
-        text.range(of: #"!{1,2}\[[^\n]*\]\([^)\s]+\)"#, options: .regularExpression) != nil
+        text.range(of: #"!{1,2}\[[^\n]*\]\([^)\s"\u201E\u201C\u201D]+"# + Kept.caption + #"\)"#, options: .regularExpression) != nil
     }
 
     static func key(_ blog: UUID) -> String { "unsent.\(blog.uuidString)" }
@@ -193,7 +193,7 @@ nonisolated struct Unsaved: Codable, Equatable, Sendable {
     /// The text names a picture the post does not have: one that was
     /// chosen on the device and, like every picture, not kept.
     func namesPictures(beyond media: [String]) -> Bool {
-        guard let marks = try? NSRegularExpression(pattern: #"!{1,2}\[[^\n]*\]\(([^)\s]+)\)"#) else { return false }
+        guard let marks = try? NSRegularExpression(pattern: #"!{1,2}\[[^\n]*\]\(([^)\s"\u201E\u201C\u201D]+)"# + Kept.caption + #"\)"#) else { return false }
         let whole = text as NSString
         return marks.matches(in: text, range: NSRange(location: 0, length: whole.length)).contains { match in
             !media.contains(whole.substring(with: match.range(at: 1)))

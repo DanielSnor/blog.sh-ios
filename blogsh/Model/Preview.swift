@@ -100,7 +100,9 @@ nonisolated enum Preview {
     private static let teaserEnd = regex(#"^[ \t]*//--more--//[ \t]*$"#)
     private static let heading = regex(#"^(#{1,3})\s+(.+)$"#)
     private static let clip = regex(#"^!!\[([^\n]*)\]\(([^)\s]+)\)\s*$"#)
-    private static let picture = regex(#"^!\[([^\n]*)\]\(([^)\s]+)\)\s*$"#)
+    /// A picture, with a caption after its name or without: the caption
+    /// in straight quotes or in a typed pair, as the engine reads it.
+    private static let picture = regex(#"^!\[([^\n]*)\]\(([^)\s"\u201E\u201C\u201D]+)(?:\s+(?:"((?:\\.|[^"\\])*)"|\u201E([^\u201C]*)\u201C|\u201C([^\u201D]*)\u201D))?\)\s*$"#)
     private static let quoted = regex(#"^>\s?"#)
     private static let listed = regex(#"^\s*([-*+]|\d+\.)\s+"#)
     private static let numbered = regex(#"^\s*\d+\."#)
@@ -181,7 +183,10 @@ nonisolated enum Preview {
                 }
                 func figure(_ m: [String]) -> String {
                     if let shown = shots[m[2]] {
-                        return "<figure><img src=\"" + escape(shown.source) + "\" alt=\"" + escape(m[1]) + "\"></figure>"
+                        // The caption under the picture, where the mark has one.
+                        let caption = m.dropFirst(3).first { !$0.isEmpty }?.replacingOccurrences(of: #"\\(.)"#, with: "$1", options: .regularExpression) ?? ""
+                        return "<figure><img src=\"" + escape(shown.source) + "\" alt=\"" + escape(m[1]) + "\">"
+                            + (caption.isEmpty ? "" : "<figcaption>" + escape(caption) + "</figcaption>") + "</figure>"
                     }
                     return box(words.missing(m[2]))
                 }
@@ -335,9 +340,9 @@ nonisolated struct Lede: Equatable, Sendable {
 
     private static func regex(_ pattern: String) -> NSRegularExpression { try! NSRegularExpression(pattern: pattern) }
     private static let cut = regex(#"^[ \t]*//--more--//[ \t]*$"#)
-    private static let media = regex(#"^!{1,2}\[([^\n]*)\]\(([^)\s]+)\)\s*$"#)
+    private static let media = regex(#"^!{1,2}\[([^\n]*)\]\(([^)\s"\u201E\u201C\u201D]+)"# + Kept.caption + #"\)\s*$"#)
     private static let fence = regex("^```")
-    private static let labelled = regex(#"!{0,2}\[([^\]]*)\]\((?:\([^()\s]*\)|[^)\s])+\)"#)
+    private static let labelled = regex(#"!{0,2}\[([^\]]*)\]\((?:\([^()\s]*\)|[^)\s])+"# + Kept.caption + #"\)"#)
     private static let lead = regex(#"^\s*(?:#{1,6}\s+|>\s?)"#)
     private static let emphasis = regex(#"(^|[^*])\*([^*\n]+)\*(?!\*)"#)
 

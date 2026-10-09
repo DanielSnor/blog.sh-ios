@@ -31,7 +31,8 @@ nonisolated struct Shot: Identifiable, Sendable {
     /// The shot's mark wherever the text has it, whatever it says there.
     /// The description runs up to the mark's own "](", not to the first
     /// bracket: a description may hold brackets of its own.
-    var markPattern: String { #"!{1,2}\[(?:(?!\]\().)*\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"# }
+    /// ...and the mark ends after its caption, where it has one.
+    var markPattern: String { #"!{1,2}\[(?:(?!\]\().)*\]"# + Kept.target(name) }
 }
 
 /// What /write/ does to a picture and to a name, so a post from the app
@@ -188,7 +189,23 @@ nonisolated enum Kept {
         videoEndings.contains((name as NSString).pathExtension.lowercased())
     }
 
-    static func named(_ name: String, in text: String) -> Bool { text.contains("(\(name))") }
+    /// A picture's caption, as the engine takes one: after the name, in
+    /// quotes -- straight ones, or the pair a Czech, a German or an
+    /// English keyboard types. `![description](photo.jpg "caption")`.
+    static let caption = #"(?:\s+(?:"(?:\\.|[^"\\])*"|\u201E[^\u201C]*\u201C|\u201C[^\u201D]*\u201D))?"#
+
+    /// What stands in a mark's round brackets for this file: its name,
+    /// and a caption or none.
+    static func target(_ name: String) -> String {
+        #"\("# + NSRegularExpression.escapedPattern(for: name) + caption + #"\)"#
+    }
+
+    /// The text names the file: with a caption after the name or without.
+    /// A picture read as "not named" is one the app would not send, would
+    /// call deleted on the next save, and would ask about for nothing.
+    static func named(_ name: String, in text: String) -> Bool {
+        text.range(of: target(name), options: .regularExpression) != nil
+    }
 
     /// A shot's mark put into the text where the caret is -- at its end
     /// when the text was never touched. A blank line on each side, counted:
@@ -238,7 +255,6 @@ nonisolated enum Kept {
     /// but the text may hold while it is being written, is read too, up
     /// to its first closing bracket.
     static func described(_ name: String, in text: String) -> String? {
-        let file = NSRegularExpression.escapedPattern(for: name)
         let whole = NSRange(text.startIndex..., in: text)
         func first(_ pattern: String, _ options: NSRegularExpression.Options = []) -> (words: String, at: Int)? {
             guard let expression = try? NSRegularExpression(pattern: pattern, options: options),
@@ -246,11 +262,12 @@ nonisolated enum Kept {
                   let range = Range(match.range(at: 1), in: text) else { return nil }
             return (String(text[range]), match.range.location)
         }
-        var line = first(#"^[ \t]*!{1,2}\[(.*)\]\(\#(file)\)[ \t]*$"#, .anchorsMatchLines)
+        let target = Self.target(name)
+        var line = first(#"^[ \t]*!{1,2}\[(.*)\]"# + target + #"[ \t]*$"#, .anchorsMatchLines)
         // A line that holds another mark before this one is not this mark's line:
         // what was read as its description has the other's end in it.
         if let words = line?.words, words.contains("](") { line = nil }
-        let inline = first(#"!\[([^\]\n]*)\]\(\#(file)\)"#)
+        let inline = first(#"!\[([^\]\n]*)\]"# + target)
         // Whichever stands first in the text is the picture's first mark.
         if let line, let inline { return line.at <= inline.at ? line.words : inline.words }
         return (line ?? inline)?.words
@@ -274,7 +291,12 @@ nonisolated enum Kept {
     /// two marks end in the same one, so the one rule serves both.)
     static func typed(_ text: String, name: String, after: String) -> String {
         guard let words = described(name, in: text), oneLine(words) != oneLine(after) else { return text }
-        return text.replacingOccurrences(of: "![\(words)](\(name))", with: "![\(oneLine(after))](\(name))")
+        // The description alone is rewritten: the name and whatever caption
+        // stands after it are put back as they were.
+        let said = NSRegularExpression.escapedPattern(for: "![\(words)](\(name)")
+        guard let marks = try? NSRegularExpression(pattern: said + "(" + caption + #"\))"#) else { return text }
+        let now = NSRegularExpression.escapedTemplate(for: "![\(oneLine(after))](\(name)") + "$1"
+        return marks.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: now)
     }
 
     /// The same for every card at once: the shots as they are now, their
