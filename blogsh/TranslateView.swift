@@ -58,7 +58,9 @@ struct TranslateView: View {
 
                 SectionLabel("In \(languageName)")
                 Plate {
+                    // Left alone while a save is on its way.
                     PaperEditor(text: $text, minHeight: 280)
+                        .disabled(saving)
                 }
                 Plate {
                     Command("Preview", symbol: "eye") { previewing = true }
@@ -103,6 +105,12 @@ struct TranslateView: View {
                 }
             } else if let problem {
                 ProblemLine(text: problem)
+                if let stranded {
+                    Stranded(kept: stranded) {
+                        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .language(lang)) }
+                        Desk.shared.changed()
+                    }
+                }
             }
         }
         .overlay { if entry == nil && problem == nil { ProgressView() } }
@@ -137,13 +145,27 @@ struct TranslateView: View {
         }
     }
 
+    /// What is kept for this language while the post itself did not open.
+    private var stranded: Unsaved? {
+        _ = Desk.shared.changes
+        return Blogs.shared.currentID.flatMap { Unsaved.kept(for: $0, slug: slug, what: .language(lang)) }
+    }
+
+    /// A text with no title and no words: saved, it takes the language
+    /// off the post -- the engine's own rule, and the editor's hint.
+    static func takesOff(_ text: String) -> Bool {
+        let parts = Preview.parts(of: text)
+        return parts.title.isEmpty && parts.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     /// At every letter; words that are the blog's again are nothing to keep.
     private func keep() {
         guard let entry, let blog = Blogs.shared.currentID else { return }
         if text == entry.text {
             Unsaved.forget(for: blog, slug: slug, what: .language(lang))
+            broughtBack = nil
         } else {
-            Unsaved(text: text, base: entry.base, at: .now, title: entry.title).keep(for: blog, slug: slug, what: .language(lang))
+            Unsaved.now(text, title: entry.title, over: entry.base, begun: broughtBack).keep(for: blog, slug: slug, what: .language(lang))
         }
         Desk.shared.changed()
     }
@@ -168,19 +190,16 @@ struct TranslateView: View {
         defer { saving = false }
         problem = nil
         let file = DeliveryFile(name: "\(slug)-\(lang).md", data: Data(fileText(body).utf8))
+        // Whose post it is and what the editor held, said before anything is waited for.
+        let blog = Blogs.shared.currentID
+        let going = text
         do {
-            let answers = try await Engine.shared.deliver([file])
-            let decoder = JSONDecoder()
-            for answer in answers {
-                if let refusal = try? decoder.decode(Refusal.self, from: answer), refusal.ok == false {
-                    throw EngineError.refused(refusal)
-                }
-            }
-            guard let last = answers.last else { throw EngineError.unreadable("") }
-            saved = try decoder.decode(ActionAnswer.self, from: last)
-            tookOff = takingOff
-            // Saved, or taken off: nothing is left to bring back.
-            if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .language(lang)) }
+            saved = try Engine.made(from: await Engine.shared.deliver([file], to: blog))
+            // What was done, by what was sent: emptied words take the
+            // language off whichever key sent them.
+            tookOff = takingOff || Self.takesOff(body)
+            // Saved, or taken off: what the editor held is not left to bring back.
+            if let blog { Unsaved.forget(for: blog, slug: slug, what: .language(lang), saved: going) }
             broughtBack = nil
             Desk.shared.changed()
             await load()

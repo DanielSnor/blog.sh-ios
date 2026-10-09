@@ -778,6 +778,23 @@ extension View {
         defer { handed = nil }
         return handed
     }
+
+    /// The blogs whose new post is on its way just now. The form is left
+    /// alone while its post goes: what is typed into it then would belong
+    /// to neither the post that went nor the next one.
+    private(set) var sending: Set<UUID> = []
+    /// Counted when a new post has arrived, and for which blog: a form
+    /// opened meanwhile holds the post that went, and lets go of it.
+    private(set) var arrived = 0
+    private(set) var arrivedAt: UUID?
+
+    func began(_ blog: UUID) { sending.insert(blog) }
+    func ended(_ blog: UUID, arrived came: Bool) {
+        sending.remove(blog)
+        guard came else { return }
+        arrivedAt = blog
+        arrived += 1
+    }
 }
 
 extension Unsaved {
@@ -928,6 +945,36 @@ struct BroughtBack: View {
                 .fixedSize(horizontal: false, vertical: true)
             Command(key, symbol: "xmark", danger: true, action: putAway)
         }
+    }
+}
+
+/// Changes kept on the device whose post could not be opened -- it was
+/// renamed or deleted elsewhere, or the blog cannot be reached. They are
+/// shown, to be read and copied, with the one key that lets go of them;
+/// without it they would wait on the first screen for good.
+struct Stranded: View {
+    let kept: Unsaved
+    let discard: () -> Void
+    @State private var confirming = false
+
+    var body: some View {
+        Hint("Written here \(kept.at.spoken) and never saved; the post itself could not be opened. The words are below, to copy.")
+            .gap(14)
+        Plate {
+            Text(verbatim: kept.text)
+                .font(.mono(14, bold: false))
+                .foregroundStyle(Theme.ink)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        Plate {
+            Command("Throw away", symbol: "trash", danger: true) { confirming = true }
+                .confirmationDialog("Throw these changes away? They were never saved; nothing of them is kept.",
+                                    isPresented: $confirming, titleVisibility: .visible) {
+                    Button("Throw away", role: .destructive, action: discard)
+                }
+        }
+        .gap(14)
     }
 }
 

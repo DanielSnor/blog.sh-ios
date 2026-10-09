@@ -4770,6 +4770,22 @@
         }
       }
     },
+    "Throw these changes away? They were never saved; nothing of them is kept.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahodit tyto úpravy? Nebyly nikdy uloženy a nic z nich nezůstane."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Änderungen verwerfen? Sie wurden nie gesichert; nichts davon bleibt erhalten."
+          }
+        }
+      }
+    },
     "Title": {
       "localizations": {
         "cs": {
@@ -5166,6 +5182,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zum Nachsehen"
+          }
+        }
+      }
+    },
+    "Written here %@ and never saved; the post itself could not be opened. The words are below, to copy.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napsáno tady %@ a nikdy neuloženo; samotný příspěvek se nepodařilo otevřít. Text je níže, dá se zkopírovat."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier geschrieben %@ und nie gesichert; der Beitrag selbst ließ sich nicht öffnen. Der Text steht unten, zum Kopieren."
           }
         }
       }

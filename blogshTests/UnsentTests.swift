@@ -257,3 +257,110 @@ import Testing
         #expect(Begun.all(for: blog, in: defaults).first?.title == "venku")
     }
 }
+
+/// What an audit of the keeping found: writing that could be lost, or
+/// said to be unsent when it was sent.
+@MainActor @Suite struct KeepingTests {
+    private func defaults() -> UserDefaults {
+        let name = "keeping-tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        return defaults
+    }
+
+    private func moment(_ seconds: TimeInterval) -> Date { Date(timeIntervalSince1970: 1_791_400_000 + seconds) }
+
+    /// Changes brought back stay changes over the version they were begun
+    /// over, whatever is typed after: that is what the screen compares
+    /// with the blog's version to say the post has moved on.
+    @Test func changesBroughtBackKeepTheBaseTheyWereBegunOver() {
+        let begun = Unsaved(text: "old A", base: "K0", at: moment(0), title: "Venku")
+        let typed = Unsaved.now("old AB", title: "Venku", over: "K1", begun: begun, at: moment(60))
+        #expect(typed.base == "K0")
+        #expect(typed.text == "old AB")
+        // Nothing brought back: the changes begin over what the blog has now.
+        #expect(Unsaved.now("new B", title: "Venku", over: "K1", begun: nil, at: moment(60)).base == "K1")
+    }
+
+    /// A save forgets what it saved, and nothing written after it.
+    @Test func aSaveForgetsOnlyWhatItSaved() {
+        let defaults = defaults(), blog = UUID()
+        Unsaved(text: "saved", base: "K0", at: moment(0), title: nil).keep(for: blog, slug: "venku", what: .text, in: defaults)
+        Unsaved.forget(for: blog, slug: "venku", what: .text, saved: "something else", in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults)?.text == "saved")
+        Unsaved.forget(for: blog, slug: "venku", what: .text, saved: "saved", in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == nil)
+    }
+
+    /// A post that arrived is forgotten whether or not a form saw it go;
+    /// what was written since is another post's, and stays.
+    @Test func aSentPostIsForgottenUnlessMoreWasWritten() {
+        let defaults = defaults(), blog = UUID()
+        let sent = Unsent(title: "Hello", tags: "a", text: "Text", at: moment(0))
+        sent.keep(for: blog, in: defaults)
+        Unsent.forget(for: blog, sent: Unsent(title: "Hello", tags: "a", text: "Text"), in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults) == nil)
+
+        Unsent(title: "Hello", tags: "a", text: "Text and more", at: moment(5)).keep(for: blog, in: defaults)
+        Unsent.forget(for: blog, sent: sent, in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults)?.text == "Text and more")
+    }
+
+    /// A renamed post takes what was kept for it along: its text and
+    /// every language, and nothing of another post or another blog.
+    @Test func whatIsKeptFollowsARenamedPost() {
+        let defaults = defaults(), blog = UUID(), other = UUID()
+        Unsaved(text: "text", base: "K0", at: moment(0), title: "Venku").keep(for: blog, slug: "venku", what: .text, in: defaults)
+        Unsaved(text: "words", base: "K0", at: moment(1), title: "Venku").keep(for: blog, slug: "venku", what: .language("en"), in: defaults)
+        Unsaved(text: "beside", base: "B0", at: moment(2), title: nil).keep(for: blog, slug: "venku-2", what: .text, in: defaults)
+        Unsaved(text: "elsewhere", base: "E0", at: moment(3), title: nil).keep(for: other, slug: "venku", what: .text, in: defaults)
+
+        Unsaved.move(for: blog, from: "venku", to: "outside", in: defaults)
+
+        #expect(Unsaved.kept(for: blog, slug: "outside", what: .text, in: defaults)?.text == "text")
+        #expect(Unsaved.kept(for: blog, slug: "outside", what: .language("en"), in: defaults)?.text == "words")
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == nil)
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .language("en"), in: defaults) == nil)
+        #expect(Unsaved.kept(for: blog, slug: "venku-2", what: .text, in: defaults)?.text == "beside")
+        #expect(Unsaved.kept(for: other, slug: "venku", what: .text, in: defaults)?.text == "elsewhere")
+        // The first screen lists them under the name that opens.
+        #expect(Set(Begun.all(for: blog, in: defaults).map(\.what)) == [.text(slug: "outside"), .language(slug: "outside", lang: "en"), .text(slug: "venku-2")])
+    }
+
+    /// Where the new name has later writing of its own, that stays.
+    @Test func aRenameDoesNotPutOlderWritingOverNewer() {
+        let defaults = defaults(), blog = UUID()
+        Unsaved(text: "older", base: "K0", at: moment(0), title: nil).keep(for: blog, slug: "venku", what: .text, in: defaults)
+        Unsaved(text: "newer", base: "K1", at: moment(60), title: nil).keep(for: blog, slug: "outside", what: .text, in: defaults)
+        Unsaved.move(for: blog, from: "venku", to: "outside", in: defaults)
+        #expect(Unsaved.kept(for: blog, slug: "outside", what: .text, in: defaults)?.text == "newer")
+        #expect(Unsaved.kept(for: blog, slug: "venku", what: .text, in: defaults) == nil)
+    }
+
+    /// Words with no title and no body take the language off the post,
+    /// whichever key sent them: the screen says so, not "Saved".
+    @Test func emptiedWordsTakeTheLanguageOff() {
+        #expect(TranslateView.takesOff(""))
+        #expect(TranslateView.takesOff("---\ntitle:\n---\n\n"))
+        #expect(TranslateView.takesOff("---\ntitle: \nslug: outside\n---\n\n  \n"))
+        #expect(!TranslateView.takesOff("---\ntitle: Outside\n---\n\n"))
+        #expect(!TranslateView.takesOff("---\ntitle:\n---\n\nWords.\n"))
+        #expect(!TranslateView.takesOff("Words."))
+    }
+
+    /// A form is left alone while its blog's new post is on its way, and
+    /// told when the post has arrived.
+    @Test func theDeskKnowsWhichBlogsPostIsOnItsWay() {
+        let desk = Desk(), blog = UUID(), other = UUID()
+        desk.began(blog)
+        #expect(desk.sending.contains(blog))
+        #expect(!desk.sending.contains(other))
+        desk.ended(blog, arrived: false)
+        #expect(desk.sending.isEmpty)
+        #expect(desk.arrived == 0)
+        desk.began(blog)
+        desk.ended(blog, arrived: true)
+        #expect(desk.arrived == 1)
+        #expect(desk.arrivedAt == blog)
+    }
+}

@@ -60,6 +60,9 @@ struct ComposeView: View {
                     .task { await TagStore.shared.loadIfNeeded() }
                 TagSuggestions(text: $tags)
             }
+            // Left alone while the post is on its way -- from this form
+            // or from one that was left with its post still going.
+            .disabled(busy)
             .gap(14)
             // Said as it is typed: the marks in the sentence are examples, not marks.
             Hint(verbatim: String(localized: "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) -- the bare name, no path."))
@@ -85,7 +88,7 @@ struct ComposeView: View {
                     CommandRow(reading ? "Reading…" : "Add a picture or video", symbol: "photo.on.rectangle", busy: reading)
                 }
                 .buttonStyle(PressStyle())
-                .disabled(importing)
+                .disabled(importing || busy)
             }
             if let unread { ProblemLine(text: unread) }
             DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb)
@@ -95,10 +98,10 @@ struct ComposeView: View {
             Button {
                 if offline { keepOnDevice() } else { Task { await send() } }
             } label: {
-                PrimaryLabel(label: sending ? "Sending…" : (offline ? "Keep on the device" : "Send to the blog as a draft"), busy: sending)
+                PrimaryLabel(label: busy ? "Sending…" : (offline ? "Keep on the device" : "Send to the blog as a draft"), busy: busy)
             }
             .buttonStyle(PrimaryButtonStyle())
-            .disabled(sending || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
+            .disabled(busy || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
             .gap(22)
             if offline {
                 Hint("The blog's server cannot be reached. Kept on the device, the post goes to the blog as a draft, with its pictures, once the server answers.")
@@ -147,6 +150,11 @@ struct ComposeView: View {
         }
         .onChange(of: shots.map(\.alt)) { before, _ in
             text = Kept.retitled(text, shots: shots, before: before)
+        }
+        // The post this form opened with has arrived, sent from a form
+        // that was left meanwhile: it is not this form's to send again.
+        .onChange(of: Desk.shared.arrived) { _, _ in
+            if !sending, Desk.shared.arrivedAt == keeping { startEmpty() }
         }
         // A picture just chosen, whose mark the text already has, takes its words too.
         .onChange(of: shots.count) { _, _ in
@@ -238,6 +246,9 @@ struct ComposeView: View {
     /// The open blog's server did not answer the last time it was asked.
     private var offline: Bool { Reach.shared.isOffline(Blogs.shared.current) }
 
+    /// A new post for this blog is on its way: from here, or from a form left before it arrived.
+    private var busy: Bool { sending || (keeping.map { Desk.shared.sending.contains($0) } ?? false) }
+
     /// Put by on the device, whole: the text and the shots it names. The
     /// form is the next post's, as after a sending.
     private func keepOnDevice() {
@@ -257,17 +268,29 @@ struct ComposeView: View {
     }
 
     private func send() async {
+        guard let blog = keeping ?? Blogs.shared.currentID, !Desk.shared.sending.contains(blog) else { return }
         sending = true
-        defer { sending = false }
+        Desk.shared.began(blog)
+        var came = false
+        defer {
+            sending = false
+            Desk.shared.ended(blog, arrived: came)
+        }
         problem = nil
         putBy = false
+        let going = Unsent(title: title, tags: tags, text: text)
         // The text is what goes: a description typed on a card is in it
         // already, one typed into the text itself was never the card's.
         let markdown = Markdown.file(title: title, tags: tags, body: text)
         var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
-            made = try Engine.made(from: await Engine.shared.deliver(files))
+            made = try Engine.made(from: await Engine.shared.deliver(files, to: blog))
+            // Forgotten here, not by the form's own noticing that it was
+            // emptied: a form left while its post was going notices nothing.
+            Unsent.forget(for: blog, sent: going)
+            Desk.shared.changed()
+            came = true
             // The form is the next post's now, and nothing is left to bring back.
             title = ""; tags = ""; text = ""; shots = []
             broughtBack = nil

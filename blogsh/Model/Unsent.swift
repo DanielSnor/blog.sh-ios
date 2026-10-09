@@ -65,6 +65,16 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
     static func forget(for blog: UUID, in defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: key(blog))
     }
+
+    /// The post was sent: what is kept is forgotten -- if it is still what
+    /// was sent. Whatever was written since is another post's beginning,
+    /// and stays.
+    static func forget(for blog: UUID, sent: Unsent, in defaults: UserDefaults = .standard) {
+        guard let kept = kept(for: blog, in: defaults) else { return }
+        if kept.title == sent.title, kept.tags == sent.tags, kept.text == sent.text {
+            forget(for: blog, in: defaults)
+        }
+    }
 }
 
 /// Changes to a post the blog already has -- its text, or its words in
@@ -137,6 +147,37 @@ nonisolated struct Unsaved: Codable, Equatable, Sendable {
 
     static func forget(for blog: UUID, slug: String, what: What, in defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: key(blog, slug: slug, what: what))
+    }
+
+    /// What an editor holds now, as it is kept. Changes that were
+    /// brought back stay the changes begun over the version they were
+    /// begun over, however much is added to them: it is that version the
+    /// screen compares with the blog's to say the post has moved on.
+    static func now(_ text: String, title: String?, over base: String, begun: Unsaved?, at: Date = .now) -> Unsaved {
+        Unsaved(text: text, base: begun?.base ?? base, at: at, title: title)
+    }
+
+    /// The text was saved: what is kept is forgotten -- if it is still
+    /// what was saved. Whatever was written since stays.
+    static func forget(for blog: UUID, slug: String, what: What, saved text: String, in defaults: UserDefaults = .standard) {
+        guard let kept = kept(for: blog, slug: slug, what: what, in: defaults), kept.text == text else { return }
+        forget(for: blog, slug: slug, what: what, in: defaults)
+    }
+
+    /// The post has another slug now: what was kept for it -- its text and
+    /// every language -- goes with it, or it would wait under a name no
+    /// post answers to. Where the new name has something kept already, the
+    /// later writing stays.
+    static func move(for blog: UUID, from old: String, to new: String, in defaults: UserDefaults = .standard) {
+        guard old != new, !new.isEmpty else { return }
+        for (slug, what, kept) in all(for: blog, in: defaults) where slug == old {
+            if let there = Self.kept(for: blog, slug: new, what: what, in: defaults), there.at >= kept.at {
+                // The newer stays where it is.
+            } else if let data = try? JSONEncoder().encode(kept) {
+                defaults.set(data, forKey: key(blog, slug: new, what: what))
+            }
+            forget(for: blog, slug: old, what: what, in: defaults)
+        }
     }
 
     /// Everything kept for a blog that leaves the app.

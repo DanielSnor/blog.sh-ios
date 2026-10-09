@@ -345,8 +345,15 @@ struct PropsView: View {
     private func rename() async {
         let wanted = newSlug.trimmingCharacters(in: .whitespaces)
         guard !wanted.isEmpty, wanted != slug else { return }
+        let blog = Blogs.shared.currentID
+        let old = slug
         if let answer = await writeProps(["props", slug, "--rename", wanted, "--yes"]) {
             let wasDraft = props?.state == .draft
+            // What was written for the post and not saved follows it to its new name.
+            if let blog {
+                Unsaved.move(for: blog, from: old, to: answer.slug)
+                Desk.shared.changed()
+            }
             slug = answer.slug
             props = answer
             renamed?(answer)

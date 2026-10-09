@@ -53,8 +53,10 @@ struct TextEditView: View {
                          ?? String(localized: "This post cannot be edited here."))
                 }
                 Plate {
+                    // Left alone while a save is on its way: what is typed
+                    // then would be neither in what was saved nor kept.
                     PaperEditor(text: $text, selection: $caret, minHeight: 320)
-                        .disabled(!entry.editable)
+                        .disabled(!entry.editable || saving)
                 }
                 .padding(.top, entry.editable ? 0 : 14)
                 Hint("The header and the text, as the editor opens them. A picture is named by its file name.")
@@ -148,6 +150,12 @@ struct TextEditView: View {
                 }
             } else if let problem {
                 ProblemLine(text: problem)
+                if let stranded {
+                    Stranded(kept: stranded) {
+                        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+                        Desk.shared.changed()
+                    }
+                }
             }
         }
         .overlay { if entry == nil && problem == nil { ProgressView() } }
@@ -209,13 +217,20 @@ struct TextEditView: View {
         return kept.text
     }
 
+    /// What is kept for this post while the post itself did not open.
+    private var stranded: Unsaved? {
+        _ = Desk.shared.changes
+        return Blogs.shared.currentID.flatMap { Unsaved.kept(for: $0, slug: slug, what: .text) }
+    }
+
     /// At every letter; a text that is the blog's again is nothing to keep.
     private func keep() {
         guard let entry, entry.editable, let fresh = entry.text, let blog = Blogs.shared.currentID else { return }
         if text == fresh {
             Unsaved.forget(for: blog, slug: slug, what: .text)
+            broughtBack = nil
         } else {
-            Unsaved(text: text, base: entry.base, at: .now, title: entry.title).keep(for: blog, slug: slug, what: .text)
+            Unsaved.now(text, title: entry.title, over: entry.base, begun: broughtBack).keep(for: blog, slug: slug, what: .text)
         }
         Desk.shared.changed()
     }
@@ -288,19 +303,14 @@ struct TextEditView: View {
         problem = nil
         var files = Kept.sent(shots, text: text).map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: "\(slug).md", data: Data(fileText().utf8)))
+        // Whose post it is and what goes, said before anything is waited for.
+        let blog = Blogs.shared.currentID
+        let going = text
         do {
-            let answers = try await Engine.shared.deliver(files)
-            let decoder = JSONDecoder()
-            for answer in answers {
-                if let refusal = try? decoder.decode(Refusal.self, from: answer), refusal.ok == false {
-                    throw EngineError.refused(refusal)
-                }
-            }
-            guard let last = answers.last else { throw EngineError.unreadable("") }
-            saved = try decoder.decode(ActionAnswer.self, from: last)
+            saved = try Engine.made(from: await Engine.shared.deliver(files, to: blog))
             shots = []
-            // Saved: nothing is left to bring back.
-            if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+            // Saved: what went is not left to bring back.
+            if let blog { Unsaved.forget(for: blog, slug: slug, what: .text, saved: going) }
             broughtBack = nil
             Desk.shared.changed()
             // Saving a published post builds the site: nothing is owed after it.
