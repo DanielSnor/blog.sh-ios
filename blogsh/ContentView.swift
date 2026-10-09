@@ -234,6 +234,9 @@ struct ContentView: View {
             visit += 1
             column = .sidebar
             TagStore.shared.reset()
+            // A build owed to the blog that was open waits for it; one
+            // that waited for this blog is owed again.
+            Herald.shared.opened(blogs.currentID)
             Task { await load() }
         }
         // Upright there is room for one column: the screen that is open, or
@@ -363,6 +366,15 @@ struct ContentView: View {
     }
 
     private func open(_ entry: MenuEntry, state: ArchiveView.StateFilter? = nil, searching: Bool = false) {
+        // The form that is asked for is the one already open beside the
+        // menu: it stays as it is. Built again it would come back with its
+        // words, which are kept, and without its pictures, which are not.
+        // Only where it is seen to be open: on a narrow screen the way
+        // back to the menu was a leaving, and the form opens afresh.
+        if twoColumns, entry == .add, selection == .add, resumed == nil, !Desk.shared.holdsHanded {
+            column = .detail
+            return
+        }
         archiveState = state
         archiveSearching = searching
         resumed = nil
@@ -448,7 +460,13 @@ struct ContentView: View {
         let asked = blogs.currentID
         guard identity != nil, !counting else { return }
         counting = true
-        defer { counting = false }
+        defer {
+            counting = false
+            // Another blog was opened while this one was being counted,
+            // and its own counting was turned away at the door: it is
+            // counted now.
+            if asked != blogs.currentID { Task { await loadFacts(whole: true) } }
+        }
         var facts = blogs.current?.facts ?? Facts()
         let whole = whole || blogs.current?.facts == nil
         let commands: [[String]] = (whole ? [["stats"]] : []) + [["empty", "trash"], ["empty", "versions"]]

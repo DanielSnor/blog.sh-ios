@@ -39,6 +39,10 @@ import SwiftUI
     private var fading: Task<Void, Never>?
     /// The blog the build is owed to: a build is that blog's and no other's.
     private var blog: UUID?
+    /// What is owed to blogs that are not open: kept, in the words it was
+    /// owed in, until the blog is open again. A debt is not paid by
+    /// looking at another blog.
+    private var parked: [UUID: String] = [:]
     private var again = false
     private var tries = 0
 
@@ -70,6 +74,7 @@ import SwiftUI
     func owe(_ why: String? = nil) {
         owedFor = why ?? String(localized: "The site does not show this change yet.")
         blog = open()
+        if let blog { parked[blog] = nil }
         tries = 0
         if build == .building {
             // Changed while a build runs: that build may have missed it.
@@ -81,11 +86,34 @@ import SwiftUI
     }
 
     /// The site was just built by something else -- a publish builds it
-    /// whole -- so what was owed is paid.
+    /// whole -- so what was owed is paid, and a build that failed before
+    /// it has nothing left to say.
     func settled() {
-        guard build == .owed else { return }
-        waiting?.cancel()
-        build = .none
+        switch build {
+        case .owed:
+            waiting?.cancel()
+            build = .none
+        case .failed:
+            build = .none
+        case .none, .building:
+            break
+        }
+    }
+
+    /// Another blog is open now. What was owed to the one that was is put
+    /// by for it, and what was put by for this one is owed again.
+    func opened(_ now: UUID?) {
+        if build == .owed, let blog, blog != now {
+            waiting?.cancel()
+            parked[blog] = owedFor
+            build = .none
+        }
+        guard build == .none, let now, let owed = parked.removeValue(forKey: now) else { return }
+        owedFor = owed
+        blog = now
+        tries = 0
+        build = .owed
+        arm()
     }
 
     /// A failure was read; the line goes.
@@ -105,7 +133,9 @@ import SwiftUI
     private func run() async {
         guard build == .owed else { return }
         // Another blog is open by now: its engine is not the one to ask.
+        // The debt is kept for the blog it is owed to.
         guard blog == open() else {
+            if let blog { parked[blog] = owedFor }
             build = .none
             return
         }

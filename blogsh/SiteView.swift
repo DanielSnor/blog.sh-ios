@@ -75,6 +75,9 @@ struct SiteView: View {
         do {
             result = try await Engine.shared.call(args)
             problem = nil
+            // Built here, by hand: nothing is owed, and a build that
+            // failed before this one has been tried again.
+            Herald.shared.settled()
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
         }

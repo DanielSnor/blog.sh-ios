@@ -774,6 +774,7 @@ extension View {
     /// here on its way to the form, which takes it when it opens.
     @ObservationIgnored private var handed: Waiting?
     func hand(_ post: Waiting) { handed = post }
+    var holdsHanded: Bool { handed != nil }
     func takeHanded() -> Waiting? {
         defer { handed = nil }
         return handed

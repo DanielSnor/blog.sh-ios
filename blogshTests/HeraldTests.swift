@@ -107,6 +107,85 @@ import Testing
         #expect(site.builds == 0)
     }
 
+    /// A build owed to a blog is not forgotten because another blog was
+    /// opened before it ran: it waits, and runs once its blog is open again.
+    @Test func aBuildOwedToABlogWaitsForItWhileAnotherIsOpen() async {
+        let site = Site(), herald = herald(site)
+        let a = site.open, b = UUID()
+        herald.owe("a post deleted")
+        // Blog B is opened before the pause is over, as the first screen says it.
+        site.open = b
+        herald.opened(b)
+        #expect(herald.build == .none)
+        await wait(0.3)
+        #expect(site.builds == 0)
+        // Back at A: owed again, in the words it was owed in, and built.
+        site.open = a
+        herald.opened(a)
+        #expect(herald.build == .owed)
+        #expect(herald.owedFor == "a post deleted")
+        #expect(await until { site.builds == 1 && herald.build == .none })
+    }
+
+    /// The same, where nobody said the blog was changed before the pause
+    /// ran out: the build that finds another blog open keeps the debt.
+    @Test func aBuildThatFindsAnotherBlogOpenKeepsItsDebt() async {
+        let site = Site(), herald = herald(site)
+        let a = site.open
+        herald.owe()
+        site.open = UUID()
+        #expect(await until { herald.build == .none })
+        #expect(site.builds == 0)
+        site.open = a
+        herald.opened(a)
+        #expect(await until { site.builds == 1 && herald.build == .none })
+    }
+
+    /// The other blog's own debt is its own: each is built once, for itself.
+    @Test func twoBlogsDebtsAreKeptApart() async {
+        let site = Site(), herald = herald(site)
+        let a = site.open, b = UUID()
+        herald.owe("of a")
+        site.open = b
+        herald.opened(b)
+        herald.owe("of b")
+        #expect(await until { site.builds == 1 && herald.build == .none })
+        site.open = a
+        herald.opened(a)
+        #expect(herald.owedFor == "of a")
+        #expect(await until { site.builds == 2 && herald.build == .none })
+        // Nothing is left over for either.
+        site.open = b
+        herald.opened(b)
+        #expect(herald.build == .none)
+    }
+
+    /// The herald's own build failed; then something else built the whole
+    /// site. "The site could not be built" has nothing left to say.
+    @Test func aFailedBuildIsPutAwayOnceSomethingElseBuiltTheSite() async {
+        let site = Site(), herald = herald(site)
+        site.fails = [EngineError.refused(Refusal(ok: false, error: "rebuild_failed", message: "no disk"))]
+        herald.owe()
+        #expect(await until { if case .failed = herald.build { true } else { false } })
+        herald.settled()
+        #expect(herald.build == .none)
+    }
+
+    /// The time a schedule sends is written in the year that was picked:
+    /// the engine files and addresses the post by the year as written.
+    @Test func aScheduledTimeIsWrittenInTheYearThatWasPicked() throws {
+        let prague = try #require(TimeZone(identifier: "Europe/Prague"))
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = prague
+        let picked = try #require(calendar.date(from: DateComponents(year: 2027, month: 1, day: 1, hour: 0, minute: 15)))
+        #expect(Markdown.stamp(picked, zone: prague) == "2027-01-01T00:15:00+01:00")
+        // West of Greenwich the last hours of a year are already the next in UTC.
+        let lima = try #require(TimeZone(identifier: "America/Lima"))
+        calendar.timeZone = lima
+        let late = try #require(calendar.date(from: DateComponents(year: 2026, month: 12, day: 31, hour: 23, minute: 45)))
+        #expect(Markdown.stamp(late, zone: lima) == "2026-12-31T23:45:00-05:00")
+    }
+
     @Test func whatIsOwedIsSaidInTheWordsGiven() {
         let herald = herald(Site())
         herald.owe("the queue")

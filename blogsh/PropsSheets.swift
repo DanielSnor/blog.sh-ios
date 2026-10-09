@@ -59,7 +59,10 @@ struct ScheduleSheet: View {
     private func schedule(anyway: Bool = false) async {
         busy = true
         defer { busy = false }
-        var args = ["schedule", slug, "--at", ISO8601DateFormatter.engine.string(from: date)]
+        // With the device's own offset, as the picker showed it: the
+        // engine files a post under the year of the time as written, and
+        // in UTC the first hour of a year is still the old one.
+        var args = ["schedule", slug, "--at", Markdown.stamp(date)]
         if anyway { args.append("--allow-partial") }
         do {
             let _: ActionAnswer = try await Engine.shared.call(args)
@@ -263,6 +266,8 @@ struct VersionsSheet: View {
     @State private var problem: String?
     @State private var loaded = false
 
+    @State private var working = false
+
     var body: some View {
         List {
             if let problem {
@@ -298,6 +303,10 @@ struct VersionsSheet: View {
         .overlay {
             if loaded && versions.isEmpty { EmptyNote(symbol: "clock.arrow.circlepath", title: "No earlier versions yet", room: .part) }
         }
+        // One restoring at a time, and seen to be going: a second tap
+        // meanwhile would restore over the first.
+        .disabled(working)
+        .overlay { if working { ProgressView() } }
         .navigationTitle("Earlier versions")
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         .task { await load() }
@@ -314,6 +323,9 @@ struct VersionsSheet: View {
     }
 
     private func restore(_ version: VersionsAnswer.Version) async {
+        guard !working else { return }
+        working = true
+        defer { working = false }
         do {
             let _: PropsAnswer = try await Engine.shared.call(["props", slug, "--restore-version", version.name, "--yes"])
             await done()
