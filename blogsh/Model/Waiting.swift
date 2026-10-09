@@ -32,6 +32,12 @@ nonisolated struct Waiting: Codable, Identifiable, Equatable, Sendable {
     /// a post the server took just before the app was stopped is sent
     /// again the next time, and the blog knows it for the one it has.
     var receipt: String?
+    /// Taken back into the form to be written on. It waits for nothing
+    /// then -- it is not listed and not sent -- but its files stay where
+    /// they are until the form has sent it, put it by again or been
+    /// emptied: the form holds pictures in memory only, and a form left,
+    /// or an app stopped, would otherwise take them along.
+    var held: Bool?
 
     /// What to call it where it is listed, as the post being written is called.
     var headline: String { Unsent(title: title, tags: tags, text: text).headline }
@@ -89,14 +95,49 @@ nonisolated enum WaitingRoom {
     }
 
     /// What waits for a blog, in the order it was written: that is the
-    /// order it is sent in.
+    /// order it is sent in. A post held by the form is not among them.
     static func all(for blog: UUID, in home: URL = home) -> [Waiting] {
+        everything(for: blog, in: home).filter { $0.held != true }
+    }
+
+    /// Every post kept for a blog, the held ones too.
+    private static func everything(for blog: UUID, in home: URL) -> [Waiting] {
         let places = (try? FileManager.default.contentsOfDirectory(at: room(blog, in: home), includingPropertiesForKeys: nil)) ?? []
         return places.compactMap { place in
             guard let data = try? Data(contentsOf: place.appendingPathComponent("post.json")) else { return nil }
             return try? JSONDecoder().decode(Waiting.self, from: data)
         }
         .sorted { ($0.at, $0.id.uuidString) < ($1.at, $1.id.uuidString) }
+    }
+
+    /// One post by its name, held or not.
+    static func one(_ id: UUID, for blog: UUID, in home: URL = home) -> Waiting? {
+        guard let data = try? Data(contentsOf: place(id, blog, in: home).appendingPathComponent("post.json")) else { return nil }
+        return try? JSONDecoder().decode(Waiting.self, from: data)
+    }
+
+    /// The post was taken back into the form: held from here on.
+    static func hold(_ id: UUID, for blog: UUID, in home: URL = home) {
+        mark(id, for: blog, in: home) { $0.held = true }
+    }
+
+    /// Every held post of a blog waits again -- except the one the form
+    /// still has. A held post nobody holds any more (the form's words
+    /// were cleared, the app was stopped at the wrong moment) would
+    /// otherwise be on the device and nowhere to be seen.
+    static func release(for blog: UUID, except kept: UUID? = nil, in home: URL = home) {
+        for post in everything(for: blog, in: home) where post.held == true && post.id != kept {
+            mark(post.id, for: blog, in: home) { $0.held = nil }
+        }
+    }
+
+    private static func mark(_ id: UUID, for blog: UUID, in home: URL, _ change: (inout Waiting) -> Void) {
+        let file = place(id, blog, in: home).appendingPathComponent("post.json")
+        guard let data = try? Data(contentsOf: file), var post = try? JSONDecoder().decode(Waiting.self, from: data) else { return }
+        let before = post
+        change(&post)
+        guard post != before else { return }
+        try? JSONEncoder().encode(post).write(to: file, options: .atomic)
     }
 
     /// The post as a delivery: its pictures first and the markdown last,

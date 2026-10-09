@@ -134,3 +134,94 @@ import Testing
         #expect(Waiting(text: "![a](b.jpg)\n\n# First words\nmore").headline == "First words")
     }
 }
+
+/// A post taken back into the form: its pictures stay in its files for as
+/// long as the form has it. Before, they were deleted on the way in and
+/// lived in the form's memory alone.
+@Suite struct HeldTests {
+    private func room(_ body: (URL) throws -> Void) rethrows {
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("held-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: home) }
+        try body(home)
+    }
+
+    private func moment(_ seconds: TimeInterval) -> Date { Date(timeIntervalSince1970: 1_780_000_000 + seconds) }
+
+    /// Held, a post is not listed and so not sent -- and is all there:
+    /// its words and its pictures, to be found again by its name.
+    @Test func aHeldPostIsNotListedAndKeepsItsPictures() throws {
+        try room { home in
+            let blog = UUID()
+            let post = Waiting(title: "Hello", text: "![x](photo.jpg)", at: moment(0))
+            try WaitingRoom.put(post, shots: [Shot(name: "photo.jpg", data: Data([1, 2, 3]), width: 4, height: 3)], for: blog, in: home)
+            try WaitingRoom.put(Waiting(title: "Other", at: moment(1)), shots: [], for: blog, in: home)
+
+            WaitingRoom.hold(post.id, for: blog, in: home)
+
+            #expect(WaitingRoom.all(for: blog, in: home).map(\.title) == ["Other"])
+            let held = try #require(WaitingRoom.one(post.id, for: blog, in: home))
+            #expect(held.held == true)
+            #expect(held.title == "Hello")
+            let shots = WaitingRoom.shots(of: held, for: blog, in: home)
+            #expect(shots.map(\.name) == ["photo.jpg"])
+            #expect(shots.first?.data == Data([1, 2, 3]))
+        }
+    }
+
+    /// A held post the form no longer has waits again; the one it has stays held.
+    @Test func aHeldPostNobodyHoldsWaitsAgain() throws {
+        try room { home in
+            let blog = UUID(), other = UUID()
+            let one = Waiting(title: "one", at: moment(0)), two = Waiting(title: "two", at: moment(1))
+            try WaitingRoom.put(one, shots: [], for: blog, in: home)
+            try WaitingRoom.put(two, shots: [], for: blog, in: home)
+            try WaitingRoom.put(Waiting(title: "elsewhere", at: moment(2)), shots: [], for: other, in: home)
+            WaitingRoom.hold(one.id, for: blog, in: home)
+            WaitingRoom.hold(two.id, for: blog, in: home)
+
+            WaitingRoom.release(for: blog, except: two.id, in: home)
+            #expect(WaitingRoom.all(for: blog, in: home).map(\.title) == ["one"])
+            #expect(WaitingRoom.one(two.id, for: blog, in: home)?.held == true)
+
+            WaitingRoom.release(for: blog, in: home)
+            #expect(WaitingRoom.all(for: blog, in: home).map(\.title) == ["one", "two"])
+            #expect(WaitingRoom.all(for: other, in: home).map(\.title) == ["elsewhere"])
+        }
+    }
+
+    /// Sent, put by anew or thrown away by the form, the held post goes with its files.
+    @Test func aHeldPostGoesWhenTheFormIsDoneWithIt() throws {
+        try room { home in
+            let blog = UUID()
+            let post = Waiting(title: "one", at: moment(0))
+            try WaitingRoom.put(post, shots: [Shot(name: "a.jpg", data: Data([1]), width: 1, height: 1)], for: blog, in: home)
+            WaitingRoom.hold(post.id, for: blog, in: home)
+            WaitingRoom.remove(post.id, for: blog, in: home)
+            #expect(WaitingRoom.one(post.id, for: blog, in: home) == nil)
+            #expect(!FileManager.default.fileExists(atPath: home.appendingPathComponent(blog.uuidString).appendingPathComponent(post.id.uuidString).path))
+        }
+    }
+
+    /// The writing in the form remembers which post it was taken back
+    /// from, from one opening of the form to the next.
+    @Test func theWritingRemembersThePostItCameFrom() {
+        let suite = "held-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let blog = UUID(), post = UUID()
+        Unsent(title: "T", text: "x", at: moment(0), from: post).keep(for: blog, in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults)?.from == post)
+        // The same words under another origin are written down again.
+        Unsent(title: "T", text: "x", at: moment(5), from: nil).keep(for: blog, in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults)?.from == nil)
+    }
+
+    /// "Its pictures were not kept" is said only of pictures the form does not have back.
+    @Test func picturesTheFormHasBackAreNotSaidToBeMissing() {
+        let kept = Unsent(text: "![a](photo-1.jpg \"One.\")\n\n![b](photo-2.jpg)")
+        #expect(!kept.namesPictures(beyond: ["photo-1.jpg", "photo-2.jpg"]))
+        #expect(kept.namesPictures(beyond: ["photo-1.jpg"]))
+        #expect(kept.namesPictures(beyond: []))
+        #expect(!Unsent(text: "no pictures").namesPictures(beyond: []))
+    }
+}

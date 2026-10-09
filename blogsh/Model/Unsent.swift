@@ -18,6 +18,10 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
     /// The name its delivery goes under, the same for every attempt at
     /// sending it: see `Receipt`.
     var receipt: String?
+    /// The post that waited on the device and was taken back into the
+    /// form: its pictures are still in its files (`Waiting.held`), and the
+    /// form finds them there again.
+    var from: UUID?
 
     /// Nothing worth keeping: spaces and line breaks are not writing.
     var isEmpty: Bool {
@@ -38,6 +42,16 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
     /// The text names a picture or a video, which was not kept with it.
     var namesPictures: Bool {
         text.range(of: #"!{1,2}\[[^\n]*\]\([^)\s"\u201E\u201C\u201D]+"# + Kept.caption + #"\)"#, options: .regularExpression) != nil
+    }
+
+    /// The text names a picture or a video that is not among these: one
+    /// the form does not have back.
+    func namesPictures(beyond names: [String]) -> Bool {
+        guard let marks = try? NSRegularExpression(pattern: #"!{1,2}\[[^\n]*\]\(([^)\s"\u201E\u201C\u201D]+)"# + Kept.caption + #"\)"#) else { return false }
+        let whole = text as NSString
+        return marks.matches(in: text, range: NSRange(location: 0, length: whole.length)).contains { match in
+            !names.contains(whole.substring(with: match.range(at: 1)))
+        }
     }
 
     static func key(_ blog: UUID) -> String { "unsent.\(blog.uuidString)" }
@@ -61,7 +75,7 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
             return
         }
         if let kept = Self.kept(for: blog, in: defaults),
-           kept.title == title, kept.tags == tags, kept.text == text, kept.receipt == receipt { return }
+           kept.title == title, kept.tags == tags, kept.text == text, kept.receipt == receipt, kept.from == from { return }
         defaults.set(data, forKey: Self.key(blog))
     }
 

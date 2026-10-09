@@ -403,6 +403,11 @@ struct ContentView: View {
         let asked = blogs.currentID
         loading = true
         defer { loading = false }
+        // A post held by a form that no longer has it waits again: seen,
+        // and sent with the rest.
+        if let asked {
+            WaitingRoom.release(for: asked, except: Unsent.kept(for: asked)?.from)
+        }
         do {
             let answers = try await Engine.shared.answers(to: [["version"], ["queue"], ["list", "--drafts"]])
             // Another blog was opened while this one was answering.

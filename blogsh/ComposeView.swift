@@ -38,6 +38,10 @@ struct ComposeView: View {
     /// The name this post's delivery goes under, however often it is
     /// tried: kept with the writing, and another for the next post.
     @State private var receipt = Receipt.mint()
+    /// The post that waited on the device and was taken back into this
+    /// form: its files are held until the form has sent it, put it by
+    /// again or been emptied.
+    @State private var from: UUID?
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
@@ -45,7 +49,7 @@ struct ComposeView: View {
             if let broughtBack {
                 // Said, because it was not asked for: the form opens with
                 // something in it that was not typed just now.
-                BroughtBack(words: broughtBack.namesPictures
+                BroughtBack(words: broughtBack.namesPictures(beyond: shots.map(\.name))
                                 ? Text("Back in the form: what was written here \(broughtBack.at.spoken) and not sent.") + Text(verbatim: " ") + Text("Its pictures were not kept; add them again.")
                                 : Text("Back in the form: what was written here \(broughtBack.at.spoken) and not sent."),
                             key: "Start with an empty form") { startEmpty() }
@@ -182,19 +186,34 @@ struct ComposeView: View {
         guard keeping == nil, let blog = Blogs.shared.currentID else { return }
         keeping = blog
         // A post that waited to be sent and was taken back to be written
-        // on: it is the form's now, pictures and all, and waits no longer.
+        // on: it is the form's now and waits no longer -- but its files
+        // stay where they are, held, for as long as the form has it. The
+        // form keeps pictures in memory only; left, or stopped with the
+        // app, it would take the post's pictures along.
         if let handed = Desk.shared.takeHanded() {
             shots = WaitingRoom.shots(of: handed, for: blog)
             receipt = handed.receipt.flatMap { Receipt.isOne($0) ? $0 : nil } ?? Receipt.mint()
+            from = handed.id
+            WaitingRoom.hold(handed.id, for: blog)
+            WaitingRoom.release(for: blog, except: handed.id)
             title = handed.title
             tags = handed.tags
             text = handed.text
-            WaitingRoom.remove(handed.id, for: blog)
             Desk.shared.changed()
             return
         }
-        guard title.isEmpty, tags.isEmpty, text.isEmpty, let kept = Unsent.kept(for: blog) else { return }
+        guard title.isEmpty, tags.isEmpty, text.isEmpty, let kept = Unsent.kept(for: blog) else {
+            // Nothing is being written: no post is the form's to hold.
+            if title.isEmpty, tags.isEmpty, text.isEmpty { WaitingRoom.release(for: blog) }
+            return
+        }
         if let its = kept.receipt, Receipt.isOne(its) { receipt = its }
+        // What was taken back from the device has its pictures there still.
+        if let its = kept.from, let held = WaitingRoom.one(its, for: blog) {
+            from = its
+            shots = WaitingRoom.shots(of: held, for: blog)
+        }
+        WaitingRoom.release(for: blog, except: from)
         title = kept.title
         tags = kept.tags
         text = kept.text
@@ -203,12 +222,19 @@ struct ComposeView: View {
 
     private func keep() {
         guard let keeping else { return }
-        Unsent(title: title, tags: tags, text: text, at: .now, receipt: receipt).keep(for: keeping)
+        Unsent(title: title, tags: tags, text: text, at: .now, receipt: receipt, from: from).keep(for: keeping)
         Desk.shared.changed()
     }
 
     /// The form is the next post's: empty, and under a name of its own.
+    /// What it held of a post taken back from the device goes with it --
+    /// the post was sent, or put by anew, or thrown away here.
     private func startEmpty() {
+        if let from, let blog = keeping ?? Blogs.shared.currentID {
+            WaitingRoom.remove(from, for: blog)
+            Desk.shared.changed()
+        }
+        from = nil
         title = ""; tags = ""; text = ""; shots = []
         broughtBack = nil
         receipt = Receipt.mint()
@@ -285,6 +311,7 @@ struct ComposeView: View {
         problem = nil
         putBy = false
         let going = Unsent(title: title, tags: tags, text: text)
+        let held = from
         // The text is what goes: a description typed on a card is in it
         // already, one typed into the text itself was never the card's.
         let markdown = Markdown.file(title: title, tags: tags, body: text, receipt: receipt)
@@ -295,6 +322,8 @@ struct ComposeView: View {
             // Forgotten here, not by the form's own noticing that it was
             // emptied: a form left while its post was going notices nothing.
             Unsent.forget(for: blog, sent: going)
+            // ...and so are the files it was taken back from: it has arrived.
+            if let held { WaitingRoom.remove(held, for: blog) }
             Desk.shared.changed()
             came = true
             // The form is the next post's now, and nothing is left to bring back.
