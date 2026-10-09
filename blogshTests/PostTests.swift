@@ -512,4 +512,30 @@ import Testing
         #expect(said.contains(", 1 "))
         #expect(said.hasSuffix(", 3 kB"))
     }
+
+    /// A shot's own mark is found whatever its description holds: with a
+    /// bracket in it, "Remove" left the mark in the text and the next
+    /// picture took the removed one's words.
+    @Test func aShotsMarkIsFoundWithBracketsInItsDescription() throws {
+        var shot = Shot(name: "photo-1.jpg", data: Data(), width: 1, height: 1)
+        shot.alt = "Pes [nas] v trave"
+        let pattern = try NSRegularExpression(pattern: shot.markPattern)
+        let text = "Before.\n\n\(shot.mark)\n\n![other](photo-2.jpg)\n"
+        let found = pattern.matches(in: text, range: NSRange(text.startIndex..., in: text))
+        #expect(found.count == 1)
+        #expect(found.first.map { (text as NSString).substring(with: $0.range) } == shot.mark)
+        // Two marks on one line stay two: the first does not run into the second.
+        let line = "![a](photo-2.jpg) ![b](photo-1.jpg)"
+        let one = pattern.matches(in: line, range: NSRange(line.startIndex..., in: line))
+        #expect(one.first.map { (line as NSString).substring(with: $0.range) } == "![b](photo-1.jpg)")
+    }
+
+    /// A title that only begins and ends with a bracket or a quote of its
+    /// own goes as it was typed; one wrapped whole is unwrapped, as before.
+    @Test func aTitleWithBracketsOrQuotesOfItsOwnGoesAsTyped() {
+        #expect(Markdown.frontMatter(title: "[foto] Sobota [Brno]", tags: "") == "---\ntitle: [foto] Sobota [Brno]\n---\n\n")
+        #expect(Markdown.frontMatter(title: #""Ano" a "ne""#, tags: "") == "---\ntitle: \"Ano\" a \"ne\"\n---\n\n")
+        #expect(Markdown.frontMatter(title: "[Sobota]", tags: "") == "---\ntitle: Sobota\n---\n\n")
+        #expect(Markdown.frontMatter(title: "'Sobota'", tags: "") == "---\ntitle: Sobota\n---\n\n")
+    }
 }

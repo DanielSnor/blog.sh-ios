@@ -171,6 +171,7 @@ struct ContentView: View {
             guard url.scheme?.lowercased() == "blogsh" else { return }
             showingBlogs = false
             showingSettings = false
+            showingWaiting = false
             incoming = Incoming(text: url.absoluteString)
         }
         .sheet(item: $incoming, onDismiss: { Task { await load() } }) { one in

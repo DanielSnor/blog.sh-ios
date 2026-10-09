@@ -9,7 +9,7 @@ import Testing
     private let key = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
     private func link(_ change: (inout [String: String]) -> Void = { _ in }) -> String {
         var parts = ["v": "1", "h": "blog.example.org", "p": "2222", "u": "me", "k": key,
-                     "f": "abc-DEF_123.zzz", "n": "M%C5%AFj%20blog"]
+                     "f": "abc-DEF_123AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.zzzZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ", "n": "M%C5%AFj%20blog"]
         change(&parts)
         return "blogsh://pair?" + ["v", "h", "p", "u", "k", "f", "n"].compactMap { name in parts[name].map { "\(name)=\($0)" } }.joined(separator: "&")
     }
@@ -20,7 +20,7 @@ import Testing
         #expect(code.port == 2222)
         #expect(code.user == "me")
         #expect(code.seed == Data(0..<32))
-        #expect(code.fingerprints == ["abc-DEF_123", "zzz"])
+        #expect(code.fingerprints == ["abc-DEF_123AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "zzzZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"])
         #expect(code.site == "Můj blog")
     }
 
@@ -39,7 +39,7 @@ import Testing
         // The key and the fingerprints are in an alphabet that has no plus:
         // they are read as they stand.
         #expect(try PairingCode(link { $0["n"] = "a+b" }).seed == Data(0..<32))
-        #expect(try PairingCode(link { $0["n"] = "a+b" }).fingerprints == ["abc-DEF_123", "zzz"])
+        #expect(try PairingCode(link { $0["n"] = "a+b" }).fingerprints == ["abc-DEF_123AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "zzzZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"])
     }
 
     @Test func theFingerprintsAndTheNameMayBeMissing() throws {
@@ -83,10 +83,33 @@ import Testing
     @Test func aFingerprintIsComparedInTheCodesSpelling() throws {
         #expect(PairingCode.urlSafe("SHA256:ab+/cd==") == "ab-_cd")
         #expect(PairingCode.urlSafe("ab-_cd") == "ab-_cd")
-        let code = try PairingCode(link { $0["f"] = "ab-_cd.other" })
-        #expect(code.expects("SHA256:ab+/cd"))
-        #expect(code.expects("SHA256:other"))
+        let code = try PairingCode(link { $0["f"] = "ab-_cdBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.otherOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" })
+        #expect(code.expects("SHA256:ab+/cdBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"))
+        #expect(code.expects("SHA256:otherOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"))
         #expect(!code.expects("SHA256:somebody+else"))
+    }
+
+    /// A code cut off inside its fingerprint is not whole -- taken, it
+    /// would turn its own server away as another machine.
+    @Test func aCodeCutInsideItsFingerprintIsNotWhole() throws {
+        let whole = link { $0["n"] = nil }
+        #expect(throws: PairingCode.Problem.incomplete) { try PairingCode(String(whole.dropLast(20))) }
+        #expect(throws: PairingCode.Problem.incomplete) { try PairingCode(link { $0["f"] = "short" }) }
+        #expect(throws: PairingCode.Problem.incomplete) { try PairingCode(link { $0["f"] = String(repeating: "a", count: 42) + "!" }) }
+        #expect(try PairingCode(whole).fingerprints.count == 2)
+    }
+
+    /// A line break or a space inside a pasted code was put there on the
+    /// way, and is no part of it: the code reads as it was written.
+    @Test func aLineBreakInsideAPastedCodeIsNoPartOfIt() throws {
+        let good = try PairingCode(link())
+        let text = link()
+        for at in stride(from: 14, to: text.count, by: 9) {
+            var broken = text
+            broken.insert(contentsOf: "\n ", at: broken.index(broken.startIndex, offsetBy: at))
+            #expect((try? PairingCode(broken)) == good, "a break at \(at)")
+        }
+        #expect((try? PairingCode("  \n" + text + "\n")) == good)
     }
 
     /// A code that names no server takes the first one on trust, as a

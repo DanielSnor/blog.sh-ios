@@ -109,6 +109,13 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         facts = try c.decodeIfPresent(Facts.self, forKey: .facts)
     }
 
+    /// The server as a connection takes it: the host without the space
+    /// typed after it, no port as ssh's own. Whatever is remembered of a
+    /// server -- its key, its silence -- is remembered under these.
+    var reached: (host: String, port: Int) {
+        (host.trimmingCharacters(in: .whitespaces), port == 0 ? 22 : port)
+    }
+
     /// What to call it in a list: its own name, or where it is, before it has said one.
     var label: String {
         if !name.isEmpty { return name }

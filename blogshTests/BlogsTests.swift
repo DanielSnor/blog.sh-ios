@@ -125,6 +125,25 @@ import Testing
         #expect(BlogShelf.shifted(blogs, UUID(), by: 1) == blogs)
     }
 
+    /// What is remembered of a server is remembered under the host and
+    /// port the connection uses -- and the settings look there too, or
+    /// "forget the server's key" would look beside it.
+    @Test func aServerIsRememberedUnderWhatTheConnectionUses() {
+        shelf { defaults in
+            var blog = Blog()
+            blog.host = "one.example "
+            blog.port = 0
+            blog.user = "dan"
+            BlogShelf.write([blog], current: blog.id, to: defaults)
+            let settings = ServerSettings.load(from: defaults)
+            #expect(blog.reached.host == "one.example")
+            #expect(blog.reached.port == 22)
+            #expect(settings?.host == blog.reached.host)
+            #expect(settings?.port == blog.reached.port)
+            #expect(TrustOnFirstUse.defaultsKey(host: blog.reached.host, port: blog.reached.port) == "hostkey.one.example:22")
+        }
+    }
+
     /// The blog that was open is gone from the list: the first one opens.
     @Test func anUnknownCurrentBlogFallsBackToTheFirst() {
         shelf { defaults in

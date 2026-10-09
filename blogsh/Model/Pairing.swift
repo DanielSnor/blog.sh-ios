@@ -35,7 +35,11 @@ nonisolated struct PairingCode: Equatable, Sendable {
     }
 
     init(_ text: String) throws(Problem) {
-        let link = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Nothing the engine writes into a code is ever a space or a line
+        // break: one found inside a pasted code was put there on the way
+        // -- a mail that wraps, a note that breaks the line -- and is no
+        // part of it.
+        let link = String(text.unicodeScalars.filter { !CharacterSet.whitespacesAndNewlines.contains($0) })
         guard let parts = URLComponents(string: link),
               parts.scheme?.lowercased() == "blogsh", parts.host?.lowercased() == "pair" else { throw .notACode }
         // The engine writes the parts the way a form is sent: a space is a
@@ -55,7 +59,13 @@ nonisolated struct PairingCode: Equatable, Sendable {
         self.port = port
         self.user = user
         self.seed = seed
-        fingerprints = (said["f"] ?? "").split(separator: ".").map(String.init)
+        // A fingerprint is whole or it is not one: 43 characters, SHA-256
+        // without its padding. A code cut off inside its last fingerprint
+        // would otherwise be taken, and then turn its own server away as
+        // another machine.
+        let prints = (said["f"] ?? "").split(separator: ".").map(String.init)
+        guard prints.allSatisfy({ $0.range(of: "^[A-Za-z0-9_-]{43}$", options: .regularExpression) != nil }) else { throw .incomplete }
+        fingerprints = prints
         site = said["n"].flatMap { $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0 }
     }
 

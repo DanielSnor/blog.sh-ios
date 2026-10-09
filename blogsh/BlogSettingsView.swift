@@ -33,9 +33,12 @@ struct BlogSettingsView: View {
                 set: { value in blogs.update { $0.port = Int(value.filter(\.isNumber)) ?? $0.port } })
     }
 
-    private var host: String { blogs.current?.host ?? "" }
+    // As the connection takes them -- the host without the space typed
+    // after it, no port as ssh's own: the server's key is remembered
+    // under these, and has to be looked up and forgotten under these.
+    private var host: String { blogs.current?.reached.host ?? "" }
     private var user: String { blogs.current?.user ?? "" }
-    private var port: Int { blogs.current?.port ?? 22 }
+    private var port: Int { blogs.current?.reached.port ?? 22 }
 
     var body: some View {
         PaperScreen(name: String(localized: "The blog's settings")) {

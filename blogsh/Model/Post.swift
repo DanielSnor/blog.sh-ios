@@ -29,7 +29,9 @@ nonisolated struct Shot: Identifiable, Sendable {
     var mark: String { (kind == .video ? "!!" : "!") + "[\(Kept.oneLine(alt))](\(name))" }
 
     /// The shot's mark wherever the text has it, whatever it says there.
-    var markPattern: String { #"!{1,2}\[[^\]]*\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"# }
+    /// The description runs up to the mark's own "](", not to the first
+    /// bracket: a description may hold brackets of its own.
+    var markPattern: String { #"!{1,2}\[(?:(?!\]\().)*\]\(\#(NSRegularExpression.escapedPattern(for: name))\)"# }
 }
 
 /// What /write/ does to a picture and to a name, so a post from the app
@@ -122,8 +124,11 @@ nonisolated enum Markdown {
     static func frontMatter(title: String, tags: String, publish: Bool = false, written: Date? = nil, receipt: String? = nil) -> String {
         var lines: [String] = []
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: #"^(["'])(.*)\1$"#, with: "$2", options: .regularExpression)
-            .replacingOccurrences(of: #"^\[(.*)\]$"#, with: "$1", options: .regularExpression)
+            // Unwrapped only where the whole title is wrapped once: a title
+            // that merely begins and ends with a bracket or a quote of its
+            // own -- "[foto] Sobota [Brno]" -- goes as it was typed.
+            .replacingOccurrences(of: #"^(["'])((?:(?!\1).)*)\1$"#, with: "$2", options: .regularExpression)
+            .replacingOccurrences(of: #"^\[([^\[\]]*)\]$"#, with: "$1", options: .regularExpression)
             .trimmingCharacters(in: .whitespaces)
         if !cleanTitle.isEmpty { lines.append("title: \(cleanTitle)") }
         let cleanTags = tags.trimmingCharacters(in: .whitespaces)

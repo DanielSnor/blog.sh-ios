@@ -17,10 +17,10 @@ nonisolated struct ServerSettings: Equatable, Sendable {
     /// sent to the next.
     static func load(from defaults: UserDefaults = .standard, only: UUID? = nil) -> ServerSettings? {
         guard let blog = BlogShelf.current(from: defaults), only == nil || blog.id == only else { return nil }
-        let host = blog.host.trimmingCharacters(in: .whitespaces)
+        let (host, port) = blog.reached
         let user = blog.user.trimmingCharacters(in: .whitespaces)
         guard !host.isEmpty, !user.isEmpty else { return nil }
-        return ServerSettings(host: host, port: blog.port == 0 ? 22 : blog.port, user: user, keyAccount: blog.keyAccount)
+        return ServerSettings(host: host, port: port, user: user, keyAccount: blog.keyAccount)
     }
 }
 
