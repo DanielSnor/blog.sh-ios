@@ -330,5 +330,51 @@ import Testing
         let refusal = Data(#"{"ok":false,"error":"unknown_command","message":"\"doctor\" is not a command a program may run."}"#.utf8)
         #expect(throws: EngineError.self) { let _: DiagnosisAnswer = try Engine.decode(refusal) }
     }
-}
 
+    /// The queue says whether anything sends it out by itself; an older
+    /// engine does not say, and nothing is concluded from its silence.
+    @Test func theQueueSaysWhetherAnythingSendsItOut() throws {
+        func queue(_ scheduler: String) throws -> QueueAnswer {
+            try JSONDecoder().decode(QueueAnswer.self, from: Data(#"{"ok":true,"queue":[]\#(scheduler)}"#.utf8))
+        }
+        #expect(try queue(#","scheduler":{"last_run":null}"#).unattended)
+        #expect(try !queue(#","scheduler":{"last_run":"2026-10-09T12:40:00+02:00"}"#).unattended)
+        #expect(try queue(#","scheduler":{"last_run":"2026-10-09T12:40:00+02:00"}"#).scheduler?.lastRun == "2026-10-09T12:40:00+02:00")
+        // Before the engine said either way.
+        #expect(try !queue("").unattended)
+        #expect(try queue("").scheduler == nil)
+        // The answer to a move carries it too, beside what it always had.
+        let moved = try JSONDecoder().decode(QueueAnswer.self, from: Data(#"{"ok":true,"queue":[],"scheduler":{"last_run":null},"warnings":[]}"#.utf8))
+        #expect(moved.unattended)
+    }
+
+    /// check and doctor are asked in the app's language; nothing else is,
+    /// and what is not a language's code is not sent as one.
+    @Test func theTwoThatAnswerInSentencesAreAskedInTheAppsLanguage() {
+        #expect(Engine.request(["check"], lang: "cs")["lang"] as? String == "cs")
+        #expect(Engine.request(["doctor", "--json"], lang: "de")["lang"] as? String == "de")
+        #expect(Engine.request(["check"], lang: "cs")["args"] as? [String] == ["check"])
+        #expect(Engine.request(["queue"], lang: "cs")["lang"] == nil)
+        #expect(Engine.request(["publish", "venku", "--yes"], lang: "cs")["lang"] == nil)
+        #expect(Engine.request(["check"], lang: nil)["lang"] == nil)
+        #expect(Engine.request(["check"], lang: "cs-CZ")["lang"] == nil)
+        #expect(Engine.request(["check"], lang: "Base")["lang"] == nil)
+        #expect(Engine.request([], lang: "cs")["lang"] == nil)
+    }
+
+    /// The commands after which the first screen reads its cards again:
+    /// the ones that change the drafts, the queue, the trash or the versions.
+    @Test func theCommandsThatChangeWhatTheFirstScreenSays() {
+        for args in [["publish", "venku", "--yes"], ["unpublish", "venku", "--yes"], ["delete", "venku", "--yes"],
+                     ["restore", "venku"], ["schedule", "venku", "--at", "2026-10-10T08:00:00+02:00"], ["schedule", "venku", "--cancel"],
+                     ["queue", "--up", "2026/venku"], ["queue", "--move", "2026/venku", "--to", "1"],
+                     ["props", "venku", "--set", "pinned=yes"], ["props", "venku", "--rename", "outside", "--yes"],
+                     ["props", "venku", "--restore-version", "v1", "--yes"], ["empty", "trash", "--yes"]] {
+            #expect(Engine.changesTheBlog(args), "\(args)")
+        }
+        for args in [["queue"], ["list", "--drafts"], ["version"], ["stats"], ["props", "venku"], ["props", "venku", "--versions"],
+                     ["empty", "trash"], ["empty", "versions"], ["edit", "venku"], ["check"], ["doctor"], ["rebuild"], []] {
+            #expect(!Engine.changesTheBlog(args), "\(args)")
+        }
+    }
+}

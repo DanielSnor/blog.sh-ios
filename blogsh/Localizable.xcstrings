@@ -162,6 +162,22 @@
         }
       }
     },
+    "(its time has come -- publish it by hand)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(čas už nastal – zveřejni ho ručně)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(seine Zeit ist gekommen – von Hand veröffentlichen)"
+          }
+        }
+      }
+    },
     "(the post has no text)": {
       "localizations": {
         "cs": {
@@ -2110,6 +2126,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nichts passt"
+          }
+        }
+      }
+    },
+    "Nothing on this blog sends the queue out by itself: no scheduled run has ever gone through it. A post whose time has come waits until it is published by hand -- hold its row, or swipe it to a side.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle blogu frontu nic samo nerozesílá: plánované spuštění jí ještě nikdy neprošlo. Příspěvek, jehož čas nastal, čeká, dokud ho nezveřejníš ručně – podrž jeho řádek, nebo ho odsuň do strany."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Blog schickt nichts die Warteschlange von selbst hinaus: Ein geplanter Lauf ist noch nie durch sie gegangen. Ein Beitrag, dessen Zeit gekommen ist, wartet, bis er von Hand veröffentlicht wird – halte seine Zeile oder wische sie zur Seite."
           }
         }
       }
@@ -4386,18 +4418,18 @@
         }
       }
     },
-    "The sentences are the blog's own, in the blog's language. Nothing is repaired from here.": {
+    "The sentences are the blog's own -- in this app's language where the blog's engine has it, in the blog's otherwise. Nothing is repaired from here.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Věty jsou vlastní slova blogu, v jeho jazyce. Odsud se nic neopravuje."
+            "value": "Věty jsou vlastní slova blogu – v jazyce appky, pokud ho engine blogu umí, jinak v jazyce blogu. Odsud se nic neopravuje."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Sätze sind die des Blogs, in seiner Sprache. Von hier aus wird nichts repariert."
+            "value": "Die Sätze sind die des Blogs – in der Sprache der App, wo die Engine des Blogs sie hat, sonst in seiner eigenen. Von hier aus wird nichts repariert."
           }
         }
       }

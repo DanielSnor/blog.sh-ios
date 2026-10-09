@@ -259,6 +259,11 @@ struct ContentView: View {
         .onChange(of: single) { _, now in
             if now, columns != .detailOnly { columns = .detailOnly }
         }
+        // ...and whenever a screen has changed the blog: on a wide screen
+        // the menu stands beside it and is never come back to.
+        .onChange(of: Desk.shared.writes) {
+            Task { await loadGlance() }
+        }
         // What changed on the way back is on the first screen again.
         .onChange(of: column) { _, now in
             if now == .sidebar { Task { await loadGlance() } }

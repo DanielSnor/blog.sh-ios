@@ -382,6 +382,24 @@ nonisolated struct TrashRow: Decodable, Identifiable, Equatable, Sendable {
 nonisolated struct QueueAnswer: Decodable, Sendable {
     let ok: Bool
     let queue: [QueueRow]
+    /// What the blog knows of whatever sends the queue out by itself; an
+    /// older engine does not say.
+    let scheduler: Scheduler?
+
+    struct Scheduler: Decodable, Equatable, Sendable {
+        /// When a scheduled run last went through the queue; nil where
+        /// none ever has -- a blog with no cron set up.
+        let lastRun: String?
+
+        enum CodingKeys: String, CodingKey {
+            case lastRun = "last_run"
+        }
+    }
+
+    /// The blog says that nothing has ever sent its queue out: a post
+    /// whose time has come will not go by waiting. False where the blog
+    /// does not say either way.
+    var unattended: Bool { scheduler.map { $0.lastRun == nil } ?? false }
 }
 
 nonisolated struct QueueRow: Decodable, Identifiable, Equatable, Sendable {

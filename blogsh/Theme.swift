@@ -834,6 +834,13 @@ private struct Tone: ViewModifier {
     private(set) var arrived = 0
     private(set) var arrivedAt: UUID?
 
+    /// Counted when a command that changes the blog has answered -- a
+    /// publish, a move in the queue, a delivery: what the first screen
+    /// says of the blog is read again, also where that screen is beside
+    /// the one that made the change and nobody "comes back" to it.
+    private(set) var writes = 0
+    func wrote() { writes += 1 }
+
     func began(_ blog: UUID) { sending.insert(blog) }
     func ended(_ blog: UUID, arrived came: Bool) {
         sending.remove(blog)

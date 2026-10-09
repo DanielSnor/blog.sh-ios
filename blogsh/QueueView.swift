@@ -17,6 +17,8 @@ struct QueueView: View {
     /// The site's other languages, for the post a row opens.
     var languages: [String] = []
     @State private var rows: [QueueRow] = []
+    /// The blog says nothing sends its queue out by itself.
+    @State private var unattended = false
     @State private var problem: String?
     @State private var loading = false
     @State private var busy = false
@@ -42,12 +44,22 @@ struct QueueView: View {
             if let problem {
                 Text(problem).font(.ui(14)).foregroundStyle(Theme.muted).paperRow()
             }
+            if unattended, !rows.isEmpty {
+                // Said first, and as what it is: on this blog the queue is a
+                // list, not a clock.
+                Text("Nothing on this blog sends the queue out by itself: no scheduled run has ever gone through it. A post whose time has come waits until it is published by hand -- hold its row, or swipe it to a side.")
+                    .font(.ui(13, weight: .medium))
+                    .foregroundStyle(Theme.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, 12)
+                    .paperRow()
+            }
             if !rows.isEmpty {
                 Section {
                     ForEach(rows) { row in
                         // A row opens its post, as in the archive: its text, its
                         // properties, and so its slug -- which the queue has no key for.
-                        NavigationLink(value: PostRow(row)) { QueueRowView(row: row) }
+                        NavigationLink(value: PostRow(row)) { QueueRowView(row: row, unattended: unattended) }
                             .navigationLinkIndicatorVisibility(.hidden)
                             // Asked over the row it is asked about.
                             .confirmationDialog(leavingTitle, isPresented: asking(row), titleVisibility: .visible) {
@@ -180,6 +192,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue", direction, "\(row.year)/\(row.slug)"])
             rows = answer.queue
+            unattended = answer.unattended
             changed(row, String(localized: "Moved"))
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
@@ -192,6 +205,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue", "--move", "\(row.year)/\(row.slug)", "--to", "\(position)"])
             rows = answer.queue
+            unattended = answer.unattended
             changed(row, String(localized: "Carried"))
         } catch {
             notice = error.isCalledOff ? notice : error.localizedDescription
@@ -259,6 +273,7 @@ struct QueueView: View {
         do {
             let answer: QueueAnswer = try await Engine.shared.call(["queue"])
             rows = answer.queue
+            unattended = answer.unattended
             problem = nil
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
@@ -272,6 +287,8 @@ struct QueueView: View {
 /// otherwise show an hour nobody scheduled.
 struct QueueRowView: View {
     let row: QueueRow
+    /// Nothing on the blog sends the queue out by itself.
+    var unattended = false
 
     var body: some View {
         let when = ISO8601DateFormatter.engine.date(from: row.date)
@@ -292,7 +309,12 @@ struct QueueRowView: View {
                 .font(.ui(13))
                 .foregroundStyle(Theme.muted)
                 if row.overdue {
-                    Text("(waiting for the cron)").font(.ui(13)).foregroundStyle(Theme.muted)
+                    // Waiting helps only where something comes for the post.
+                    if unattended {
+                        Text("(its time has come -- publish it by hand)").font(.ui(13, weight: .medium)).foregroundStyle(Theme.danger)
+                    } else {
+                        Text("(waiting for the cron)").font(.ui(13)).foregroundStyle(Theme.muted)
+                    }
                 }
             }
             Spacer(minLength: 8)

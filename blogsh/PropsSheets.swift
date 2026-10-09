@@ -220,7 +220,9 @@ struct AddressesSheet: View {
             ForEach(addresses, id: \.value) { address in
                 VStack(alignment: .leading, spacing: 3) {
                     Text(verbatim: address.value).font(.mono(14, bold: false)).foregroundStyle(Theme.ink)
-                    Text(address.kind == "former_slugs" ? "a former slug, redirects here" : "redirects here")
+                    // A former slug of the post, or of one of its languages
+                    // (`translations.<lang>.former_slugs`).
+                    Text(address.kind.hasSuffix("former_slugs") ? "a former slug, redirects here" : "redirects here")
                         .font(.ui(13)).foregroundStyle(Theme.muted)
                 }
                 .padding(.vertical, 11)

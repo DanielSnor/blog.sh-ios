@@ -111,6 +111,7 @@ actor Engine {
             }
             return answers
         }
+        .told(commands.contains(where: Self.changesTheBlog))
     }
 
     /// A delivery: the files, pictures first and the markdown last, in the
@@ -125,6 +126,7 @@ actor Engine {
         try await Self.onTheLine(only: blog) { wire, wary in
             try await Self.send(files, on: wire, wary: wary)
         }
+        .told(true)
     }
 
     // MARK: - The connection
@@ -315,10 +317,36 @@ actor Engine {
         return found
     }
 
+    /// The request as the forced command reads it: the argv, and -- for
+    /// the two commands that answer in sentences, `check` and `doctor` --
+    /// the language the app speaks. An engine that has it says its
+    /// findings in it; one that has not, or an older one, which reads the
+    /// argv and nothing else, says them in the blog's own.
+    nonisolated static func request(_ args: [String], lang: String? = Bundle.main.preferredLocalizations.first) -> [String: Any] {
+        var request: [String: Any] = ["args": args]
+        if ["check", "doctor"].contains(args.first ?? ""), let lang,
+           lang.range(of: "^[a-z]{2,3}$", options: .regularExpression) != nil {
+            request["lang"] = lang
+        }
+        return request
+    }
+
+    /// The command changes what the first screen says of the blog: its
+    /// drafts, its queue, what the trash and the versions hold.
+    nonisolated static func changesTheBlog(_ args: [String]) -> Bool {
+        switch args.first ?? "" {
+        case "publish", "unpublish", "delete", "restore", "schedule": true
+        case "queue": args.count > 1
+        case "props": args.contains { ["--set", "--rename", "--drop-address", "--restore-version"].contains($0) }
+        case "empty": args.contains("--yes")
+        default: false
+        }
+    }
+
     /// `said`: an earlier command of the same batch has already run on
     /// this connection, so a failure here is not one to start over from.
     @concurrent private static func exec(_ args: [String], on wire: Wired, wary: Bool, said: Bool) async throws -> Data {
-        var request = try JSONSerialization.data(withJSONObject: ["args": args])
+        var request = try JSONSerialization.data(withJSONObject: Self.request(args))
         request.append(0x0a)
         var answer = Data()
         var stage = "exec"
@@ -351,6 +379,15 @@ actor Engine {
 nonisolated struct DeliveryFile: Sendable {
     let name: String
     let data: Data
+}
+
+nonisolated extension Array where Element == Data {
+    /// The answers, handed on -- after the desk was told that the blog
+    /// has changed, where it has: the first screen reads its cards again.
+    func told(_ changed: Bool) async -> [Data] {
+        if changed { await Desk.shared.wrote() }
+        return self
+    }
 }
 
 extension Engine {

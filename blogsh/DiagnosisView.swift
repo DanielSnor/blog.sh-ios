@@ -43,7 +43,7 @@ struct DiagnosisView: View {
                     }
                 }
                 .gap(14)
-                Hint("The sentences are the blog's own, in the blog's language. Nothing is repaired from here.")
+                Hint("The sentences are the blog's own -- in this app's language where the blog's engine has it, in the blog's otherwise. Nothing is repaired from here.")
                 Plate {
                     Command("Check again", symbol: "arrow.clockwise") { Task { await run() } }
                 }
