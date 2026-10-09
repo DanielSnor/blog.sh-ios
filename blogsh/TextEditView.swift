@@ -91,7 +91,7 @@ struct TextEditView: View {
                 SectionLabel("Pictures and video")
                 Plate {
                     ForEach($shots) { $shot in
-                        ShotCard(shot: $shot, inText: self.text.contains("(\(shot.name))")) {
+                        ShotCard(shot: $shot, inText: Kept.named(shot.name, in: self.text)) {
                             insert(shot)
                         } remove: {
                             shots.removeAll { $0.id == shot.id }
