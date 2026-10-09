@@ -94,13 +94,32 @@ nonisolated enum Pictures {
     }
 }
 
+/// A delivery's own name, as the engine takes one: sixteen lowercase hex
+/// digits. A post keeps the one it was given for as long as it is the same
+/// post; the next post gets another -- the engine writes a delivery with a
+/// receipt it knows over the draft it wrote for it.
+nonisolated enum Receipt {
+    static func mint() -> String {
+        (0..<8).map { _ in String(format: "%02x", UInt8.random(in: 0...255)) }.joined()
+    }
+
+    static func isOne(_ text: String) -> Bool {
+        text.range(of: "^[0-9a-f]{16}$", options: .regularExpression) != nil
+    }
+}
+
 /// The post as a markdown file, the way /write/ writes it: a header of
 /// what the form has fields for, then the text.
 nonisolated enum Markdown {
     /// `written`: when the post was written, where that is not when it is
     /// sent -- one that waited on the device for its blog. The engine dates
     /// a post by the moment it arrives unless its header says otherwise.
-    static func frontMatter(title: String, tags: String, publish: Bool = false, written: Date? = nil) -> String {
+    ///
+    /// `receipt`: the delivery's own name, by which the engine knows a
+    /// delivery it has seen before -- one whose answer was lost on the way
+    /// back and which is sent again -- and answers with the post it
+    /// already wrote instead of writing a second.
+    static func frontMatter(title: String, tags: String, publish: Bool = false, written: Date? = nil, receipt: String? = nil) -> String {
         var lines: [String] = []
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: #"^(["'])(.*)\1$"#, with: "$2", options: .regularExpression)
@@ -119,6 +138,7 @@ nonisolated enum Markdown {
         if !cleanTags.isEmpty { lines.append("tags: \(cleanTags.joined(separator: ", "))") }
         if publish { lines.append("publish: yes") }
         if let written { lines.append("date: \(stamp(written))") }
+        if let receipt, Receipt.isOne(receipt) { lines.append("receipt: \(receipt)") }
         return lines.isEmpty ? "" : "---\n" + lines.joined(separator: "\n") + "\n---\n\n"
     }
 
@@ -131,9 +151,9 @@ nonisolated enum Markdown {
         return format.string(from: moment)
     }
 
-    static func file(title: String, tags: String, body: String, publish: Bool = false, written: Date? = nil) -> String {
+    static func file(title: String, tags: String, body: String, publish: Bool = false, written: Date? = nil, receipt: String? = nil) -> String {
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
-        let header = frontMatter(title: title, tags: tags, publish: publish, written: written)
+        let header = frontMatter(title: title, tags: tags, publish: publish, written: written, receipt: receipt)
         // A body that itself opens with --- would be read as a header.
         let guarded = header.isEmpty && text.hasPrefix("---") ? "---\n---\n\n" : header
         return guarded + text + "\n"

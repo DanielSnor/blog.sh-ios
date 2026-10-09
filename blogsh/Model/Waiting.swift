@@ -28,6 +28,10 @@ nonisolated struct Waiting: Codable, Identifiable, Equatable, Sendable {
     var pieces: [Piece] = []
     /// Why the blog turned it away the last time it was sent, in its own words.
     var problem: String?
+    /// The name its delivery goes under, the same every time it is sent:
+    /// a post the server took just before the app was stopped is sent
+    /// again the next time, and the blog knows it for the one it has.
+    var receipt: String?
 
     /// What to call it where it is listed, as the post being written is called.
     var headline: String { Unsent(title: title, tags: tags, text: text).headline }
@@ -65,6 +69,8 @@ nonisolated enum WaitingRoom {
             try files.createDirectory(at: place.appendingPathComponent("media", isDirectory: true), withIntermediateDirectories: true)
             try files.createDirectory(at: place.appendingPathComponent("posters", isDirectory: true), withIntermediateDirectories: true)
             var post = post
+            // Given here at the latest, and written down with the post.
+            if !(post.receipt.map(Receipt.isOne) ?? false) { post.receipt = Receipt.mint() }
             post.pieces = shots.map {
                 Waiting.Piece(name: $0.name, video: $0.kind == .video, width: $0.width, height: $0.height, converted: $0.converted)
             }
@@ -100,7 +106,7 @@ nonisolated enum WaitingRoom {
         var files = try post.pieces.map {
             DeliveryFile(name: $0.name, data: try Data(contentsOf: file($0.name, under: "media", at: place)))
         }
-        let markdown = Markdown.file(title: post.title, tags: post.tags, body: post.text, written: post.at)
+        let markdown = Markdown.file(title: post.title, tags: post.tags, body: post.text, written: post.at, receipt: post.receipt)
         files.append(DeliveryFile(name: Markdown.fileName(title: post.title, body: post.text), data: Data(markdown.utf8)))
         return files
     }

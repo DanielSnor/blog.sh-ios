@@ -48,11 +48,14 @@ import Testing
             let post = Waiting(title: "Hello there", tags: "", text: "![x](photo.jpg)", at: moment(0))
             try WaitingRoom.put(post, shots: [Shot(name: "photo.jpg", data: Data([1]), width: 1, height: 1)], for: blog, in: home)
 
-            let files = try WaitingRoom.delivery(of: WaitingRoom.all(for: blog, in: home)[0], for: blog, in: home)
+            let kept = WaitingRoom.all(for: blog, in: home)[0]
+            let files = try WaitingRoom.delivery(of: kept, for: blog, in: home)
             #expect(files.map(\.name) == ["photo.jpg", "hello-there.md"])
             #expect(files[0].data == Data([1]))
             let markdown = String(decoding: files[1].data, as: UTF8.self)
-            #expect(markdown.hasPrefix("---\ntitle: Hello there\ndate: \(Markdown.stamp(moment(0)))\n---\n\n"))
+            // ...and under the receipt it was given when it was put by.
+            let receipt = try #require(kept.receipt)
+            #expect(markdown.hasPrefix("---\ntitle: Hello there\ndate: \(Markdown.stamp(moment(0)))\nreceipt: \(receipt)\n---\n\n"))
             #expect(markdown.hasSuffix("![x](photo.jpg)\n"))
         }
     }

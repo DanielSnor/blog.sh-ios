@@ -23,7 +23,8 @@ import SwiftUI
 
     /// The post on its way.
     private(set) var sending: UUID?
-    private var running = false
+    /// The blogs whose waiting posts are being gone through.
+    private var running: Set<UUID> = []
 
     private let home: URL
     private let open: () -> UUID?
@@ -64,13 +65,22 @@ import SwiftUI
 
     /// Everything that waits for the blog and was not turned away before,
     /// until the server falls silent. How many arrived.
+    ///
+    /// A run for one blog does not stand in the way of another's: with a
+    /// post on its way -- another blog's, or one sent by hand -- this run
+    /// takes its turn after it. And the room is looked into again before
+    /// every post: one that was thrown away, or taken back into the form,
+    /// while another was going is not sent from memory.
     @discardableResult
     func sendAll(for blog: UUID) async -> Int {
-        guard !running else { return 0 }
-        running = true
-        defer { running = false }
+        guard !running.contains(blog) else { return 0 }
+        running.insert(blog)
+        defer { running.remove(blog) }
+        while sending != nil { try? await Task.sleep(for: .milliseconds(100)) }
         var sent = 0
-        for post in WaitingRoom.all(for: blog, in: home) where post.problem == nil {
+        var tried: Set<UUID> = []
+        while let post = WaitingRoom.all(for: blog, in: home).first(where: { $0.problem == nil && !tried.contains($0.id) }) {
+            tried.insert(post.id)
             switch await send(post, for: blog) {
             case .sent: sent += 1
             case .waits: return sent

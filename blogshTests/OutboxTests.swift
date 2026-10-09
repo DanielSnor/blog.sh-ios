@@ -135,3 +135,160 @@ import Testing
         #expect(ServerSettings.load(from: defaults)?.host == "one.example")
     }
 }
+
+/// What an audit of the sending found, each as the second reader made it
+/// fail: a post sent that was thrown away, a blog whose posts nobody came
+/// back for, a post written twice.
+@MainActor @Suite struct OutboxAuditTests {
+    /// What a blog was sent: whose delivery, the names, and the markdown.
+    final class Blog {
+        var got: [[String]] = []
+        var whose: [UUID] = []
+        var markdown: [String] = []
+
+        func take(_ files: [DeliveryFile], for blog: UUID) {
+            got.append(files.map(\.name))
+            whose.append(blog)
+            markdown.append(String(decoding: files.last?.data ?? Data(), as: UTF8.self))
+        }
+    }
+
+    private func answer(_ slug: String) throws -> ActionAnswer {
+        try JSONDecoder().decode(ActionAnswer.self, from: Data(#"{"ok":true,"slug":"\#(slug)"}"#.utf8))
+    }
+
+    private func room(_ body: (URL) async throws -> Void) async rethrows {
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent("outbox-audit-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: home) }
+        try await body(home)
+    }
+
+    private func moment(_ seconds: TimeInterval) -> Date { Date(timeIntervalSince1970: 1_780_000_000 + seconds) }
+
+    /// A post thrown away while an earlier one is on its way is not sent
+    /// from what the run remembered of the room.
+    @Test func aPostThrownAwayWhileAnotherIsOnItsWayIsNotSent() async throws {
+        try await room { home in
+            let id = UUID(), blog = Blog()
+            let one = Waiting(title: "one", at: moment(0)), two = Waiting(title: "two", at: moment(1))
+            try WaitingRoom.put(one, shots: [], for: id, in: home)
+            try WaitingRoom.put(two, shots: [], for: id, in: home)
+            let (gate, open) = AsyncStream<Void>.makeStream()
+            let outbox = Outbox(home: home, open: { id }, deliver: { files, to in
+                blog.take(files, for: to)
+                // The first upload takes its time: somebody is in the list meanwhile.
+                if blog.got.count == 1 { for await _ in gate { break } }
+                return try self.answer("a-draft")
+            })
+
+            let run = Task { await outbox.sendAll(for: id) }
+            while outbox.sending == nil { await Task.yield() }
+            #expect(outbox.sending == one.id)
+            // The list's "Throw away", after "It was never sent; nothing of it is kept."
+            WaitingRoom.remove(two.id, for: id, in: home)
+            open.yield()
+
+            #expect(await run.value == 1)
+            #expect(blog.got == [["one.md"]])
+        }
+    }
+
+    /// A blog opened while another blog's post is on its way has its own
+    /// posts sent, after it: nobody else would ask again.
+    @Test func aBlogOpenedWhileAnothersPostIsOnItsWayHasItsOwnPostsSent() async throws {
+        try await room { home in
+            let a = UUID(), b = UUID(), blog = Blog()
+            var current = a
+            try WaitingRoom.put(Waiting(title: "of a", at: moment(0)), shots: [], for: a, in: home)
+            try WaitingRoom.put(Waiting(title: "of b", at: moment(1)), shots: [], for: b, in: home)
+            let (gate, open) = AsyncStream<Void>.makeStream()
+            let outbox = Outbox(home: home, open: { current }, deliver: { files, to in
+                blog.take(files, for: to)
+                if blog.got.count == 1 { for await _ in gate { break } }
+                return try self.answer("a-draft")
+            })
+
+            let first = Task { await outbox.sendAll(for: a) }
+            while outbox.sending == nil { await Task.yield() }
+            current = b
+            let second = Task { await outbox.sendAll(for: b) }
+            for _ in 0..<50 { await Task.yield() }
+            open.yield()
+            _ = await first.value
+            _ = await second.value
+
+            #expect(blog.whose == [a, b])
+            #expect(WaitingRoom.all(for: a, in: home).isEmpty)
+            #expect(WaitingRoom.all(for: b, in: home).isEmpty)
+        }
+    }
+
+    /// The server has the whole delivery and the app is gone before the
+    /// answer. The next launch sends the post again -- under the same
+    /// receipt, by which the engine knows it for the one it has.
+    @Test func aPostTheServerTookBeforeTheAppDiedGoesAgainUnderTheSameReceipt() async throws {
+        try await room { home in
+            let id = UUID(), blog = Blog()
+            try WaitingRoom.put(Waiting(title: "one", text: "Words.", at: moment(0)), shots: [], for: id, in: home)
+            let (gate, open) = AsyncStream<Void>.makeStream()
+            // The run that was cut off: everything was written, the answer never came.
+            let before = Outbox(home: home, open: { id }, deliver: { files, to in
+                blog.take(files, for: to)
+                for await _ in gate { break }
+                throw CancellationError()
+            })
+            let cut = Task { await before.sendAll(for: id) }
+            while before.sending == nil { await Task.yield() }
+
+            // The next launch.
+            let after = Outbox(home: home, open: { id }, deliver: { files, to in
+                blog.take(files, for: to)
+                return try self.answer("one")
+            })
+            await after.sendAll(for: id)
+            open.yield()
+            _ = await cut.value
+
+            let receipts = blog.markdown.map { text in
+                text.split(separator: "\n").first { $0.hasPrefix("receipt: ") }.map { String($0.dropFirst(9)) }
+            }
+            #expect(receipts.count == 2)
+            #expect(receipts[0] != nil && receipts[0] == receipts[1])
+            #expect(Receipt.isOne(receipts[0] ?? ""))
+        }
+    }
+
+    /// A receipt is what the engine takes for one, and no two posts share one.
+    @Test func aReceiptIsSixteenLowercaseHexDigitsOfItsOwn() {
+        let one = Receipt.mint(), two = Receipt.mint()
+        #expect(one.range(of: "^[0-9a-f]{16}$", options: .regularExpression) != nil)
+        #expect(one != two)
+        #expect(!Receipt.isOne("ABCDEF0123456789"))
+        #expect(!Receipt.isOne("abc"))
+        #expect(!Receipt.isOne("0123456789abcdef\nx: y"))
+        #expect(Markdown.frontMatter(title: "T", tags: "", receipt: "0123456789abcdef") == "---\ntitle: T\nreceipt: 0123456789abcdef\n---\n\n")
+        // What is not a receipt is not written: the engine refuses a bad one.
+        #expect(Markdown.frontMatter(title: "T", tags: "", receipt: "nope") == "---\ntitle: T\n---\n\n")
+    }
+
+    /// The post being written keeps its receipt from one opening of the
+    /// form to the next, and takes it along when it is put by and back.
+    @Test func aPostKeepsItsReceiptWhereverItWaits() async throws {
+        let suite = "outbox-audit-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let blog = UUID()
+        Unsent(title: "T", text: "x", at: moment(0), receipt: "0123456789abcdef").keep(for: blog, in: defaults)
+        #expect(Unsent.kept(for: blog, in: defaults)?.receipt == "0123456789abcdef")
+
+        try await room { home in
+            try WaitingRoom.put(Waiting(title: "T", text: "x", at: moment(0), receipt: "0123456789abcdef"), shots: [], for: blog, in: home)
+            #expect(WaitingRoom.all(for: blog, in: home)[0].receipt == "0123456789abcdef")
+            // One put by without a name is given one, written down with it.
+            try WaitingRoom.put(Waiting(title: "U", at: moment(1)), shots: [], for: blog, in: home)
+            let given = WaitingRoom.all(for: blog, in: home)[1].receipt
+            #expect(Receipt.isOne(given ?? ""))
+            #expect(WaitingRoom.all(for: blog, in: home)[1].receipt == given)
+        }
+    }
+}

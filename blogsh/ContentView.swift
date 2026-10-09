@@ -72,6 +72,8 @@ struct ContentView: View {
     @State private var glance: Glance?
     @State private var showingBlogs = false
     @State private var showingWaiting = false
+    /// The first screen is being asked for: one asking at a time.
+    @State private var loading = false
     /// A pairing code that came in as a link, opened from another app.
     @State private var incoming: Incoming?
     // One counting at a time: it is the slowest thing the first screen asks.
@@ -206,6 +208,14 @@ struct ContentView: View {
             // unprompted -- the device has most likely been somewhere else.
             if phase == .active, offline { Task { await load() } }
         }
+        // A server heard from again by some other screen's call: what
+        // waits for it goes now, and a first screen that never loaded
+        // loads. Nothing else would notice -- every other asking-again
+        // above is for a server still silent.
+        .onChange(of: offline) { _, now in
+            guard !now, !loading else { return }
+            Task { if identity == nil { await load() } else { await sendWaiting() } }
+        }
         // ...and so is it the moment the device finds a network.
         .task {
             // Watched from the start, so that it is known by the time a
@@ -283,7 +293,7 @@ struct ContentView: View {
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: offline ? offlineWords : identityProblem, glance: glance,
                  offline: offline, retry: load,
-                 waiting: waiting, sending: Outbox.shared.sending != nil,
+                 waiting: waiting, sending: waiting.contains { $0.id == Outbox.shared.sending },
                  openWaiting: { showingWaiting = true },
                  begun: begun,
                  facts: blogs.current?.facts,
@@ -335,7 +345,8 @@ struct ContentView: View {
     private func sendWaiting() async {
         guard let blog = blogs.currentID, !WaitingRoom.all(for: blog).isEmpty else { return }
         let sent = await Outbox.shared.sendAll(for: blog)
-        guard sent > 0 else { return }
+        // Said, and counted, only on the blog they went to.
+        guard sent > 0, blog == blogs.currentID else { return }
         Herald.shared.say(String(localized: "Sent to the blog as drafts: \(sent)"))
         await loadGlance()
     }
@@ -372,6 +383,8 @@ struct ContentView: View {
     /// set up the header says so and the settings are one tap away.
     private func load() async {
         let asked = blogs.currentID
+        loading = true
+        defer { loading = false }
         do {
             let answers = try await Engine.shared.answers(to: [["version"], ["queue"], ["list", "--drafts"]])
             // Another blog was opened while this one was answering.

@@ -35,6 +35,9 @@ struct ComposeView: View {
     @State private var broughtBack: Unsent?
     /// The blog the form writes for, once it has looked what is kept for it.
     @State private var keeping: UUID?
+    /// The name this post's delivery goes under, however often it is
+    /// tried: kept with the writing, and another for the next post.
+    @State private var receipt = Receipt.mint()
     @FocusState private var bodyFocused: Bool
 
     var body: some View {
@@ -182,6 +185,7 @@ struct ComposeView: View {
         // on: it is the form's now, pictures and all, and waits no longer.
         if let handed = Desk.shared.takeHanded() {
             shots = WaitingRoom.shots(of: handed, for: blog)
+            receipt = handed.receipt.flatMap { Receipt.isOne($0) ? $0 : nil } ?? Receipt.mint()
             title = handed.title
             tags = handed.tags
             text = handed.text
@@ -190,6 +194,7 @@ struct ComposeView: View {
             return
         }
         guard title.isEmpty, tags.isEmpty, text.isEmpty, let kept = Unsent.kept(for: blog) else { return }
+        if let its = kept.receipt, Receipt.isOne(its) { receipt = its }
         title = kept.title
         tags = kept.tags
         text = kept.text
@@ -198,13 +203,15 @@ struct ComposeView: View {
 
     private func keep() {
         guard let keeping else { return }
-        Unsent(title: title, tags: tags, text: text, at: .now).keep(for: keeping)
+        Unsent(title: title, tags: tags, text: text, at: .now, receipt: receipt).keep(for: keeping)
         Desk.shared.changed()
     }
 
+    /// The form is the next post's: empty, and under a name of its own.
     private func startEmpty() {
         title = ""; tags = ""; text = ""; shots = []
         broughtBack = nil
+        receipt = Receipt.mint()
     }
 
     // MARK: - Pictures
@@ -256,9 +263,8 @@ struct ComposeView: View {
         problem = nil
         made = nil
         do {
-            try WaitingRoom.put(Waiting(title: title, tags: tags, text: text, at: .now), shots: sent, for: blog)
-            title = ""; tags = ""; text = ""; shots = []
-            broughtBack = nil
+            try WaitingRoom.put(Waiting(title: title, tags: tags, text: text, at: .now, receipt: receipt), shots: sent, for: blog)
+            startEmpty()
             putBy = true
             Desk.shared.changed()
         } catch {
@@ -281,7 +287,7 @@ struct ComposeView: View {
         let going = Unsent(title: title, tags: tags, text: text)
         // The text is what goes: a description typed on a card is in it
         // already, one typed into the text itself was never the card's.
-        let markdown = Markdown.file(title: title, tags: tags, body: text)
+        let markdown = Markdown.file(title: title, tags: tags, body: text, receipt: receipt)
         var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
@@ -292,8 +298,7 @@ struct ComposeView: View {
             Desk.shared.changed()
             came = true
             // The form is the next post's now, and nothing is left to bring back.
-            title = ""; tags = ""; text = ""; shots = []
-            broughtBack = nil
+            startEmpty()
             answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription

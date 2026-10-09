@@ -15,6 +15,9 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
     var text = ""
     /// When it was last written in.
     var at = Date.distantPast
+    /// The name its delivery goes under, the same for every attempt at
+    /// sending it: see `Receipt`.
+    var receipt: String?
 
     /// Nothing worth keeping: spaces and line breaks are not writing.
     var isEmpty: Bool {
@@ -58,7 +61,7 @@ nonisolated struct Unsent: Codable, Equatable, Sendable {
             return
         }
         if let kept = Self.kept(for: blog, in: defaults),
-           kept.title == title, kept.tags == tags, kept.text == text { return }
+           kept.title == title, kept.tags == tags, kept.text == text, kept.receipt == receipt { return }
         defaults.set(data, forKey: Self.key(blog))
     }
 
