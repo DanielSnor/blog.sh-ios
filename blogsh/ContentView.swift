@@ -215,7 +215,29 @@ struct ContentView: View {
         // above is for a server still silent.
         .onChange(of: offline) { _, now in
             guard !now, !loading else { return }
-            Task { if identity == nil { await load() } else { await sendWaiting() } }
+            Task {
+                if identity == nil {
+                    await load()
+                } else {
+                    await sendWaiting()
+                    await loadGlance()
+                }
+            }
+        }
+        // A server that stays silent is asked again by itself for as long
+        // as the app is in front: after five seconds, then at twice the
+        // wait each time, a minute at the most. A network that has just
+        // come back often carries no connection yet -- the one asking
+        // then fails, and nothing asked a second time.
+        .task(id: AskingAgain(silent: offline, blog: blogs.currentID, front: phase == .active)) {
+            guard offline, phase == .active else { return }
+            var attempt = 0
+            while offline {
+                try? await Task.sleep(for: Reach.pause(after: attempt))
+                if Task.isCancelled { return }
+                attempt += 1
+                if offline, !loading { await load() }
+            }
         }
         // ...and so is it the moment the device finds a network.
         .task {
@@ -460,9 +482,14 @@ struct ContentView: View {
         } catch {
             // Called off, or another blog by now: the screen keeps what it shows.
             if error.isCalledOff || asked != blogs.currentID { return }
+            identityProblem = error.localizedDescription
+            // A server that did not answer says nothing new of the blog:
+            // what the screen knew of it stands, out of reach, until the
+            // server is heard from -- it is asked again and again while
+            // it is silent, and each asking must not take the screen apart.
+            if case EngineError.unreachable = error { return }
             identity = nil
             glance = nil
-            identityProblem = error.localizedDescription
         }
     }
 
@@ -532,6 +559,15 @@ struct ContentView: View {
 struct Incoming: Identifiable {
     let id = UUID()
     let text: String
+}
+
+/// What the asking-again of a silent server hangs on: it starts anew
+/// when the server falls silent, when another blog is opened, and when
+/// the app comes back in front -- and stops with any of them gone.
+private struct AskingAgain: Equatable {
+    let silent: Bool
+    let blog: UUID?
+    let front: Bool
 }
 
 /// The first screen, at one glance: which blog and which engine, what

@@ -72,4 +72,12 @@ import Testing
         #expect(Media.unread(nil, online: true) == .unreadable)
         #expect(Media.Unread.needsNetwork.words != Media.Unread.unreadable.words)
     }
+
+    /// A silent server is asked again after five seconds, then at twice
+    /// the wait each time, and never left alone for more than a minute.
+    @Test func aSilentServerIsAskedAgainAtLongerAndLongerWaits() {
+        #expect((0...6).map { Reach.pause(after: $0) } == [.seconds(5), .seconds(10), .seconds(20), .seconds(40), .seconds(60), .seconds(60), .seconds(60)])
+        #expect(Reach.pause(after: -1) == .seconds(5))
+        #expect(Reach.pause(after: 1_000) == .seconds(60))
+    }
 }

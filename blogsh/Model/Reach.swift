@@ -16,6 +16,16 @@ import Observation
 
     private(set) var silent: Set<String> = []
 
+    /// How long a silent server is left alone before it is asked again
+    /// by itself, attempt after attempt: five seconds, then twice as long
+    /// each time, and a minute at the most. A network that has just come
+    /// back often does not carry a connection yet; asked once and no
+    /// more, a server that would have answered a moment later stayed
+    /// silent until somebody thought of it.
+    nonisolated static func pause(after attempt: Int) -> Duration {
+        attempt >= 4 ? .seconds(60) : .seconds(5 << max(attempt, 0))
+    }
+
     /// A server, as the app tells one from another.
     nonisolated static func server(host: String, port: Int) -> String {
         "\(host.trimmingCharacters(in: .whitespaces).lowercased()):\(port == 0 ? 22 : port)"
