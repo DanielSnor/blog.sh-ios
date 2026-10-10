@@ -5234,6 +5234,22 @@
         }
       }
     },
+    "a former slug of the %@ text, redirects here": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bývalý slug (%@), přesměrovává sem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ein früherer Slug des Textes auf %@, leitet hierher"
+          }
+        }
+      }
+    },
     "a former slug, redirects here": {
       "localizations": {
         "cs": {

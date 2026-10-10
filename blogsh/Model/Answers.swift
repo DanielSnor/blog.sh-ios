@@ -209,9 +209,34 @@ nonisolated struct PropsAnswer: Decodable, Sendable {
         let others: [String: String]
     }
 
-    struct OldAddress: Decodable, Equatable, Sendable {
+    /// An address the post used to answer at. Which list it stands in is
+    /// its kind: the post's own former slugs, its redirects, or the former
+    /// slugs of one of its languages (`translations.<lang>.former_slugs`).
+    /// One address can stand in two lists, so a row is told from another
+    /// by both.
+    struct OldAddress: Decodable, Equatable, Identifiable, Sendable {
         let kind: String
         let value: String
+
+        var id: String { kind + "\u{1F}" + value }
+
+        /// The language whose former slug it is, where it is one's.
+        var language: String? {
+            let parts = kind.split(separator: ".").map(String.init)
+            guard parts.count == 3, parts[0] == "translations", parts[2] == "former_slugs", !parts[1].isEmpty else { return nil }
+            return parts[1]
+        }
+
+        /// A former slug -- the post's or a language's -- rather than a redirect.
+        var isFormerSlug: Bool { kind.hasSuffix("former_slugs") }
+
+        /// What dropping it asks of the engine. The list is named only
+        /// where the address stands in more than one: the engine then
+        /// wants to know which, and an older engine does not know the word.
+        func dropping(from slug: String, among all: [OldAddress]) -> [String] {
+            let args = ["props", slug, "--drop-address", value]
+            return all.filter { $0.value == value }.count > 1 ? args + ["--kind", kind] : args
+        }
     }
 
     /// Which of the six cases the announcement is in -- the ladder the

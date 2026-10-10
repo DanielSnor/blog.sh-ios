@@ -217,17 +217,16 @@ struct AddressesSheet: View {
             if let problem {
                 ProblemLine(text: problem).padding(.bottom, 10).paperRow()
             }
-            ForEach(addresses, id: \.value) { address in
+            // A row is its list and its address: the same address can be a
+            // former slug in two languages, and each of them is a row.
+            ForEach(addresses) { address in
                 VStack(alignment: .leading, spacing: 3) {
                     Text(verbatim: address.value).font(.mono(14, bold: false)).foregroundStyle(Theme.ink)
-                    // A former slug of the post, or of one of its languages
-                    // (`translations.<lang>.former_slugs`).
-                    Text(address.kind.hasSuffix("former_slugs") ? "a former slug, redirects here" : "redirects here")
-                        .font(.ui(13)).foregroundStyle(Theme.muted)
+                    said(of: address).font(.ui(13)).foregroundStyle(Theme.muted)
                 }
                 .padding(.vertical, 11)
                 .confirmationDialog("Drop \(address.value)? It no longer redirects anywhere.",
-                                    isPresented: Binding(get: { dropping?.value == address.value }, set: { if !$0 { dropping = nil } }),
+                                    isPresented: Binding(get: { dropping?.id == address.id }, set: { if !$0 { dropping = nil } }),
                                     titleVisibility: .visible) {
                     Button("Drop", role: .destructive) { Task { await drop(address) } }
                 }
@@ -245,9 +244,17 @@ struct AddressesSheet: View {
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
     }
 
+    /// What kind of old address it is; a language's former slug says whose.
+    private func said(of address: PropsAnswer.OldAddress) -> Text {
+        if let lang = address.language {
+            return Text("a former slug of the \(Locale.current.localizedString(forLanguageCode: lang) ?? lang) text, redirects here")
+        }
+        return Text(address.isFormerSlug ? "a former slug, redirects here" : "redirects here")
+    }
+
     private func drop(_ address: PropsAnswer.OldAddress) async {
         do {
-            let answer: PropsAnswer = try await Engine.shared.call(["props", props.slug, "--drop-address", address.value])
+            let answer: PropsAnswer = try await Engine.shared.call(address.dropping(from: props.slug, among: addresses))
             addresses = answer.addresses
             await done()
         } catch {

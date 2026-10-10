@@ -403,4 +403,29 @@ import Testing
         #expect(answer.findings.map(\.slug) == ["venku", "venku", "doma"])
         #expect(answer.findings.allSatisfy { $0.level == .warning && !$0.text.isEmpty && $0.fix != nil })
     }
+
+    /// The same old address in the lists of two languages is two rows,
+    /// each its own; and dropping one names its list -- only then, for an
+    /// older engine does not know the word.
+    @Test func anAddressInTwoListsIsTwoRows() {
+        let en = PropsAnswer.OldAddress(kind: "translations.en.former_slugs", value: "outside")
+        let de = PropsAnswer.OldAddress(kind: "translations.de.former_slugs", value: "outside")
+        let own = PropsAnswer.OldAddress(kind: "former_slugs", value: "venku-stary")
+        let redirect = PropsAnswer.OldAddress(kind: "redirect_from", value: "/2019/venku/")
+        let all = [en, de, own, redirect]
+
+        #expect(Set(all.map(\.id)).count == 4)
+        #expect(en.language == "en" && de.language == "de")
+        #expect(own.language == nil && redirect.language == nil)
+        #expect(en.isFormerSlug && own.isFormerSlug && !redirect.isFormerSlug)
+
+        #expect(en.dropping(from: "venku", among: all) == ["props", "venku", "--drop-address", "outside", "--kind", "translations.en.former_slugs"])
+        #expect(de.dropping(from: "venku", among: all) == ["props", "venku", "--drop-address", "outside", "--kind", "translations.de.former_slugs"])
+        // Alone in the lists, an address is dropped as it always was.
+        #expect(own.dropping(from: "venku", among: all) == ["props", "venku", "--drop-address", "venku-stary"])
+        #expect(en.dropping(from: "venku", among: [en, own]) == ["props", "venku", "--drop-address", "outside"])
+        // A kind that only looks like a language's is not read as one.
+        #expect(PropsAnswer.OldAddress(kind: "translations..former_slugs", value: "x").language == nil)
+        #expect(PropsAnswer.OldAddress(kind: "translations.en.redirects", value: "x").language == nil)
+    }
 }
