@@ -148,4 +148,72 @@ import Testing
         #expect(throws: PairingError.refused("That is not one ed25519 public key.")) { _ = try PairingError.device(from: answer) }
         #expect(throws: PairingError.refused("bash: no such file")) { _ = try PairingError.device(from: Data("bash: no such file\n".utf8)) }
     }
+
+    /// A blog let in again by a new code is the same blog at the place
+    /// the code names: its name on this device and its key's account --
+    /// and so whatever is written and waits for it here -- stay.
+    @Test func aBlogPairedAgainIsTheSameBlogElsewhere() throws {
+        var blog = Blog()
+        blog.host = "old.example"
+        blog.port = 22
+        blog.user = "dan"
+        blog.name = "Sean.cz"
+        blog.path = "/home/dan/blog"
+        let id = blog.id, account = blog.keyAccount
+        let code = try PairingCode(link { $0["h"] = "192.168.1.20"; $0["p"] = "2222"; $0["u"] = "daniel" })
+
+        blog.moved(to: code, as: "SeanoPad")
+
+        #expect(blog.id == id && blog.keyAccount == account)
+        #expect(blog.host == "192.168.1.20" && blog.port == 2222 && blog.user == "daniel")
+        #expect(blog.pairedAs == "SeanoPad")
+        // What the blog called itself is kept; the code's word for it is a hint for a blog with none.
+        #expect(blog.name == "Sean.cz")
+        var unnamed = Blog()
+        unnamed.moved(to: code, as: "")
+        #expect(unnamed.name == code.site)
+        #expect(unnamed.pairedAs == "")
+    }
+
+    /// The name the blog knows the device by is kept with the blog; a blog
+    /// written down before the app kept it reads as one set up by hand.
+    @Test func theDevicesNameIsKeptWithTheBlog() throws {
+        var blog = Blog()
+        blog.host = "one.example"
+        blog.pairedAs = "SeanoPad"
+        let read = try JSONDecoder().decode(Blog.self, from: JSONEncoder().encode(blog))
+        #expect(read.pairedAs == "SeanoPad")
+        let earlier = try JSONDecoder().decode(Blog.self, from: Data(#"{"host":"one.example","user":"dan","port":22}"#.utf8))
+        #expect(earlier.pairedAs == nil)
+    }
+
+    /// The key is on a line of the server's that is not a device's: said
+    /// as that, apart from every other no -- the code is still good, and
+    /// a new key can go in with it.
+    @Test func aKeyThatIsInUseIsSaidApartFromOtherRefusals() {
+        let answer = Data(#"{"ok":false,"error":"key_in_use","message":"This key already stands in authorized_keys."}"#.utf8)
+        #expect(throws: PairingError.keyInUse("This key already stands in authorized_keys.")) { try PairingError.device(from: answer) }
+        #expect(throws: PairingError.spent) { try PairingError.device(from: Data(#"{"ok":false,"error":"used"}"#.utf8)) }
+    }
+
+    /// A key made aside takes an account's place only when it is told to:
+    /// until then the account's own key is the one that was there.
+    @Test func aSpareKeyTakesTheAccountsPlaceWhenMoved() throws {
+        let account = "test-\(UUID().uuidString.lowercased())", spare = account + ".new"
+        defer { try? KeyStore.deleteKey(account: account); try? KeyStore.deleteKey(account: spare) }
+        try KeyStore.makeKey(account: account)
+        let old = try KeyStore.publicKeyLine(account: account)
+        try KeyStore.makeKey(account: spare)
+        let new = try KeyStore.publicKeyLine(account: spare)
+        #expect(old != new)
+        #expect(try KeyStore.publicKeyLine(account: account) == old)
+
+        try KeyStore.move(from: spare, to: account)
+
+        #expect(try KeyStore.publicKeyLine(account: account) == new)
+        #expect(!KeyStore.hasKey(account: spare))
+        // Nothing aside to move: the account's key is left alone.
+        #expect(throws: (any Error).self) { try KeyStore.move(from: spare, to: account) }
+        #expect(try KeyStore.publicKeyLine(account: account) == new)
+    }
 }

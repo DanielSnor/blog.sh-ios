@@ -113,6 +113,10 @@ nonisolated enum PairingError: Error, Equatable {
     case refused(String)
     /// The app could not make or read its own key.
     case noKey
+    /// The key stands in the server's authorized_keys already, on a line
+    /// that is not a device's -- written by hand, or another blog's. The
+    /// code was not spent on it: a new key can be handed in with the same.
+    case keyInUse(String)
 
     /// The engine's answer to `enroll`, read: the device's name as the
     /// blog wrote it down, or what it said no with.
@@ -130,6 +134,7 @@ nonisolated enum PairingError: Error, Equatable {
         if said.ok { return said.device ?? "" }
         switch said.error {
         case "expired", "used", "unknown_code": throw .spent
+        case "key_in_use": throw .keyInUse(said.message ?? "")
         default: throw .refused(said.message ?? said.error ?? "")
         }
     }

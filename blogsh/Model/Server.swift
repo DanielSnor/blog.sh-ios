@@ -60,6 +60,15 @@ nonisolated enum KeyStore {
         guard status == errSecSuccess || status == errSecItemNotFound else { throw Failure.keychain(status) }
     }
 
+    /// A key made aside becomes an account's own, and the one that was
+    /// there is gone. For a key that is only worth keeping once the
+    /// server has taken it: until then the old one still opens the door.
+    static func move(from spare: String, to account: String) throws {
+        guard let data = try read(spare) else { throw Failure.noKey }
+        try write(data, account)
+        try deleteKey(account: spare)
+    }
+
     /// The line for authorized_keys, as ssh-keygen would print it.
     static func publicKeyLine(account: String, comment: String = "blogsh-app") throws -> String {
         let key = try privateKey(account: account).publicKey

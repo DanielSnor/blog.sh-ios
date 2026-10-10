@@ -290,6 +290,22 @@
         }
       }
     },
+    "A new code moves this blog to where the code points: another address or another computer. What is written for it on the device stays.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový kód přenese tenhle blog tam, kam kód ukazuje: na jinou adresu nebo na jiný počítač. Co je pro něj v zařízení rozepsáno, zůstane."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein neuer Code bringt diesen Blog dorthin, wohin der Code zeigt: an eine andere Adresse oder auf einen anderen Rechner. Was auf dem Gerät für ihn geschrieben ist, bleibt."
+          }
+        }
+      }
+    },
     "A picture is shrunk to %@ px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under %lld MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about %lld MB.": {
       "localizations": {
         "cs": {
@@ -1074,6 +1090,22 @@
         }
       }
     },
+    "Connect this blog by a code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit tenhle blog kódem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Blog per Code verbinden"
+          }
+        }
+      }
+    },
     "Connect to %@?": {
       "localizations": {
         "cs": {
@@ -1086,6 +1118,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mit dem Blog %@ verbinden?"
+          }
+        }
+      }
+    },
+    "Connected by a code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojeno kódem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per Code verbunden"
           }
         }
       }
@@ -2414,6 +2462,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vorschau öffnen"
+          }
+        }
+      }
+    },
+    "Pair again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spárovat znovu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut koppeln"
           }
         }
       }
@@ -4658,6 +4722,38 @@
         }
       }
     },
+    "This device was let in to the blog by a code, under the name %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle zařízení pustil k blogu kód, pod jménem %@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät hat ein Code zum Blog gelassen, unter dem Namen %@."
+          }
+        }
+      }
+    },
+    "This device was let in to the blog by a code.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle zařízení pustil k blogu kód."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät hat ein Code zum Blog gelassen."
+          }
+        }
+      }
+    },
     "This is not a code from ./blog.sh pair.": {
       "localizations": {
         "cs": {
@@ -5150,6 +5246,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was aufgeräumt wird, ist endgültig weg. Ältere Fassungen sind, was ein Beitrag vor seinen letzten Speicherungen sagte; jeder behält seine neueste."
+          }
+        }
+      }
+    },
+    "Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kde blog na serveru leží a co tohle zařízení smí spustit, je v řádku, který na serveru zapsal ./blog.sh pair; tady se z toho nic nenastavuje. Zařízení tam odebereš příkazem ./blog.sh pair --revoke."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wo der Blog auf dem Server liegt und was dieses Gerät dort ausführen darf, steht in der Zeile, die ./blog.sh pair auf dem Server geschrieben hat; hier wird davon nichts eingestellt. Das Gerät entfernst du dort mit ./blog.sh pair --revoke."
           }
         }
       }

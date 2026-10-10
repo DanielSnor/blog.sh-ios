@@ -16,6 +16,11 @@ struct BlogSettingsView: View {
     @State private var probe: Probe = .idle
     @State private var confirmingNewKey = false
     @State private var copied = false
+    @State private var pairing = false
+
+    /// A code let this device in: the blog's place on the server and the
+    /// key's line are the pairing's, and nothing of them is set here.
+    private var paired: Bool { blogs.current?.pairedAs != nil }
 
     enum Probe: Equatable {
         case idle, running
@@ -62,20 +67,46 @@ struct BlogSettingsView: View {
                     .textInputAutocapitalization(.never)
                 FieldRow(label: "Port", text: portText, mono: true)
                     .keyboardType(.numberPad)
-                // Where on it the blog is, and what it is entered through.
-                FieldRow(label: "path", text: field(\.path), prompt: "/home/you/blog", mono: true)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.asciiCapable)
-                FieldRow(label: "through", text: field(\.through), prompt: "sudo docker exec -i blog", mono: true)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.asciiCapable)
+                // Where on it the blog is, and what it is entered through --
+                // for a blog set up by hand. For one a code let in, both are
+                // in the line the pairing wrote on the server: an empty field
+                // with an example in it read as "this is where your blog is".
+                if !paired {
+                    FieldRow(label: "path", text: field(\.path), prompt: "/home/you/blog", mono: true)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.asciiCapable)
+                    FieldRow(label: "through", text: field(\.through), prompt: "sudo docker exec -i blog", mono: true)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.asciiCapable)
+                }
             }
-            Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog; one that is not in a container leaves that field empty.")
+            if paired {
+                SectionLabel("Connected by a code")
+                Plate {
+                    Group {
+                        if let device = blogs.current?.pairedAs, !device.isEmpty {
+                            Text("This device was let in to the blog by a code, under the name \(device).")
+                        } else {
+                            Text("This device was let in to the blog by a code.")
+                        }
+                    }
+                    .font(.ui(15))
+                    .foregroundStyle(Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    Command("Pair again", symbol: "qrcode", leads: true) { pairing = true }
+                }
+                Hint("Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke.")
+            } else {
+                Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog; one that is not in a container leaves that field empty.")
+            }
 
-            SectionLabel("Key")
-            if let publicKey {
+            if !paired { SectionLabel("Key") }
+            if paired {
+                // The key is the pairing's: made, handed in and replaced there.
+                EmptyView()
+            } else if let publicKey {
                 Plate {
                     Text(verbatim: publicKey)
                         .font(.mono(12, bold: false))
@@ -113,7 +144,14 @@ struct BlogSettingsView: View {
                     Command("Make the app's key", symbol: "key") { makeKey() }
                 }
             }
-            Hint("The key is made on this device and never leaves it. Put the line above into the server's ~/.ssh/authorized_keys; the forced command in front of it is what the key may run, and nothing else.")
+            if !paired {
+                Hint("The key is made on this device and never leaves it. Put the line above into the server's ~/.ssh/authorized_keys; the forced command in front of it is what the key may run, and nothing else.")
+                // ...or no line at all: a code from the server does all of it.
+                Plate {
+                    Command("Connect this blog by a code", symbol: "qrcode", leads: true) { pairing = true }
+                }
+                .gap(12)
+            }
 
             SectionLabel("Connection")
             Button {
@@ -174,6 +212,11 @@ struct BlogSettingsView: View {
             }
         }
         .navigationTitle("The blog's settings")
+        .navigationDestination(isPresented: $pairing) {
+            if let blog = blogs.current {
+                AddBlogView(renewing: blog, close: { pairing = false })
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") { close() }

@@ -66,6 +66,12 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
     var through = ""
     /// The keychain account its key is kept under.
     var keyAccount: String
+    /// The name this device has on the blog, where a code let it in: what
+    /// `./blog.sh pair` wrote down for it. Nil for a blog set up by hand
+    /// -- and for one paired before the app kept the name. Where the blog
+    /// lies on the server and what the device may run there is then in
+    /// the line the pairing wrote, not in this record.
+    var pairedAs: String?
 
     // What it said last: `version --json`.
     var name = ""
@@ -98,6 +104,7 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         path = try c.decodeIfPresent(String.self, forKey: .path) ?? ""
         through = try c.decodeIfPresent(String.self, forKey: .through) ?? ""
         keyAccount = try c.decodeIfPresent(String.self, forKey: .keyAccount) ?? "blog-\(id.uuidString.lowercased())"
+        pairedAs = try c.decodeIfPresent(String.self, forKey: .pairedAs)
         name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
         claim = try c.decodeIfPresent(String.self, forKey: .claim) ?? ""
         url = try c.decodeIfPresent(String.self, forKey: .url) ?? ""
@@ -107,6 +114,18 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         tonesDark = try c.decodeIfPresent(Tones.self, forKey: .tonesDark)
         maxMb = try c.decodeIfPresent(Int.self, forKey: .maxMb) ?? 24
         facts = try c.decodeIfPresent(Facts.self, forKey: .facts)
+    }
+
+    /// The blog is where a new code says it is: paired again, it is the
+    /// same blog -- its name on this device, its key's account, and so
+    /// whatever is written and waits for it here -- at another address,
+    /// or on another machine.
+    mutating func moved(to code: PairingCode, as device: String) {
+        host = code.host
+        port = code.port
+        user = code.user
+        pairedAs = device
+        if name.isEmpty, let said = code.site { name = said }
     }
 
     /// The server as a connection takes it: the host without the space
@@ -296,6 +315,14 @@ final class Blogs {
     func adopt(_ blog: Blog) {
         all.append(blog)
         currentID = blog.id
+        save()
+    }
+
+    /// A blog the app already has, let in again by a new code: the same
+    /// record, where the code says the blog is now.
+    func move(_ id: UUID, to code: PairingCode, as device: String) {
+        guard let index = all.firstIndex(where: { $0.id == id }) else { return }
+        all[index].moved(to: code, as: device)
         save()
     }
 

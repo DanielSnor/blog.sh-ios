@@ -9,6 +9,10 @@ import SwiftUI
 struct AddBlogView: View {
     /// A code that came with the way in: a link opened from elsewhere.
     var initialCode = ""
+    /// The blog the code is for, where it is one the app already has:
+    /// paired again -- its server moved, or its line there is gone -- it
+    /// stays the same blog, at the place the new code names.
+    var renewing: Blog?
     /// Closes the sheet this screen stands in.
     let close: () -> Void
     private var blogs = Blogs.shared
@@ -20,10 +24,13 @@ struct AddBlogView: View {
     /// The camera was asked for and the answer was no.
     @State private var cameraRefused = false
 
-    init(initialCode: String = "", close: @escaping () -> Void) {
+    init(initialCode: String = "", renewing: Blog? = nil, close: @escaping () -> Void) {
         self.initialCode = initialCode
+        self.renewing = renewing
         self.close = close
     }
+
+    private var name: String { renewing == nil ? String(localized: "Add a blog") : String(localized: "Pair again") }
 
     /// What was pasted, read: a code, or why it is not one. Nothing while
     /// nothing is there.
@@ -33,7 +40,11 @@ struct AddBlogView: View {
     }
 
     var body: some View {
-        PaperScreen(name: String(localized: "Add a blog")) {
+        PaperScreen(name: name) {
+            if renewing != nil {
+                Hint("A new code moves this blog to where the code points: another address or another computer. What is written for it on the device stays.")
+                    .gap(10)
+            }
             SectionLabel("With a code")
             Plate {
                 // Where there is a camera that reads codes, that is the
@@ -120,17 +131,20 @@ struct AddBlogView: View {
                 ProblemLine(text: problem)
             }
 
-            SectionLabel("By hand")
-            Plate {
-                Command("Set up by hand", symbol: "wrench.and.screwdriver", leads: true) {
-                    blogs.add()
-                    byHand = true
+            // By hand is a way in for a blog the app does not have yet.
+            if renewing == nil {
+                SectionLabel("By hand")
+                Plate {
+                    Command("Set up by hand", symbol: "wrench.and.screwdriver", leads: true) {
+                        blogs.add()
+                        byHand = true
+                    }
+                    .disabled(connecting)
                 }
-                .disabled(connecting)
+                Hint("For a blog that lives in a container, or to write the line into authorized_keys yourself.")
             }
-            Hint("For a blog that lives in a container, or to write the line into authorized_keys yourself.")
         }
-        .navigationTitle("Add a blog")
+        .navigationTitle(Text(verbatim: name))
         .navigationDestination(isPresented: $byHand) {
             BlogSettingsView(close: close)
         }
@@ -150,6 +164,10 @@ struct AddBlogView: View {
         connecting = true
         defer { connecting = false }
         problem = nil
+        if let renewing {
+            await renew(renewing, with: code)
+            return
+        }
         var blog = Blog()
         blog.host = code.host
         blog.port = code.port
@@ -162,6 +180,7 @@ struct AddBlogView: View {
             let handed = try await Pairing.handIn(line, named: UIDevice.current.name, with: code)
             // The server that answered is the one this blog's connections expect from now on.
             UserDefaults.standard.set(handed.server, forKey: TrustOnFirstUse.defaultsKey(host: code.host, port: code.port))
+            blog.pairedAs = handed.device
             blogs.adopt(blog)
             Herald.shared.say(String(localized: "Connected: \(handed.device.isEmpty ? blog.label : handed.device)"))
             close()
@@ -170,6 +189,46 @@ struct AddBlogView: View {
             problem = Self.words(error, at: code)
         } catch {
             try? KeyStore.deleteKey(account: blog.keyAccount)
+            problem = Self.words(PairingError.noKey, at: code)
+        }
+    }
+
+    /// The key and its kind, without the comment ssh-keygen would add.
+    private static func keyLine(_ account: String) throws -> String {
+        try KeyStore.publicKeyLine(account: account).split(separator: " ").prefix(2).joined(separator: " ")
+    }
+
+    /// The same blog, let in again. The key it already has is handed in:
+    /// the blog knows a device by its key, and writes the new line in
+    /// the old one's place instead of beside it. Where that key stands on
+    /// a line that is not a device's -- one written by hand -- the blog
+    /// says so without spending the code, and a new key goes in with the
+    /// same code; it becomes the blog's own only once it was taken, so a
+    /// pairing that fails leaves the blog able to connect as it could.
+    private func renew(_ blog: Blog, with code: PairingCode) async {
+        let spare = blog.keyAccount + ".new"
+        do {
+            if !KeyStore.hasKey(account: blog.keyAccount) { try KeyStore.makeKey(account: blog.keyAccount) }
+            let device = UIDevice.current.name
+            var handed: (device: String, server: String)
+            do {
+                handed = try await Pairing.handIn(try Self.keyLine(blog.keyAccount), named: device, with: code)
+            } catch PairingError.keyInUse {
+                try KeyStore.makeKey(account: spare)
+                handed = try await Pairing.handIn(try Self.keyLine(spare), named: device, with: code)
+                try KeyStore.move(from: spare, to: blog.keyAccount)
+            }
+            UserDefaults.standard.set(handed.server, forKey: TrustOnFirstUse.defaultsKey(host: code.host, port: code.port))
+            blogs.move(blog.id, to: code, as: handed.device)
+            // The kept connection is to where the blog was.
+            Engine.hangUp()
+            Herald.shared.say(String(localized: "Connected: \(handed.device.isEmpty ? blog.label : handed.device)"))
+            close()
+        } catch let error as PairingError {
+            try? KeyStore.deleteKey(account: spare)
+            problem = Self.words(error, at: code)
+        } catch {
+            try? KeyStore.deleteKey(account: spare)
             problem = Self.words(PairingError.noKey, at: code)
         }
     }
@@ -190,6 +249,7 @@ struct AddBlogView: View {
         case .unreachable: String(localized: "The server \(code.host) did not answer. Is this device on a network the server can be reached from?")
         case .refused(let words): String(localized: "The blog said no: \(words)")
         case .noKey: String(localized: "The app could not make its key.")
+        case .keyInUse(let words): String(localized: "The blog said no: \(words)")
         }
     }
 }
