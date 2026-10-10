@@ -40,9 +40,10 @@ import Testing
         }
     }
 
-    /// As a delivery: the pictures first, the markdown last -- and the
-    /// markdown dated by when the post was written, not by when it goes.
-    @Test func aWaitingPostIsDeliveredDatedByWhenItWasWritten() throws {
+    /// As a delivery: the pictures first, the markdown last -- and no
+    /// date in it. A post that waited is a draft like any other: the blog
+    /// dates it when it is published, not back to the day it was written.
+    @Test func aWaitingPostIsDeliveredWithoutADateOfItsOwn() throws {
         try room { home in
             let blog = UUID()
             let post = Waiting(title: "Hello there", tags: "", text: "![x](photo.jpg)", at: moment(0))
@@ -55,13 +56,14 @@ import Testing
             let markdown = String(decoding: files[1].data, as: UTF8.self)
             // ...and under the receipt it was given when it was put by.
             let receipt = try #require(kept.receipt)
-            #expect(markdown.hasPrefix("---\ntitle: Hello there\ndate: \(Markdown.stamp(moment(0)))\nreceipt: \(receipt)\n---\n\n"))
+            #expect(markdown.hasPrefix("---\ntitle: Hello there\nreceipt: \(receipt)\n---\n\n"))
+            #expect(!markdown.contains("date:"))
             #expect(markdown.hasSuffix("![x](photo.jpg)\n"))
         }
     }
 
-    /// The date in the header is a moment with its offset, to the second.
-    @Test func theWrittenDateCarriesItsOffset() {
+    /// A moment told to the engine carries its offset, to the second.
+    @Test func aMomentCarriesItsOffset() {
         let prague = TimeZone(identifier: "Europe/Prague")!
         #expect(Markdown.stamp(Date(timeIntervalSince1970: 1_780_000_000), zone: prague) == "2026-05-28T22:26:40+02:00")
         #expect(Markdown.frontMatter(title: "", tags: "") == "")

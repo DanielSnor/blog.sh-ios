@@ -23,7 +23,10 @@ nonisolated struct Waiting: Codable, Identifiable, Equatable, Sendable {
     var title = ""
     var tags = ""
     var text = ""
-    /// When it was put by: the date the post is given on the blog.
+    /// When it was put by: what the list says of it, and the order the
+    /// posts go in. Not the post's date -- a draft is dated by the blog
+    /// when it is published, as every draft is; sent with a date of its
+    /// own it would come out dated back to the day it was written.
     var at = Date.distantPast
     var pieces: [Piece] = []
     /// Why the blog turned it away the last time it was sent, in its own words.
@@ -140,14 +143,13 @@ nonisolated enum WaitingRoom {
         try? JSONEncoder().encode(post).write(to: file, options: .atomic)
     }
 
-    /// The post as a delivery: its pictures first and the markdown last,
-    /// dated by when it was written.
+    /// The post as a delivery: its pictures first and the markdown last.
     static func delivery(of post: Waiting, for blog: UUID, in home: URL = home) throws -> [DeliveryFile] {
         let place = place(post.id, blog, in: home)
         var files = try post.pieces.map {
             DeliveryFile(name: $0.name, data: try Data(contentsOf: file($0.name, under: "media", at: place)))
         }
-        let markdown = Markdown.file(title: post.title, tags: post.tags, body: post.text, written: post.at, receipt: post.receipt)
+        let markdown = Markdown.file(title: post.title, tags: post.tags, body: post.text, receipt: post.receipt)
         files.append(DeliveryFile(name: Markdown.fileName(title: post.title, body: post.text), data: Data(markdown.utf8)))
         return files
     }
