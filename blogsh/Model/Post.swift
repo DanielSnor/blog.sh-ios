@@ -114,6 +114,13 @@ nonisolated enum Receipt {
 /// The post as a markdown file, the way /write/ writes it: a header of
 /// what the form has fields for, then the text.
 nonisolated enum Markdown {
+    /// A post is something to send once there is something under its
+    /// header: the blog takes a text with no title, and never a title
+    /// with no text.
+    static func isWritten(_ text: String) -> Bool {
+        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     /// `receipt`: the delivery's own name, by which the engine knows a
     /// delivery it has seen before -- one whose answer was lost on the way
     /// back and which is sent again -- and answers with the post it

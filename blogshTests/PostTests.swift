@@ -12,6 +12,16 @@ import Testing
         #expect(Markdown.frontMatter(title: "Hello", tags: "", publish: true) == "---\ntitle: Hello\npublish: yes\n---\n\n")
     }
 
+    /// The blog refuses a post with nothing under its header, so one that
+    /// is only a title is not yet something to send -- or to keep on the
+    /// device, where the refusal would come when the server is back.
+    @Test func aTitleAloneIsNotYetAPost() {
+        #expect(!Markdown.isWritten(""))
+        #expect(!Markdown.isWritten(" \n\t"))
+        #expect(Markdown.isWritten("A line."))
+        #expect(Markdown.isWritten("![](a.jpg)"))
+    }
+
     @Test func nothingFilledInIsNoHeader() {
         #expect(Markdown.frontMatter(title: "  ", tags: " , ") == "")
     }

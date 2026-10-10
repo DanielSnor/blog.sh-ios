@@ -108,7 +108,7 @@ struct ComposeView: View {
                 PrimaryLabel(label: busy ? "Sending…" : (offline ? "Keep on the device" : "Send to the blog as a draft"), busy: busy)
             }
             .buttonStyle(PrimaryButtonStyle())
-            .disabled(busy || importing || (title.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || overweight)
+            .disabled(busy || importing || !Markdown.isWritten(text) || overweight)
             .gap(22)
             if offline {
                 Hint("The blog's server cannot be reached. Kept on the device, the post goes to the blog as a draft, with its pictures, once the server answers.")
