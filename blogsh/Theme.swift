@@ -25,7 +25,7 @@ nonisolated enum Theme {
     @MainActor static var accent: Color { colour(\.accent) }
     /// What cannot be taken back: a delete, a refusal. The one colour
     /// beside the accent, and never a fill.
-    static let danger = dynamic(light: 0xA81800, dark: 0xFF7A5C)
+    static let danger = dynamic(light: 0xC62800, dark: 0xFF7A5C)
 
     /// The engine's voice and the names of screens are set in lower case
     /// -- except in German, which reads its nouns by their capitals: there
@@ -1304,14 +1304,18 @@ struct PrimaryButtonStyle: ButtonStyle {
                 .font(.mono(13))
                 .tracking(0.8)
                 .textCase(Theme.voiceCase)
-                .foregroundStyle(.white)
+                .foregroundStyle(enabled ? Color.white : Theme.faded)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
                 // Large type fills the row: the words keep off the round ends.
                 .padding(.horizontal, 18)
-                .background(.tint, in: Capsule())
-                .opacity(enabled ? (configuration.isPressed ? 0.7 : 1) : 0.35)
+                // Out of reach it gives up its fill, as everything out of
+                // reach does, and keeps its shape as an outline in the one
+                // tone: never the filled key made transparent.
+                .background { if enabled { Capsule().fill(.tint) } }
+                .overlay { if !enabled { Capsule().strokeBorder(Theme.faded, lineWidth: 1) } }
+                .opacity(enabled && configuration.isPressed ? 0.7 : 1)
                 .contentShape(Capsule())
         }
     }
@@ -1765,10 +1769,13 @@ struct DeliveryNote: View {
 struct PrimaryLabel: View {
     let label: LocalizedStringKey
     var busy = false
+    @Environment(\.isEnabled) private var enabled
 
     var body: some View {
         HStack(spacing: 8) {
-            if busy { ProgressView().controlSize(.small).tint(.white) }
+            // The wheel in the words' own colour: white on the fill, the
+            // faded tone on the outline the key is while it works.
+            if busy { ProgressView().controlSize(.small).tint(enabled ? Color.white : Theme.faded) }
             Text(label)
         }
     }
