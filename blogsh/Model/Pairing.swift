@@ -144,6 +144,14 @@ nonisolated enum PairingError: Error, Equatable {
 /// machine answered, hand in the app's own public key. One connection of
 /// its own, closed when it is over -- nothing of it is kept.
 nonisolated enum Pairing {
+    /// The name a blog keeps for this device: the one the server wrote it
+    /// down under, and where the server said none, the device's own --
+    /// the one it was handed.
+    static func known(as said: String, here: String) -> String {
+        let said = said.trimmingCharacters(in: .whitespacesAndNewlines)
+        return said.isEmpty ? here.trimmingCharacters(in: .whitespacesAndNewlines) : said
+    }
+
     /// Returns the device's name as the blog wrote it down, and the
     /// fingerprint of the server that answered.
     @concurrent static func handIn(_ publicKey: String, named name: String, with code: PairingCode) async throws(PairingError) -> (device: String, server: String) {

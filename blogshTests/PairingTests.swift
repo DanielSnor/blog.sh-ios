@@ -187,6 +187,15 @@ import Testing
         #expect(earlier.pairedAs == nil)
     }
 
+    /// The blog keeps the name the server wrote the device down under; a
+    /// server that said none leaves the device its own.
+    @Test func aDeviceTheServerDidNotNameKeepsItsOwnName() {
+        #expect(Pairing.known(as: "SeanoPad", here: "iPad") == "SeanoPad")
+        #expect(Pairing.known(as: "", here: "iPad") == "iPad")
+        #expect(Pairing.known(as: "  \n", here: " iPad ") == "iPad")
+        #expect(Pairing.known(as: "", here: "") == "")
+    }
+
     /// The key is on a line of the server's that is not a device's: said
     /// as that, apart from every other no -- the code is still good, and
     /// a new key can go in with it.

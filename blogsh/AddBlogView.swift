@@ -41,7 +41,14 @@ struct AddBlogView: View {
 
     var body: some View {
         PaperScreen(name: name) {
-            if renewing != nil {
+            // Which blog's, and what a new code does to it.
+            if let renewing {
+                if !renewing.label.isEmpty {
+                    Text(verbatim: renewing.label)
+                        .font(.mono(12))
+                        .foregroundStyle(.tint)
+                        .padding(.top, 2)
+                }
                 Hint("A new code moves this blog to where the code points: another address or another computer. What is written for it on the device stays.")
                     .gap(10)
             }
@@ -177,10 +184,11 @@ struct AddBlogView: View {
             try KeyStore.makeKey(account: blog.keyAccount)
             // The key and its kind, without the comment ssh-keygen would add.
             let line = try KeyStore.publicKeyLine(account: blog.keyAccount).split(separator: " ").prefix(2).joined(separator: " ")
-            let handed = try await Pairing.handIn(line, named: UIDevice.current.name, with: code)
+            let device = UIDevice.current.name
+            let handed = try await Pairing.handIn(line, named: device, with: code)
             // The server that answered is the one this blog's connections expect from now on.
             UserDefaults.standard.set(handed.server, forKey: TrustOnFirstUse.defaultsKey(host: code.host, port: code.port))
-            blog.pairedAs = handed.device
+            blog.pairedAs = Pairing.known(as: handed.device, here: device)
             blogs.adopt(blog)
             Herald.shared.say(String(localized: "Connected: \(handed.device.isEmpty ? blog.label : handed.device)"))
             close()
@@ -219,7 +227,7 @@ struct AddBlogView: View {
                 try KeyStore.move(from: spare, to: blog.keyAccount)
             }
             UserDefaults.standard.set(handed.server, forKey: TrustOnFirstUse.defaultsKey(host: code.host, port: code.port))
-            blogs.move(blog.id, to: code, as: handed.device)
+            blogs.move(blog.id, to: code, as: Pairing.known(as: handed.device, here: device))
             // The kept connection is to where the blog was.
             Engine.hangUp()
             Herald.shared.say(String(localized: "Connected: \(handed.device.isEmpty ? blog.label : handed.device)"))
