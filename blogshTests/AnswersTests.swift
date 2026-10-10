@@ -377,4 +377,30 @@ import Testing
             #expect(!Engine.changesTheBlog(args), "\(args)")
         }
     }
+
+    /// The findings about former addresses, as the engine builds them
+    /// since e8b3225 (lib/checker.rb): lists in `data`, and two kinds
+    /// this app has no word of its own for. Each is a row with its
+    /// sentence, its repair and the way to its post -- nothing in `data`
+    /// that the app does not ask for stands in the way.
+    @Test func findingsAboutFormerAddressesAreRowsLikeAnyOther() throws {
+        let json = #"""
+        {"errors": 0, "warnings": 3, "findings": [
+          {"level": "warn", "kind": "former_slug_taken",
+           "data": {"slug": "venku", "entry": "outside", "holder": "obsazeno", "taken_in": ["/"], "served_in": ["/en/"], "lang": "en"},
+           "text": "venku: the former address is taken in one tree.", "fix": "Give it up there."},
+          {"level": "warn", "kind": "former_slug_two_languages",
+           "data": {"slug": "venku", "entry": "outside", "langs": ["en", "de"], "year": "2026"},
+           "text": "venku: the same former address in two languages.", "fix": "Keep it in one."},
+          {"level": "warn", "kind": "former_slug_unpublished",
+           "data": {"slug": "doma", "entry": "at-home", "lang": "de", "year": "2025"},
+           "text": "doma: a former address in a language the site does not publish.", "fix": "Drop it."}
+        ]}
+        """#
+        let answer = try JSONDecoder().decode(DiagnosisAnswer.self, from: Data(json.utf8))
+        #expect(answer.findings.count == 3)
+        #expect(answer.findings.map(\.kind) == ["former_slug_taken", "former_slug_two_languages", "former_slug_unpublished"])
+        #expect(answer.findings.map(\.slug) == ["venku", "venku", "doma"])
+        #expect(answer.findings.allSatisfy { $0.level == .warning && !$0.text.isEmpty && $0.fix != nil })
+    }
 }
