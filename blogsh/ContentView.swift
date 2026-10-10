@@ -236,7 +236,11 @@ struct ContentView: View {
                 try? await Task.sleep(for: Reach.pause(after: attempt))
                 if Task.isCancelled { return }
                 attempt += 1
-                if offline, !loading { await load() }
+                // On its own account, not this waiting's: the moment the
+                // server answers, the silence is over and this task is
+                // called off with it -- and an asking called off halfway
+                // would leave what waits for the server unsent.
+                if offline, !loading { await Task { await load() }.value }
             }
         }
         // ...and so is it the moment the device finds a network.
