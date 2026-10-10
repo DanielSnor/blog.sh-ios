@@ -76,6 +76,29 @@ nonisolated struct PairingCode: Equatable, Sendable {
         fingerprints.isEmpty || fingerprints.contains(Self.urlSafe(fingerprint))
     }
 
+    /// The blog of the app's that this code is for, where it has one: the
+    /// same account at the same place -- the address the blog is at, or
+    /// the server it has come to trust, which a machine keeps when its
+    /// address changes -- and, where both say a name, the same name: one
+    /// account can hold more than one blog. A code read for such a blog
+    /// is a way to let it in again, not a second blog beside it.
+    func known(among blogs: [Blog], trusted: (_ host: String, _ port: Int) -> String? = { TrustOnFirstUse.known(host: $0, port: $1) }) -> Blog? {
+        func folded(_ name: String?) -> String { (name ?? "").trimmingCharacters(in: .whitespaces).lowercased() }
+        let named = folded(site)
+        let here = blogs.filter { blog in
+            guard blog.user.trimmingCharacters(in: .whitespaces) == user else { return false }
+            let (at, door) = blog.reached
+            let place = at.lowercased() == host.lowercased() && door == port
+            let server = trusted(at, door).map { fingerprints.contains(Self.urlSafe($0)) } ?? false
+            guard place || server else { return false }
+            return named.isEmpty || folded(blog.name).isEmpty || folded(blog.name) == named
+        }
+        if here.count == 1 { return here[0] }
+        // More than one it could be: the one called what the code says.
+        let called = here.filter { !named.isEmpty && folded($0.name) == named }
+        return called.count == 1 ? called[0] : nil
+    }
+
     /// A fingerprint as the code spells it: without its "SHA256:", without
     /// padding, in the alphabet a link can carry.
     static func urlSafe(_ fingerprint: String) -> String {

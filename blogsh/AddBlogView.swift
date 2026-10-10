@@ -121,14 +121,35 @@ struct AddBlogView: View {
                     InfoRow(label: "User", value: code.user, mono: true)
                 }
                 .gap(14)
-                Button {
-                    Task { await connect(code) }
-                } label: {
-                    PrimaryLabel(label: connecting ? "Connecting…" : "Connect", busy: connecting)
+                // A code for a blog the app has is first of all a way to
+                // let that blog in again: a second blog beside it, with
+                // what was written left at the first, is seldom what was
+                // meant -- and stays one tap away.
+                if let known = renewing == nil ? code.known(among: blogs.all) : nil {
+                    Hint("The app already has this blog, as \(known.label). Paired again, it stays the blog it is, with what is written for it on this device; added, it becomes a second blog beside the first.")
+                    Button {
+                        Task { await connect(code, again: known) }
+                    } label: {
+                        PrimaryLabel(label: connecting ? "Connecting…" : "Pair again", busy: connecting)
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(connecting)
+                    .gap(18)
+                    Plate {
+                        Command("Add as another blog", symbol: "plus") { Task { await connect(code, anew: true) } }
+                            .disabled(connecting)
+                    }
+                    .gap(12)
+                } else {
+                    Button {
+                        Task { await connect(code) }
+                    } label: {
+                        PrimaryLabel(label: connecting ? "Connecting…" : "Connect", busy: connecting)
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(connecting)
+                    .gap(22)
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .disabled(connecting)
-                .gap(22)
             case .failure(let why):
                 ProblemLine(text: Self.words(why))
             case nil:
@@ -167,12 +188,12 @@ struct AddBlogView: View {
     /// The exchange: a key of the app's own is made, handed in with the
     /// code's, and the blog is the app's from then on. A code that did
     /// not take leaves nothing behind -- no blog, no key.
-    private func connect(_ code: PairingCode) async {
+    private func connect(_ code: PairingCode, again known: Blog? = nil, anew: Bool = false) async {
         connecting = true
         defer { connecting = false }
         problem = nil
-        if let renewing {
-            await renew(renewing, with: code)
+        if !anew, let blog = known ?? renewing {
+            await renew(blog, with: code)
             return
         }
         var blog = Blog()
@@ -228,6 +249,8 @@ struct AddBlogView: View {
             }
             UserDefaults.standard.set(handed.server, forKey: TrustOnFirstUse.defaultsKey(host: code.host, port: code.port))
             blogs.move(blog.id, to: code, as: Pairing.known(as: handed.device, here: device))
+            // Let in again from the list of blogs, it is the one to open.
+            blogs.select(blog.id)
             // The kept connection is to where the blog was.
             Engine.hangUp()
             Herald.shared.say(String(localized: "Connected: \(handed.device.isEmpty ? blog.label : handed.device)"))

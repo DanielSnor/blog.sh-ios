@@ -434,6 +434,22 @@
         }
       }
     },
+    "Add as another blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat jako další blog"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als weiteren Blog hinzufügen"
+          }
+        }
+      }
+    },
     "Announce": {
       "localizations": {
         "cs": {
@@ -3026,6 +3042,22 @@
         }
       }
     },
+    "Remove '%@' from the app? Its key is deleted with it, and so is what was written for it on this device (%@). The blog itself is not touched.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat „%1$@“ z appky? Smaže se i jeho klíč a to, co je pro něj v tomhle zařízení napsáno (%2$@). Samotného blogu se to nedotkne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ aus der App entfernen? Sein Schlüssel wird mit gelöscht, ebenso was auf diesem Gerät für ihn geschrieben wurde (%2$@). Das Blog selbst bleibt unberührt."
+          }
+        }
+      }
+    },
     "Remove '%@' from the app? Its key is deleted with it; the blog itself is not touched.": {
       "localizations": {
         "cs": {
@@ -3506,6 +3538,22 @@
         }
       }
     },
+    "Sent to the blog as drafts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odesláno na blog jako koncepty"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Entwürfe an den Blog gesendet"
+          }
+        }
+      }
+    },
     "Sent to the blog as drafts: %lld": {
       "localizations": {
         "cs": {
@@ -3854,6 +3902,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Schriftgröße"
+          }
+        }
+      }
+    },
+    "The app already has this blog, as %@. Paired again, it stays the blog it is, with what is written for it on this device; added, it becomes a second blog beside the first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenhle blog už appka má, jako „%@“. Když ho spáruješ znovu, zůstane tím blogem, kterým je, i s tím, co je pro něj v zařízení rozepsáno; přidáním vznikne vedle něj druhý blog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Blog hat die App schon, als „%@“. Erneut gekoppelt bleibt er derselbe Blog, mit allem, was auf diesem Gerät für ihn geschrieben ist; hinzugefügt wird er ein zweiter Blog daneben."
           }
         }
       }
@@ -6690,6 +6754,22 @@
         }
       }
     },
+    "unfinished writing: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rozepsané: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angefangenes: %lld"
+          }
+        }
+      }
+    },
     "unlisted": {
       "localizations": {
         "cs": {
@@ -6750,6 +6830,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Video"
+          }
+        }
+      }
+    },
+    "waiting to be sent: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "čekající na odeslání: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "wartet auf den Versand: %lld"
           }
         }
       }

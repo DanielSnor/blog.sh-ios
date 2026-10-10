@@ -187,6 +187,55 @@ import Testing
         #expect(earlier.pairedAs == nil)
     }
 
+    private func blog(_ host: String, _ port: Int = 2222, user: String = "me", name: String = "") -> Blog {
+        var blog = Blog()
+        blog.host = host
+        blog.port = port
+        blog.user = user
+        blog.name = name
+        return blog
+    }
+
+    /// A code for a blog the app has finds that blog: the same account
+    /// at the same address. Another account there, or another port, is
+    /// another blog.
+    @Test func aCodeForABlogTheAppHasFindsIt() throws {
+        let code = try PairingCode(link())
+        let mine = blog("blog.example.org", name: "Můj blog"), elsewhere = blog("other.example", name: "Můj blog")
+        #expect(code.known(among: [elsewhere, mine], trusted: { _, _ in nil })?.id == mine.id)
+        #expect(code.known(among: [blog(" Blog.Example.org ", name: "můj blog")], trusted: { _, _ in nil }) != nil)
+        #expect(code.known(among: [elsewhere], trusted: { _, _ in nil }) == nil)
+        #expect(code.known(among: [blog("blog.example.org", user: "you")], trusted: { _, _ in nil }) == nil)
+        #expect(code.known(among: [blog("blog.example.org", 22)], trusted: { _, _ in nil }) == nil)
+        #expect(code.known(among: [], trusted: { _, _ in nil }) == nil)
+    }
+
+    /// A machine that has another address is still the server the blog
+    /// came to trust: the code's fingerprint says which blog it is for.
+    @Test func aBlogWhoseServerMovedIsKnownByTheServer() throws {
+        let code = try PairingCode(link())
+        let moved = blog("192.168.1.20", name: "Můj blog")
+        let trusts: (String, Int) -> String? = { host, port in
+            host == "192.168.1.20" && port == 2222 ? "SHA256:abc+DEF/123AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" : nil
+        }
+        #expect(code.known(among: [moved], trusted: trusts)?.id == moved.id)
+        #expect(code.known(among: [moved], trusted: { _, _ in "SHA256:somebodyElses" }) == nil)
+    }
+
+    /// One account can hold more than one blog: the code's name for the
+    /// blog tells them apart, and a blog called something else is not it.
+    @Test func twoBlogsOfOneAccountAreToldApartByName() throws {
+        let code = try PairingCode(link())
+        let mine = blog("blog.example.org", name: "Můj blog"), other = blog("blog.example.org", name: "Sean.cz")
+        #expect(code.known(among: [other, mine], trusted: { _, _ in nil })?.id == mine.id)
+        #expect(code.known(among: [other], trusted: { _, _ in nil }) == nil)
+        // Neither says a name: which of the two is meant cannot be told.
+        #expect(code.known(among: [blog("blog.example.org"), blog("blog.example.org")], trusted: { _, _ in nil }) == nil)
+        // A blog that has not said its name yet is taken by its place.
+        let unnamed = blog("blog.example.org")
+        #expect(code.known(among: [unnamed], trusted: { _, _ in nil })?.id == unnamed.id)
+    }
+
     /// The blog keeps the name the server wrote the device down under; a
     /// server that said none leaves the device its own.
     @Test func aDeviceTheServerDidNotNameKeepsItsOwnName() {

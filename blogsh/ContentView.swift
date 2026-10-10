@@ -304,6 +304,7 @@ struct ContentView: View {
                  offline: offline, retry: load,
                  waiting: waiting, sending: waiting.contains { $0.id == Outbox.shared.sending },
                  openWaiting: { showingWaiting = true },
+                 arrived: arrived, seeArrived: seeArrived,
                  begun: begun,
                  facts: blogs.current?.facts,
                  current: sizeClass == .regular && !roomy ? selection : nil,
@@ -340,6 +341,21 @@ struct ContentView: View {
         _ = Desk.shared.changes
         guard let blog = blogs.currentID else { return [] }
         return Begun.all(for: blog)
+    }
+
+    /// The posts that went to the open blog by themselves and were not
+    /// looked at since.
+    private var arrived: [Arrival] {
+        _ = Desk.shared.changes
+        guard let blog = blogs.currentID else { return [] }
+        return WaitingRoom.arrived(for: blog)
+    }
+
+    /// To where they are now, among the blog's drafts -- and seen.
+    private func seeArrived() {
+        if let blog = blogs.currentID { WaitingRoom.forgetArrived(for: blog) }
+        Desk.shared.changed()
+        open(.browse, state: .draft)
     }
 
     /// The posts kept on this device for the open blog until its server answers.
@@ -541,6 +557,10 @@ struct HomeView: View {
     var waiting: [Waiting] = []
     var sending = false
     var openWaiting: () -> Void = {}
+    /// The posts that went to the blog by themselves and were not looked
+    /// at since, and the way to them.
+    var arrived: [Arrival] = []
+    var seeArrived: () -> Void = {}
     /// What was begun on this device and not finished: each a way back to it.
     var begun: [Begun] = []
     /// The blog in numbers, once it has counted itself.
@@ -647,10 +667,16 @@ struct HomeView: View {
                 // last time -- said here, or nobody knows of it before
                 // opening the form it waits in -- and last the queue, which
                 // goes out by itself.
-                if glance != nil || !begun.isEmpty || !waiting.isEmpty {
+                if glance != nil || !begun.isEmpty || !waiting.isEmpty || !arrived.isEmpty {
                     VStack(spacing: 8 * k) {
                         if let glance {
                             Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
+                                .outOfReach(offline)
+                        }
+                        // What went to the blog by itself, under the drafts
+                        // it now is among: it stands until it was looked at.
+                        if !arrived.isEmpty {
+                            Button(action: seeArrived) { arrivedCard }
                                 .outOfReach(offline)
                         }
                         ForEach(begun) { one in
@@ -681,7 +707,7 @@ struct HomeView: View {
                     }
                 }
                 .buttonStyle(PressStyle())
-                .padding(.top, (glance == nil && begun.isEmpty && waiting.isEmpty ? 22 : 10) * k)
+                .padding(.top, (glance == nil && begun.isEmpty && waiting.isEmpty && arrived.isEmpty ? 22 : 10) * k)
 
                 Button { open(.browse, nil, true) } label: {
                     Card(capsule: true) {
@@ -817,6 +843,27 @@ struct HomeView: View {
                 .font(.system(size: 12 * k, weight: .semibold))
                 .tone(Theme.muted)
                 .accessibilityHidden(true)
+        }
+    }
+
+    /// The posts that went by themselves: how many, and the last by name.
+    private var arrivedCard: some View {
+        Card {
+            Image(systemName: "checkmark.circle").font(.system(size: 17 * k)).foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 2 * k) {
+                Text("Sent to the blog as drafts")
+                    .font(.ui(12 * k, weight: .medium))
+                    .foregroundStyle(.tint)
+                    .lineLimit(1)
+                if let last = arrived.last, !last.title.isEmpty {
+                    Text(verbatim: last.title)
+                        .font(.ui(15 * k, weight: .medium))
+                        .wordUnderPointer(Theme.ink)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 6)
+            CountBadge(count: arrived.count)
         }
     }
 

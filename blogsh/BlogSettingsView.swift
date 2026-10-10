@@ -22,6 +22,20 @@ struct BlogSettingsView: View {
     /// key's line are the pairing's, and nothing of them is set here.
     private var paired: Bool { blogs.current?.pairedAs != nil }
 
+    /// The question before a blog leaves the app: what goes with it is
+    /// its key -- and whatever was written for it on this device, which
+    /// is said with how much of it there is.
+    static func leaving(_ blog: Blog) -> String {
+        let kept = Belongings.of(blog.id)
+        var parts: [String] = []
+        if kept.begun > 0 { parts.append(String(localized: "unfinished writing: \(kept.begun)")) }
+        if kept.waiting > 0 { parts.append(String(localized: "waiting to be sent: \(kept.waiting)")) }
+        guard !parts.isEmpty else {
+            return String(localized: "Remove '\(blog.label)' from the app? Its key is deleted with it; the blog itself is not touched.")
+        }
+        return String(localized: "Remove '\(blog.label)' from the app? Its key is deleted with it, and so is what was written for it on this device (\(parts.joined(separator: ", "))). The blog itself is not touched.")
+    }
+
     enum Probe: Equatable {
         case idle, running
         case answered(VersionAnswer)
@@ -200,7 +214,7 @@ struct BlogSettingsView: View {
             if let blog = blogs.current {
                 Plate {
                     Command("Remove this blog", symbol: "minus.circle", danger: true) { confirmingRemoval = true }
-                        .confirmationDialog("Remove '\(blog.label)' from the app? Its key is deleted with it; the blog itself is not touched.",
+                        .confirmationDialog(Text(verbatim: Self.leaving(blog)),
                                             isPresented: $confirmingRemoval, titleVisibility: .visible) {
                             Button("Remove", role: .destructive) {
                                 blogs.remove(blog.id)

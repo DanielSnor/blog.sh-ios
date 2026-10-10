@@ -46,6 +46,18 @@ nonisolated struct Waiting: Codable, Identifiable, Equatable, Sendable {
     var headline: String { Unsent(title: title, tags: tags, text: text).headline }
 }
 
+/// A post that waited and has gone to its blog by itself. The post is
+/// the blog's now, a draft among its drafts; what is kept here is only
+/// the saying of it, until somebody has seen it -- a line that passes in
+/// six seconds is read by nobody who was not looking, and a post that
+/// is gone from the device with nothing said looks like a post lost.
+nonisolated struct Arrival: Codable, Identifiable, Equatable, Sendable {
+    var id = UUID()
+    var title: String
+    var slug: String
+    var at: Date
+}
+
 /// Where the posts that wait are kept: a directory to a blog, one to a
 /// post in it -- `post.json`, and beside it the files the post goes with.
 /// Files, not defaults: a delivery is megabytes.
@@ -185,5 +197,30 @@ nonisolated enum WaitingRoom {
     /// Everything kept for a blog that leaves the app.
     static func removeAll(for blog: UUID, in home: URL = home) {
         try? FileManager.default.removeItem(at: room(blog, in: home))
+    }
+
+    // MARK: what has gone by itself
+
+    private static func arrivals(_ blog: UUID, in home: URL) -> URL {
+        room(blog, in: home).appendingPathComponent("arrived.json")
+    }
+
+    /// The posts that went to the blog by themselves and were not looked
+    /// at since, in the order they went.
+    static func arrived(for blog: UUID, in home: URL = home) -> [Arrival] {
+        guard let data = try? Data(contentsOf: arrivals(blog, in: home)) else { return [] }
+        return (try? JSONDecoder().decode([Arrival].self, from: data)) ?? []
+    }
+
+    static func note(_ arrival: Arrival, for blog: UUID, in home: URL = home) {
+        let all = arrived(for: blog, in: home) + [arrival]
+        guard let data = try? JSONEncoder().encode(all) else { return }
+        try? FileManager.default.createDirectory(at: room(blog, in: home), withIntermediateDirectories: true)
+        try? data.write(to: arrivals(blog, in: home), options: .atomic)
+    }
+
+    /// Seen: nothing more is said of them.
+    static func forgetArrived(for blog: UUID, in home: URL = home) {
+        try? FileManager.default.removeItem(at: arrivals(blog, in: home))
     }
 }

@@ -91,7 +91,10 @@ import SwiftUI
         while let post = WaitingRoom.all(for: blog, in: home).first(where: { $0.problem == nil && !tried.contains($0.id) }) {
             tried.insert(post.id)
             switch await send(post, for: blog) {
-            case .sent: sent += 1
+            case .sent(let slug):
+                sent += 1
+                // Nobody sent this one by hand: said until it was seen.
+                WaitingRoom.note(Arrival(title: post.headline, slug: slug, at: .now), for: blog, in: home)
             case .waits: return sent
             case .refused: continue
             }

@@ -249,3 +249,19 @@ nonisolated struct Begun: Identifiable, Equatable, Sendable {
         return [Begun(what: .new, title: unsent.headline, at: unsent.at)] + changes
     }
 }
+
+/// What is written for a blog on this device and goes when the blog
+/// leaves the app: counted, so that the question before it can say so.
+nonisolated struct Belongings: Equatable, Sendable {
+    /// Writing begun and not finished: a new post, changes to a post or
+    /// to one of its languages.
+    let begun: Int
+    /// Posts finished and waiting for the server.
+    let waiting: Int
+
+    var isEmpty: Bool { begun == 0 && waiting == 0 }
+
+    static func of(_ blog: UUID, in defaults: UserDefaults = .standard, home: URL = WaitingRoom.home) -> Belongings {
+        Belongings(begun: Begun.all(for: blog, in: defaults).count, waiting: WaitingRoom.all(for: blog, in: home).count)
+    }
+}

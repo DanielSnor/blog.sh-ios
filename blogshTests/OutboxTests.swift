@@ -134,6 +134,69 @@ import Testing
         #expect(ServerSettings.load(from: defaults, only: UUID()) == nil)
         #expect(ServerSettings.load(from: defaults)?.host == "one.example")
     }
+
+    /// A post that went by itself is gone from the device: that it went
+    /// is kept said until it was looked at -- of the posts that arrived,
+    /// not of one the blog turned away, and apart from the posts that wait.
+    @Test func whatWentByItselfIsSaidUntilItWasSeen() async throws {
+        try await room { home in
+            let id = UUID(), blog = Blog()
+            blog.answers = [.success("first"), .failure(refusal("Too large.")), .success("third")]
+            for (n, title) in ["First", "Second", "Third"].enumerated() {
+                try WaitingRoom.put(Waiting(title: title, at: moment(Double(n))), shots: [], for: id, in: home)
+            }
+            let outbox = Outbox(home: home, open: { id }, deliver: { files, _ in try blog.deliver(files) })
+
+            #expect(await outbox.sendAll(for: id) == 2)
+            #expect(WaitingRoom.arrived(for: id, in: home).map(\.title) == ["First", "Third"])
+            #expect(WaitingRoom.arrived(for: id, in: home).map(\.slug) == ["first", "third"])
+            #expect(WaitingRoom.all(for: id, in: home).map(\.title) == ["Second"])
+            // Said again after the app was stopped: it is read from where it is kept.
+            #expect(WaitingRoom.arrived(for: id, in: home).count == 2)
+            WaitingRoom.forgetArrived(for: id, in: home)
+            #expect(WaitingRoom.arrived(for: id, in: home).isEmpty)
+            #expect(WaitingRoom.all(for: id, in: home).map(\.title) == ["Second"])
+        }
+    }
+
+    /// One sent by hand was watched going: nothing more is said of it.
+    /// And what was said for a blog goes when the blog leaves the app.
+    @Test func aPostSentByHandIsNotSaidAgain() async throws {
+        try await room { home in
+            let id = UUID(), blog = Blog()
+            try WaitingRoom.put(Waiting(title: "By hand", at: moment(0)), shots: [], for: id, in: home)
+            let outbox = Outbox(home: home, open: { id }, deliver: { files, _ in try blog.deliver(files) })
+            #expect(await outbox.send(WaitingRoom.all(for: id, in: home)[0], for: id) == .sent("a-draft"))
+            #expect(WaitingRoom.arrived(for: id, in: home).isEmpty)
+
+            WaitingRoom.note(Arrival(title: "Gone", slug: "gone", at: moment(1)), for: id, in: home)
+            #expect(WaitingRoom.arrived(for: id, in: home).map(\.title) == ["Gone"])
+            WaitingRoom.removeAll(for: id, in: home)
+            #expect(WaitingRoom.arrived(for: id, in: home).isEmpty)
+        }
+    }
+
+    /// What is written for a blog on the device is counted before the
+    /// blog leaves the app, and only what is that blog's.
+    @Test func whatIsWrittenForABlogIsCountedBeforeItLeaves() async throws {
+        try await room { home in
+            let suite = "belongings-\(UUID().uuidString)"
+            let defaults = UserDefaults(suiteName: suite)!
+            defer { defaults.removePersistentDomain(forName: suite) }
+            let id = UUID(), other = UUID()
+            #expect(Belongings.of(id, in: defaults, home: home).isEmpty)
+
+            Unsent(title: "New", text: "x", at: moment(0)).keep(for: id, in: defaults)
+            Unsaved(text: "changed", base: "d", at: moment(1), title: "A post").keep(for: id, slug: "a-post", what: .text, in: defaults)
+            try WaitingRoom.put(Waiting(title: "one", at: moment(2)), shots: [], for: id, in: home)
+            try WaitingRoom.put(Waiting(title: "two", at: moment(3)), shots: [], for: id, in: home)
+            try WaitingRoom.put(Waiting(title: "theirs", at: moment(4)), shots: [], for: other, in: home)
+
+            #expect(Belongings.of(id, in: defaults, home: home) == Belongings(begun: 2, waiting: 2))
+            #expect(Belongings.of(other, in: defaults, home: home) == Belongings(begun: 0, waiting: 1))
+            #expect(!Belongings.of(other, in: defaults, home: home).isEmpty)
+        }
+    }
 }
 
 /// What an audit of the sending found, each as the second reader made it
