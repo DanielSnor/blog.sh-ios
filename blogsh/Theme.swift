@@ -498,12 +498,7 @@ extension View {
     /// app's says its name, in the display face, and how many it holds; a
     /// screen about one post says the post's title.
     func namedByItsHeader(name: String? = nil, count: String? = nil, title: String? = nil, symbol: String? = nil) -> some View {
-        toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    BarName(name: name, count: count, title: title, symbol: symbol)
-                }
-            }
+        modifier(NamedInBar(name: name, count: count, title: title, symbol: symbol))
             .modifier(BackKeyInBar())
             .modifier(MenuKeyInBar())
     }
@@ -602,6 +597,30 @@ struct PaperScreen<Content: View>: View {
     }
 }
 
+/// The screen's name in its bar. The bar measures its middle once and
+/// keeps what it measured: a screen that grew wider -- the menu beside it
+/// put away, its window pulled out -- had its name left at the old width
+/// and set in the middle of the new, away from the way back. So the name
+/// is told how wide its screen is, and asks anew whenever that changes.
+private struct NamedInBar: ViewModifier {
+    let name: String?
+    let count: String?
+    let title: String?
+    let symbol: String?
+    @State private var room: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { room = $0 }
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    BarName(name: name, count: count, title: title, symbol: symbol, room: room)
+                }
+            }
+    }
+}
+
 /// What stands in a bar where the system would put its title: the
 /// screen's name, or a post's. It takes all the room between the way
 /// back and whatever keys stand at the far end, and starts at the near
@@ -618,6 +637,10 @@ struct BarName: View {
     /// The mark of the tile the screen was opened from, before its name:
     /// the six screens of the menu wear the mark they are known by there.
     var symbol: String?
+    /// How wide the screen under the bar is. Nothing is drawn by it: it
+    /// only makes what the name asks for differ from one width to the
+    /// next, which is what has the bar measure it again.
+    var room: CGFloat = 0
 
     var body: some View {
         Group {
@@ -661,7 +684,7 @@ struct BarName: View {
         // The bar gives its middle what the middle asks for and centres
         // it; asked for more than there is, it gives all there is -- and
         // the name then starts at the near edge of that, beside the way back.
-        .frame(idealWidth: 4000, maxWidth: .infinity, alignment: .leading)
+        .frame(idealWidth: 4000 + room.rounded(), maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
