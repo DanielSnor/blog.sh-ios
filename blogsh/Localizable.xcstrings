@@ -4530,6 +4530,22 @@
         }
       }
     },
+    "The server does not know this blog's key. The blog was connected by a code; pair it again in its settings.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server klíč tohoto blogu nezná. Blog byl připojen kódem; v jeho nastavení ho spáruj znovu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Server kennt den Schlüssel dieses Blogs nicht. Der Blog wurde per Code verbunden; kopple ihn in seinen Einstellungen erneut."
+          }
+        }
+      }
+    },
     "The server does not know this blog's key. The line under the key in the blog's settings belongs in ~/.ssh/authorized_keys on the server.": {
       "localizations": {
         "cs": {

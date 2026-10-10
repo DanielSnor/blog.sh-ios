@@ -256,10 +256,18 @@ import Testing
     /// The server turning the key away is said in words a person can act
     /// on, not in the SSH library's own.
     @Test func aKeyTheServerDoesNotKnowIsSaidInWords() throws {
-        let said = try #require(EngineError.keyNotKnown.errorDescription)
+        let said = try #require(EngineError.keyNotKnown(paired: false).errorDescription)
         #expect(!said.isEmpty)
         #expect(!said.contains("allAuthenticationOptionsFailed"))
         #expect(said.contains("authorized_keys"))
+    }
+
+    /// A blog let in by a code has no line in its settings to carry to
+    /// the server: it is sent to pair again, not to a line it cannot find.
+    @Test func aPairedBlogWhoseKeyIsNotKnownIsSentToPairAgain() throws {
+        let said = try #require(EngineError.keyNotKnown(paired: true).errorDescription)
+        #expect(!said.contains("authorized_keys"))
+        #expect(said != EngineError.keyNotKnown(paired: false).errorDescription)
     }
 }
 

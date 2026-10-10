@@ -11,8 +11,10 @@ nonisolated enum EngineError: Error, LocalizedError {
     case notConfigured
     case noKey
     /// The server let the connection in and turned the key away: its
-    /// account has no line for it.
-    case keyNotKnown
+    /// account has no line for it. `paired`: the blog was let in by a
+    /// code, so there is no line in its settings to carry over -- the
+    /// way back in is another code.
+    case keyNotKnown(paired: Bool)
     case hostKeyChanged(String)
     case refused(Refusal)
     case unreadable(String)
@@ -27,6 +29,8 @@ nonisolated enum EngineError: Error, LocalizedError {
         switch self {
         case .notConfigured: String(localized: "The server is not set up yet.")
         case .noKey: String(localized: "The app has no key yet.")
+        case .keyNotKnown(paired: true):
+            String(localized: "The server does not know this blog's key. The blog was connected by a code; pair it again in its settings.")
         case .keyNotKnown:
             String(localized: "The server does not know this blog's key. The line under the key in the blog's settings belongs in ~/.ssh/authorized_keys on the server.")
         case .hostKeyChanged(let fingerprint):
@@ -222,6 +226,8 @@ actor Engine {
                 hold = try await line.take(door)
             } catch {
                 if case EngineError.unreachable = error { await Reach.shared.nothing(from: server) }
+                // Said for the blog the call was opened for, whichever is open by now.
+                if case EngineError.keyNotKnown = error { throw EngineError.keyNotKnown(paired: settings.paired) }
                 throw error
             }
             do {
@@ -270,7 +276,7 @@ actor Engine {
             // further is otherwise left open on the server.
             await strand.end()
             if let error = error as? EngineError { throw error }
-            if case SSHClientError.allAuthenticationOptionsFailed = error { throw EngineError.keyNotKnown }
+            if case SSHClientError.allAuthenticationOptionsFailed = error { throw EngineError.keyNotKnown(paired: false) }
             log.info("no connection: \(String(describing: error), privacy: .public)")
             throw EngineError.unreachable(door.host, "\(error)")
         }

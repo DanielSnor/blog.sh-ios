@@ -11,6 +11,9 @@ nonisolated struct ServerSettings: Equatable, Sendable {
     var port: Int
     var user: String
     var keyAccount: String
+    /// The blog was let in by a code: its line on the server is the
+    /// pairing's, not one its settings show.
+    var paired = false
 
     /// `only`: the blog the call is meant for. Another one open by now
     /// is nothing to connect to -- what was written for one blog is never
@@ -20,7 +23,7 @@ nonisolated struct ServerSettings: Equatable, Sendable {
         let (host, port) = blog.reached
         let user = blog.user.trimmingCharacters(in: .whitespaces)
         guard !host.isEmpty, !user.isEmpty else { return nil }
-        return ServerSettings(host: host, port: port, user: user, keyAccount: blog.keyAccount)
+        return ServerSettings(host: host, port: port, user: user, keyAccount: blog.keyAccount, paired: blog.pairedAs != nil)
     }
 }
 
