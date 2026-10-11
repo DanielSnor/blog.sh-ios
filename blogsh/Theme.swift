@@ -572,9 +572,11 @@ extension View {
     /// app's says its name, in the display face, and how many it holds; a
     /// screen about one post says the post's title.
     func namedByItsHeader(name: String? = nil, count: String? = nil, title: String? = nil, symbol: String? = nil) -> some View {
+        // The way back first, the menu's key after it: a bar takes its
+        // keys from the outermost in.
         modifier(NamedInBar(name: name, count: count, title: title, symbol: symbol))
-            .modifier(BackKeyInBar())
             .modifier(MenuKeyInBar())
+            .modifier(BackKeyInBar())
     }
 
     /// A list on paper: no cards of the system's, no ground but ours.

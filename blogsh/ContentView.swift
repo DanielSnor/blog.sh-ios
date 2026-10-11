@@ -156,10 +156,12 @@ struct ContentView: View {
             }
             .id(visit)
             .toolbar(removing: .sidebarToggle)
-            // With the menu put out of the way, every screen of the stack
-            // carries the key that brings it back.
-            .environment(\.showMenu, bringMenuBack)
         }
+        // With the menu put out of the way, every screen of the stack
+        // carries the key that brings it back. Said to the two columns as
+        // one: what is said to the stack alone reaches its first screen,
+        // and not the ones pushed onto it.
+        .environment(\.showMenu, bringMenuBack)
         // What was just done, and the site being brought up to date: under
         // whichever screen is open.
         .safeAreaInset(edge: .bottom, spacing: 0) { HeraldStrip() }
