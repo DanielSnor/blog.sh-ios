@@ -73,6 +73,16 @@ nonisolated enum KeyStore {
     }
 
     /// The line for authorized_keys, as ssh-keygen would print it.
+    /// The key's fingerprint as ssh prints one, and as `./blog.sh pair
+    /// --list` prints it beside a device: by it a line on the server is
+    /// known for this blog's, where two devices -- or one device twice --
+    /// go by the same name.
+    static func fingerprint(account: String) throws -> String {
+        let parts = try publicKeyLine(account: account).split(separator: " ")
+        guard parts.count > 1, let blob = Data(base64Encoded: String(parts[1])) else { throw Failure.noKey }
+        return PairingCode.fingerprint(ofKey: blob)
+    }
+
     static func publicKeyLine(account: String, comment: String = "blogsh-app") throws -> String {
         let key = try privateKey(account: account).publicKey
         var wire = Data()

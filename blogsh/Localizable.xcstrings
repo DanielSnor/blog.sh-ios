@@ -4994,6 +4994,22 @@
         }
       }
     },
+    "This device's key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč tohoto zařízení"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel dieses Geräts"
+          }
+        }
+      }
+    },
     "This is not a code from ./blog.sh pair.": {
       "localizations": {
         "cs": {
@@ -5506,18 +5522,18 @@
         }
       }
     },
-    "Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke.": {
+    "Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke. In what ./blog.sh pair --list shows, it is the line with this key.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kde blog na serveru leží a co tohle zařízení smí spustit, je v řádku, který na serveru zapsal ./blog.sh pair; tady se z toho nic nenastavuje. Zařízení tam odebereš příkazem ./blog.sh pair --revoke."
+            "value": "Kde blog na serveru leží a co tohle zařízení smí spustit, je v řádku, který na serveru zapsal ./blog.sh pair; tady se z toho nic nenastavuje. Zařízení tam odebereš příkazem ./blog.sh pair --revoke. Ve výpisu ./blog.sh pair --list je to řádek s tímhle klíčem."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wo der Blog auf dem Server liegt und was dieses Gerät dort ausführen darf, steht in der Zeile, die ./blog.sh pair auf dem Server geschrieben hat; hier wird davon nichts eingestellt. Das Gerät entfernst du dort mit ./blog.sh pair --revoke."
+            "value": "Wo der Blog auf dem Server liegt und was dieses Gerät dort ausführen darf, steht in der Zeile, die ./blog.sh pair auf dem Server geschrieben hat; hier wird davon nichts eingestellt. Das Gerät entfernst du dort mit ./blog.sh pair --revoke. In der Liste von ./blog.sh pair --list ist es die Zeile mit diesem Schlüssel."
           }
         }
       }

@@ -109,9 +109,20 @@ struct BlogSettingsView: View {
                     .font(.ui(15))
                     .foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
+                    // The key the server knows it by: two lines there can
+                    // carry the same name, and only this tells them apart.
+                    if let print = blogs.current.flatMap({ try? KeyStore.fingerprint(account: $0.keyAccount) }) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("This device's key").engineLabel().foregroundStyle(Theme.muted)
+                            Text(verbatim: print)
+                                .font(.mono(12, bold: false))
+                                .foregroundStyle(Theme.ink)
+                                .textSelection(.enabled)
+                        }
+                    }
                     Command("Pair again", symbol: "qrcode", leads: true) { pairing = true }
                 }
-                Hint("Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke.")
+                Hint("Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke. In what ./blog.sh pair --list shows, it is the line with this key.")
             } else {
                 Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog; one that is not in a container leaves that field empty.")
             }

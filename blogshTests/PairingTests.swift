@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import blogsh
@@ -252,6 +253,24 @@ import Testing
         let answer = Data(#"{"ok":false,"error":"key_in_use","message":"This key already stands in authorized_keys."}"#.utf8)
         #expect(throws: PairingError.keyInUse("This key already stands in authorized_keys.")) { try PairingError.device(from: answer) }
         #expect(throws: PairingError.spent) { try PairingError.device(from: Data(#"{"ok":false,"error":"used"}"#.utf8)) }
+    }
+
+    /// The key's fingerprint is the one ./blog.sh pair --list prints: the
+    /// SHA-256 of the key as it goes over the wire, in base64 with no
+    /// padding, after "SHA256:". A blog's own, and another's is another.
+    @Test func aBlogsKeyIsKnownByTheFingerprintTheServerLists() throws {
+        let account = "test-\(UUID().uuidString.lowercased())", other = account + "-other"
+        defer { try? KeyStore.deleteKey(account: account); try? KeyStore.deleteKey(account: other) }
+        try KeyStore.makeKey(account: account)
+        try KeyStore.makeKey(account: other)
+
+        let print = try KeyStore.fingerprint(account: account)
+        let blob = try #require(Data(base64Encoded: String(try KeyStore.publicKeyLine(account: account).split(separator: " ")[1])))
+        let digest = Data(SHA256.hash(data: blob)).base64EncodedString().replacingOccurrences(of: "=", with: "")
+        #expect(print == "SHA256:" + digest)
+        #expect(print.count == 7 + 43)
+        #expect(try KeyStore.fingerprint(account: other) != print)
+        #expect(throws: (any Error).self) { try KeyStore.fingerprint(account: account + "-none") }
     }
 
     /// A key made aside takes an account's place only when it is told to:
