@@ -194,6 +194,19 @@ nonisolated enum Typeface {
     var crowded: Bool { Self.ownHand && zoom >= 1.65 }
 }
 
+/// Day or night, as chosen in the settings: kept here, worn by the window.
+@Observable final class Daylight {
+    static let shared = Daylight()
+
+    var choice: DayNight {
+        didSet { UserDefaults.standard.set(choice.rawValue, forKey: DayNight.key) }
+    }
+
+    private init() {
+        choice = DayNight(kept: UserDefaults.standard.integer(forKey: DayNight.key))
+    }
+}
+
 extension Font {
     /// What a screen is: its name, the blog's name.
     static func display(_ size: CGFloat) -> Font {
@@ -267,25 +280,43 @@ extension EnvironmentValues {
 }
 
 /// The type as large as was chosen in the settings: the system's size and
-/// the steps above it. Set once, on the window -- a sheet is drawn in the
-/// window and not inside the screen under it, so a size set on that
-/// screen alone would stop at the sheet's edge.
+/// the steps above it -- and the ground, day or night, where one of the
+/// two was chosen over the system's. Set once, on the window -- a sheet
+/// is drawn in the window and not inside the screen under it, so what is
+/// set on that screen alone would stop at the sheet's edge.
 struct TextSized: ViewModifier {
     func body(content: Content) -> some View {
         // Where the app enlarges its own type there is nothing to ask of the window.
-        content.background(WindowType(size: TypeScale.ownHand ? .system : TypeScale.shared.size))
+        content.background(WindowType(size: TypeScale.ownHand ? .system : TypeScale.shared.size,
+                                      dayNight: Daylight.shared.choice))
     }
 }
 
 private struct WindowType: UIViewRepresentable {
     let size: TextSize
+    let dayNight: DayNight
 
     func makeUIView(context: Context) -> Anchor { Anchor() }
-    func updateUIView(_ view: Anchor, context: Context) { view.size = size }
+    func updateUIView(_ view: Anchor, context: Context) {
+        view.size = size
+        view.dayNight = dayNight
+    }
 
     /// Nothing to see: only a place in the window, to reach it from.
     final class Anchor: UIView {
         var size = TextSize.system { didSet { apply() } }
+        var dayNight = DayNight.system { didSet { wear() } }
+
+        /// The window on the ground that was chosen, or left to the system.
+        private func wear() {
+            guard let window else { return }
+            let style: UIUserInterfaceStyle = switch dayNight {
+            case .system: .unspecified
+            case .day: .light
+            case .night: .dark
+            }
+            if window.overrideUserInterfaceStyle != style { window.overrideUserInterfaceStyle = style }
+        }
 
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -300,6 +331,7 @@ private struct WindowType: UIViewRepresentable {
         override func didMoveToWindow() {
             super.didMoveToWindow()
             apply()
+            wear()
         }
 
         @objc private func apply() {
@@ -310,6 +342,48 @@ private struct WindowType: UIViewRepresentable {
             }
             let system = DynamicTypeSize(UIApplication.shared.preferredContentSizeCategory) ?? .large
             window.traitOverrides.preferredContentSizeCategory = UIContentSizeCategory(size.applied(to: system, wide: TypeScale.wide))
+        }
+    }
+}
+
+/// Day or night: three words in a row, the first of them the system's
+/// own way. Drawn as the sizes of the type are, one key beside the next.
+struct DayNightPicker: View {
+    private var daylight = Daylight.shared
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+        HStack(spacing: 0) {
+            ForEach(DayNight.allCases) { one in
+                let chosen = one == daylight.choice
+                if one != .system {
+                    Rectangle().fill(Theme.line).frame(width: 1)
+                }
+                Button { daylight.choice = one } label: {
+                    Self.name(one)
+                        .font(.ui(15, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .wordUnderPointer(chosen ? .white : Theme.ink, moves: !chosen)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(chosen ? Theme.accent : .clear)
+                        .contentShape(Rectangle())
+                        .underPointer()
+                }
+                .buttonStyle(PressStyle())
+                .accessibilityAddTraits(chosen ? .isSelected : [])
+            }
+        }
+        .background(shape.fill(Theme.card))
+        .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
+        .clipShape(shape)
+    }
+
+    private static func name(_ one: DayNight) -> Text {
+        switch one {
+        case .system: Text("Auto")
+        case .day: Text("Day")
+        case .night: Text("Night")
         }
     }
 }

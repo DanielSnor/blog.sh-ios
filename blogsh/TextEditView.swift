@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import PhotosUI
 
 /// "the text": what `./blog.sh edit` opens in the editor, opened here.
@@ -30,6 +31,7 @@ struct TextEditView: View {
     @State private var shots: [Shot] = []
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
+    @State private var choosingFiles = false
     /// Why the last picture chosen is not among the shots.
     @State private var unread: String?
     @State private var saving = false
@@ -106,6 +108,8 @@ struct TextEditView: View {
                     }
                     .buttonStyle(PressStyle())
                     .disabled(importing || !entry.editable)
+                    Command("Add from files", symbol: "folder") { choosingFiles = true }
+                        .disabled(importing || !entry.editable)
                 }
                 if let unread { ProblemLine(text: unread) }
                 DeliveryNote(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb)
@@ -176,6 +180,9 @@ struct TextEditView: View {
             shots = Kept.heard(shots, from: text)
         }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
+        .fileImporter(isPresented: $choosingFiles, allowedContentTypes: [.image, .movie], allowsMultipleSelection: true) { chosen in
+            if case .success(let files) = chosen { Task { await loadPictures(files: files) } }
+        }
         .sheet(isPresented: $previewing) {
             // The post's own media from beside its page on the blog; what
             // was picked here from the device.
@@ -254,6 +261,21 @@ struct TextEditView: View {
             problem = answer.post.text == nil ? String(localized: "The text did not come with the answer.") : nil
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+        }
+    }
+
+    private func loadPictures(files: [URL]) async {
+        guard !files.isEmpty else { return }
+        importing = true
+        unread = nil
+        defer { importing = false }
+        for file in files {
+            let taken = (entry?.media ?? []) + shots.map(\.name)
+            do {
+                shots.append(try await Media.shot(fromFile: file, index: taken.count + 1, taken: taken))
+            } catch {
+                unread = error.words
+            }
         }
     }
 

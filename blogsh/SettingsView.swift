@@ -42,6 +42,10 @@ struct SettingsView: View {
 
             ColoursSection()
 
+            SectionLabel("Mode")
+            DayNightPicker()
+            Hint("Auto goes by the system. Day and night hold whatever the system is set to.")
+
             SectionLabel("Text size")
             TextSizePicker()
             Hint("The first is the size the system has; the others are steps above it. It holds on this device, for every blog.")

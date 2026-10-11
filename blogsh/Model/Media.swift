@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 import AVFoundation
 import CoreTransferable
+import UniformTypeIdentifiers
 import os
 
 /// What the picker hands over, made into what travels. A photograph is
@@ -86,20 +87,79 @@ nonisolated enum Media {
                     thumb: Pictures.thumbnail(shrunk.data))
     }
 
+    /// One file from the device's own folders and volumes -- what the
+    /// file picker hands over -- as a shot, treated as a picked photograph
+    /// is: a picture shrunk and written as JPEG, a video exported. It is
+    /// called by the name it has there. The file is the picker's to lend:
+    /// it is read while the loan holds, and a video is copied first, for
+    /// the export reads it for longer than that.
+    @concurrent static func shot(fromFile url: URL, index: Int, taken: [String]) async throws(Unread) -> Shot {
+        let lent = url.startAccessingSecurityScopedResource()
+        defer { if lent { url.stopAccessingSecurityScopedResource() } }
+        let kind = (try? url.resourceValues(forKeys: [.contentTypeKey]))?.contentType ?? UTType(filenameExtension: url.pathExtension)
+        if kind?.conforms(to: .audiovisualContent) == true {
+            let copy = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString + "." + (url.pathExtension.isEmpty ? "mov" : url.pathExtension))
+            defer { try? FileManager.default.removeItem(at: copy) }
+            do {
+                try whole(url) { try FileManager.default.copyItem(at: $0, to: copy) }
+            } catch {
+                log.error("file not read: \(String(describing: error), privacy: .public)")
+                throw unread(error, online: NetworkWatch.hasNetwork)
+            }
+            guard let shot = await video(at: copy, named: url.lastPathComponent, index: index, taken: taken) else {
+                throw unread(nil, online: NetworkWatch.hasNetwork)
+            }
+            return shot
+        }
+        var data: Data?
+        do {
+            try whole(url) { data = try Data(contentsOf: $0) }
+        } catch {
+            log.error("file not read: \(String(describing: error), privacy: .public)")
+            throw unread(error, online: NetworkWatch.hasNetwork)
+        }
+        guard let data, let shrunk = Pictures.shrink(data) else {
+            log.error("file not read: nothing came, or not a picture")
+            throw unread(nil, online: NetworkWatch.hasNetwork)
+        }
+        let name = Pictures.freeName(Pictures.safeName(url.lastPathComponent, index: index), taken: taken)
+        return Shot(name: name, data: shrunk.data, width: shrunk.width, height: shrunk.height,
+                    thumb: Pictures.thumbnail(shrunk.data))
+    }
+
+    /// The file read as its keeper has it whole: one kept in a cloud
+    /// folder and not on the device is fetched first, which is what
+    /// asking through the coordinator does.
+    private static func whole(_ url: URL, _ read: (URL) throws -> Void) throws {
+        var failed: NSError?
+        var thrown: Error?
+        NSFileCoordinator().coordinate(readingItemAt: url, options: [], error: &failed) { at in
+            do { try read(at) } catch { thrown = error }
+        }
+        if let failed { throw failed }
+        if let thrown { throw thrown }
+    }
+
     @concurrent private static func video(from item: PhotosPickerItem, index: Int, taken: [String]) async -> Shot? {
         guard let movie = try? await item.loadTransferable(type: Movie.self) else { return nil }
         defer { try? FileManager.default.removeItem(at: movie.url) }
-        let poster = await poster(of: movie.url)
-        if let converted = await h264(movie.url) {
+        return await video(at: movie.url, named: item.itemIdentifier, index: index, taken: taken)
+    }
+
+    /// The video at a place the app may read for as long as it takes.
+    @concurrent private static func video(at source: URL, named original: String?, index: Int, taken: [String]) async -> Shot? {
+        let poster = await poster(of: source)
+        if let converted = await h264(source) {
             defer { try? FileManager.default.removeItem(at: converted) }
             guard let data = try? Data(contentsOf: converted) else { return nil }
-            let name = Pictures.freeName(Pictures.safeName(item.itemIdentifier, index: index, stem: "video", ext: "mp4"), taken: taken)
+            let name = Pictures.freeName(Pictures.safeName(original, index: index, stem: "video", ext: "mp4"), taken: taken)
             return Shot(name: name, data: data, width: 0, height: 0, kind: .video, poster: poster)
         }
         // Not converted: whole, under the extension it came with.
-        guard let data = try? Data(contentsOf: movie.url) else { return nil }
-        let ext = ["mp4", "mov", "m4v"].contains(movie.url.pathExtension.lowercased()) ? movie.url.pathExtension.lowercased() : "mov"
-        let name = Pictures.freeName(Pictures.safeName(item.itemIdentifier, index: index, stem: "video", ext: ext), taken: taken)
+        guard let data = try? Data(contentsOf: source) else { return nil }
+        let ext = ["mp4", "mov", "m4v"].contains(source.pathExtension.lowercased()) ? source.pathExtension.lowercased() : "mov"
+        let name = Pictures.freeName(Pictures.safeName(original, index: index, stem: "video", ext: ext), taken: taken)
         return Shot(name: name, data: data, width: 0, height: 0, kind: .video, poster: poster, converted: false)
     }
 

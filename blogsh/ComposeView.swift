@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import PhotosUI
 
 /// "New post": what /write/ offers, as a form -- a title, the text, the
@@ -20,6 +21,7 @@ struct ComposeView: View {
     @State private var shots: [Shot] = []
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
+    @State private var choosingFiles = false
     /// Why the last picture chosen is not among the shots.
     @State private var unread: String?
     @State private var sending = false
@@ -96,6 +98,10 @@ struct ComposeView: View {
                 }
                 .buttonStyle(PressStyle())
                 .disabled(importing || busy)
+                // The photo library is one place a picture can be; the
+                // device's folders and whatever is plugged into it are others.
+                Command("Add from files", symbol: "folder") { choosingFiles = true }
+                    .disabled(importing || busy)
             }
             if let unread { ProblemLine(text: unread) }
             DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb)
@@ -166,6 +172,9 @@ struct ComposeView: View {
         // A picture just chosen, whose mark the text already has, takes its words too.
         .onChange(of: shots.count) { _, _ in
             shots = Kept.heard(shots, from: text)
+        }
+        .fileImporter(isPresented: $choosingFiles, allowedContentTypes: [.image, .movie], allowsMultipleSelection: true) { chosen in
+            if case .success(let files) = chosen { Task { await load(files: files) } }
         }
         .onChange(of: picked) { _, items in
             Task { await load(items) }
@@ -252,6 +261,20 @@ struct ComposeView: View {
                 shots.append(try await Media.shot(from: item, index: shots.count + 1, taken: shots.map(\.name)))
             } catch {
                 // Said at the key that was pressed, not at the form's end.
+                unread = error.words
+            }
+        }
+    }
+
+    private func load(files: [URL]) async {
+        guard !files.isEmpty else { return }
+        importing = true
+        unread = nil
+        defer { importing = false }
+        for file in files {
+            do {
+                shots.append(try await Media.shot(fromFile: file, index: shots.count + 1, taken: shots.map(\.name)))
+            } catch {
                 unread = error.words
             }
         }

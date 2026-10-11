@@ -450,6 +450,22 @@
         }
       }
     },
+    "Add from files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat ze souborů"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Dateien hinzufügen"
+          }
+        }
+      }
+    },
     "Announce": {
       "localizations": {
         "cs": {
@@ -590,6 +606,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wie das System"
+          }
+        }
+      }
+    },
+    "Auto": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        }
+      }
+    },
+    "Auto goes by the system. Day and night hold whatever the system is set to.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto se řídí systémem. Denní a noční platí vždy, ať je systém nastavený jakkoli."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto richtet sich nach dem System. Tag und Nacht gelten immer, wie auch immer das System eingestellt ist."
           }
         }
       }
@@ -1246,6 +1294,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dunkel"
+          }
+        }
+      }
+    },
+    "Day": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denní"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag"
           }
         }
       }
@@ -1986,6 +2050,22 @@
         }
       }
     },
+    "Mode": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Režim"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modus"
+          }
+        }
+      }
+    },
     "Moved": {
       "localizations": {
         "cs": {
@@ -2062,6 +2142,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neuer Slug"
+          }
+        }
+      }
+    },
+    "Night": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noční"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nacht"
           }
         }
       }
