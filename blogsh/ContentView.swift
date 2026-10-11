@@ -126,6 +126,17 @@ struct ContentView: View {
                             EmptyNote(symbol: "terminal", title: "What do you want to do?", room: .welcome)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(Theme.paper.ignoresSafeArea())
+                                // With the menu put away and nothing open,
+                                // this is all there is on the screen: the key
+                                // that brings the menu back stands here too.
+                                // A tablet has a swipe from its edge for it;
+                                // a Mac has nothing, and the app had to be quit.
+                                .toolbar {
+                                    if let back = bringMenuBack {
+                                        ToolbarItem(placement: .topBarLeading) { MenuKey(action: back) }
+                                    }
+                                }
+                                .toolbarBackground(.hidden, for: .navigationBar)
                         }
                     } }
                 }
