@@ -96,6 +96,8 @@ actor Engine {
         switch args.first ?? "" {
         case "rebuild": false
         case "toot", "bluesky": true
+        // The file of keys has a lock of its own, and says `busy` the same way.
+        case "pair": args.contains("--revoke")
         default: changesTheBlog(args)
         }
     }
@@ -406,13 +408,13 @@ actor Engine {
     }
 
     /// The request as the forced command reads it: the argv, and -- for
-    /// the two commands that answer in sentences, `check` and `doctor` --
-    /// the language the app speaks. An engine that has it says its
+    /// the commands that answer in sentences, `check`, `doctor` and what
+    /// `pair` says no with -- the language the app speaks. An engine that has it says its
     /// findings in it; one that has not, or an older one, which reads the
     /// argv and nothing else, says them in the blog's own.
     nonisolated static func request(_ args: [String], lang: String? = Bundle.main.preferredLocalizations.first) -> [String: Any] {
         var request: [String: Any] = ["args": args]
-        if ["check", "doctor"].contains(args.first ?? ""), let lang,
+        if ["check", "doctor", "pair"].contains(args.first ?? ""), let lang,
            lang.range(of: "^[a-z]{2,3}$", options: .regularExpression) != nil {
             request["lang"] = lang
         }

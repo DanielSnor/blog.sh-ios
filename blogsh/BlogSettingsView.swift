@@ -17,6 +17,7 @@ struct BlogSettingsView: View {
     @State private var confirmingNewKey = false
     @State private var copied = false
     @State private var pairing = false
+    @State private var showingDevices = false
 
     /// A code let this device in: the blog's place on the server and the
     /// key's line are the pairing's, and nothing of them is set here.
@@ -120,6 +121,8 @@ struct BlogSettingsView: View {
                                 .textSelection(.enabled)
                         }
                     }
+                    // Who else a code let in, and the way out for this one.
+                    Command("Paired devices", symbol: "ipad.and.iphone", leads: true) { showingDevices = true }
                     Command("Pair again", symbol: "qrcode", leads: true) { pairing = true }
                 }
                 Hint("Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke. In what ./blog.sh pair --list shows, it is the line with this key.")
@@ -242,6 +245,7 @@ struct BlogSettingsView: View {
                 AddBlogView(renewing: blog, close: { pairing = false })
             }
         }
+        .navigationDestination(isPresented: $showingDevices) { DevicesView() }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") { close() }
