@@ -334,7 +334,7 @@ struct PropsView: View {
             await load()
             said = Said(text: String(localized: "Announced: \(answer.url ?? "")"))
         } catch EngineError.refused(let refusal) where refusal.error == "outside_window" {
-            said = Said(title: String(localized: "Announce"), text: refusal.message,
+            said = Said(title: String(localized: "Announce"), text: refusal.words,
                         ask: Said.Ask(button: String(localized: "Announce anyway")) { await announce(force: true) })
         } catch {
             said = Said(text: error.localizedDescription)
@@ -363,7 +363,7 @@ struct PropsView: View {
             renamed?(answer)
             // A draft's own preview follows it by itself; a published post's pages are owed a build.
             if !wasDraft { Herald.shared.owe(for: home) }
-            tell(answer.warnings)
+            tell(answer.warnings, or: String(localized: "Renamed: \(answer.slug)"))
         }
     }
 

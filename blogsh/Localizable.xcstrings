@@ -1970,6 +1970,22 @@
         }
       }
     },
+    "Load the post as the blog has it now": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načíst příspěvek, jak je teď na blogu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beitrag laden, wie er jetzt im Blog steht"
+          }
+        }
+      }
+    },
     "Look at the picture": {
       "localizations": {
         "cs": {
@@ -3250,6 +3266,22 @@
         }
       }
     },
+    "Renamed: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenováno: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenannt: %@"
+          }
+        }
+      }
+    },
     "Reschedule": {
       "localizations": {
         "cs": {
@@ -3810,6 +3842,22 @@
         }
       }
     },
+    "Something else holds the blog just now -- a build, a publish or a save -- so nothing was written. Try again in a moment.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog zrovna drží jiný běh — sestavení, publikování nebo ukládání — takže se nic nezapsalo. Za chvíli to zkus znovu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Blog ist gerade von einem anderen Lauf belegt – einem Build, einer Veröffentlichung oder einem Speichern –, es wurde also nichts geschrieben. Versuch es gleich noch einmal."
+          }
+        }
+      }
+    },
     "Start again from the blog's colours": {
       "localizations": {
         "cs": {
@@ -4110,6 +4158,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Archiv"
+          }
+        }
+      }
+    },
+    "The blog said no (%@).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blog odmítl (%@)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Blog hat abgelehnt (%@)."
           }
         }
       }
@@ -5422,6 +5486,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was aufgeräumt wird, ist endgültig weg. Ältere Fassungen sind, was ein Beitrag vor seinen letzten Speicherungen sagte; jeder behält seine neueste."
+          }
+        }
+      }
+    },
+    "What is written here is replaced by the blog's text.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co je napsáno tady, nahradí text z blogu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was hier geschrieben steht, wird durch den Text des Blogs ersetzt."
           }
         }
       }

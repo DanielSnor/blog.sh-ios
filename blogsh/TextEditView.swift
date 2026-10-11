@@ -36,6 +36,9 @@ struct TextEditView: View {
     @State private var unread: String?
     @State private var saving = false
     @State private var problem: String?
+    /// The save was turned away because the post has changed on the blog
+    /// since its text was opened here.
+    @State private var changedOnBlog = false
     @State private var saved: ActionAnswer?
     /// Counted when a save has answered: the page goes to the answer.
     @State private var answered = 0
@@ -135,6 +138,18 @@ struct TextEditView: View {
                 .gap(22)
                 if let problem {
                     ProblemLine(text: problem)
+                    // Changed on the blog meanwhile: nothing written here can
+                    // be saved over it, and the way on is the blog's text.
+                    if changedOnBlog {
+                        Plate {
+                            Command("Load the post as the blog has it now", symbol: "arrow.clockwise", danger: true) {
+                                Task { await takeAfresh() }
+                            }
+                            .disabled(saving)
+                        }
+                        .gap(10)
+                        Hint("What is written here is replaced by the blog's text.")
+                    }
                 } else if !isDraft {
                     Hint("The post is live: saving rebuilds and deploys the site.")
                 }
@@ -319,13 +334,14 @@ struct TextEditView: View {
         saving = true
         defer { saving = false }
         problem = nil
+        changedOnBlog = false
         var files = Kept.sent(shots, text: text).map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: "\(slug).md", data: Data(fileText().utf8)))
         // Whose post it is and what goes, said before anything is waited for.
         let blog = Blogs.shared.currentID
         let going = text
         do {
-            saved = try Engine.made(from: await Engine.shared.deliver(files, to: blog))
+            saved = try await Engine.shared.delivered(files, to: blog)
             shots = []
             // Saved: what went is not left to bring back.
             if let blog { Unsaved.forget(for: blog, slug: slug, what: .text, saved: going) }
@@ -337,7 +353,25 @@ struct TextEditView: View {
             answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+            if case EngineError.refused(let refusal) = error { changedOnBlog = refusal.error == "changed" }
             answered += 1
+        }
+    }
+
+    /// The post as the blog has it now, in place of what is written here.
+    private func takeAfresh() async {
+        do {
+            let answer: EditAnswer = try await Engine.shared.call(["edit", slug])
+            entry = answer.post
+            broughtBack = nil
+            shots = []
+            text = answer.post.text ?? ""
+            if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+            Desk.shared.changed()
+            problem = answer.post.text == nil ? String(localized: "The text did not come with the answer.") : nil
+            changedOnBlog = false
+        } catch {
+            problem = error.isCalledOff ? problem : error.localizedDescription
         }
     }
 }

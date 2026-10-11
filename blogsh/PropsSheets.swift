@@ -259,8 +259,17 @@ struct AddressesSheet: View {
             await done()
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+            // The blog knows the address under another list, or not at
+            // all: what is listed here is no longer what it has.
+            if case EngineError.refused(let refusal) = error, Self.stale.contains(refusal.error),
+               let fresh: PropsAnswer = try? await Engine.shared.call(["props", props.slug]) {
+                addresses = fresh.addresses
+            }
         }
     }
+
+    /// The refusals that say the list on the screen is out of date.
+    nonisolated static let stale: Set<String> = ["kind_unknown", "address_unknown", "address_ambiguous"]
 }
 
 /// The [v] screen: what the post said before one of its recent saves.

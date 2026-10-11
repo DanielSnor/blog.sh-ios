@@ -14,7 +14,26 @@ import Foundation
 nonisolated struct Refusal: Decodable, Error, Equatable, Sendable {
     let ok: Bool
     let error: String
-    let message: String
+    /// The engine's sentence for it. Not every no comes with one: a blog
+    /// held by another run can answer with its code alone.
+    let message: String?
+
+    /// What to say of it: the engine's sentence -- or, where it gave
+    /// none, the app's own for a code it knows, and the code itself for
+    /// one it does not. Never nothing, and never the answer as it came
+    /// over the wire.
+    var words: String {
+        if error == "busy" { return Self.held }
+        if let message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return message }
+        return String(localized: "The blog said no (\(error)).")
+    }
+
+    /// The blog is held by another run. Said in the app's words whatever
+    /// the engine says: it says it in the blog's language, and this is
+    /// the one no a person meets by doing nothing wrong.
+    static var held: String {
+        String(localized: "Something else holds the blog just now -- a build, a publish or a save -- so nothing was written. Try again in a moment.")
+    }
 }
 
 /// `version --json`: the identity block the terminal shows above every

@@ -18,6 +18,9 @@ struct TranslateView: View {
     @State private var showingOriginal = true
     @State private var saving = false
     @State private var problem: String?
+    /// The save was turned away because the post has changed on the blog
+    /// since its text was opened here.
+    @State private var changedOnBlog = false
     @State private var saved: ActionAnswer?
     /// The last save took the language off rather than wrote it.
     @State private var tookOff = false
@@ -77,6 +80,16 @@ struct TranslateView: View {
                 .gap(22)
                 if let problem {
                     ProblemLine(text: problem)
+                    if changedOnBlog {
+                        Plate {
+                            Command("Load the post as the blog has it now", symbol: "arrow.clockwise", danger: true) {
+                                Task { await takeAfresh() }
+                            }
+                            .disabled(saving)
+                        }
+                        .gap(10)
+                        Hint("What is written here is replaced by the blog's text.")
+                    }
                 }
                 if entry.written {
                     Plate {
@@ -189,12 +202,13 @@ struct TranslateView: View {
         saving = true
         defer { saving = false }
         problem = nil
+        changedOnBlog = false
         let file = DeliveryFile(name: "\(slug)-\(lang).md", data: Data(fileText(body).utf8))
         // Whose post it is and what the editor held, said before anything is waited for.
         let blog = Blogs.shared.currentID
         let going = text
         do {
-            saved = try Engine.made(from: await Engine.shared.deliver([file], to: blog))
+            saved = try await Engine.shared.delivered([file], to: blog)
             // What was done, by what was sent: emptied words take the
             // language off whichever key sent them.
             tookOff = takingOff || Self.takesOff(body)
@@ -206,8 +220,17 @@ struct TranslateView: View {
             answered += 1
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
+            if case EngineError.refused(let refusal) = error { changedOnBlog = refusal.error == "changed" }
             answered += 1
         }
+    }
+
+    /// The text as the blog has it now, in place of what is written here.
+    private func takeAfresh() async {
+        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .language(lang)) }
+        Desk.shared.changed()
+        changedOnBlog = false
+        await load()
     }
 }
 

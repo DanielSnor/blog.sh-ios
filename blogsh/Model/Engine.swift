@@ -39,7 +39,7 @@ nonisolated enum EngineError: Error, LocalizedError {
         // terminal has; on a phone neither is anything one can do.
         case .refused(let refusal) where refusal.error == "ambiguous_slug":
             String(localized: "Two posts in different years share this slug, and the app cannot say which of them is meant. At the desk, ./blog.sh props asks which.")
-        case .refused(let refusal): refusal.message
+        case .refused(let refusal): refusal.words
         case .unreadable(let text): String(localized: "The engine did not answer as data: \(text)")
         case .unreachable(let server, _):
             String(localized: "The server \(server) did not answer. Is this device on a network the server can be reached from?")
@@ -68,7 +68,53 @@ actor Engine {
     /// reads as "there is nothing". A connection is short; its answer is
     /// simply not used when nobody is left to use it.
     nonisolated func call<T: Decodable & Sendable>(_ args: [String], as type: T.Type = T.self) async throws -> T {
-        try await Task { try Self.decode(try await self.run(args), as: type) }.value
+        try await Task {
+            try await Self.patiently(Self.waitsItsTurn(args)) { try Self.decode(try await self.run(args), as: type) }
+        }.value
+    }
+
+    /// A delivery made and read: the files sent, the engine's answer for
+    /// the markdown. A blog held by another run is waited for, as with
+    /// every command that writes.
+    nonisolated func delivered(_ files: [DeliveryFile], to blog: UUID? = nil) async throws -> ActionAnswer {
+        try await Task {
+            try await Self.patiently(true) { try Self.made(from: await self.deliver(files, to: blog)) }
+        }.value
+    }
+
+    /// How long a command that writes waits before asking again of a blog
+    /// that another run holds: four more askings, a quarter of a minute
+    /// in all. A build of a large site takes longer than that; by then
+    /// it is the person's to try again, and the sentence says so.
+    nonisolated static let turns: [Duration] = [.seconds(1), .seconds(2), .seconds(4), .seconds(8)]
+
+    /// The command writes a post, so the blog can answer `busy` to it --
+    /// nothing was written, ask again -- and asking again is safe. The
+    /// build is not among them: whoever owes it asks again on its own, at
+    /// its own, longer pace.
+    nonisolated static func waitsItsTurn(_ args: [String]) -> Bool {
+        switch args.first ?? "" {
+        case "rebuild": false
+        case "toot", "bluesky": true
+        default: changesTheBlog(args)
+        }
+    }
+
+    /// `work`, asked again while the blog answers that another run holds
+    /// it -- where the command is one that waits its turn. Any other
+    /// answer, and a `busy` that outlasts the waiting, is the caller's.
+    nonisolated static func patiently<T: Sendable>(_ waits: Bool,
+                                                   pause: @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) },
+                                                   _ work: @Sendable () async throws -> T) async throws -> T {
+        var turn = 0
+        while true {
+            do {
+                return try await work()
+            } catch EngineError.refused(let refusal) where waits && refusal.error == "busy" && turn < turns.count {
+                try await pause(turns[turn])
+                turn += 1
+            }
+        }
     }
 
     /// Several commands over one connection (`batch`), seen through the same way.

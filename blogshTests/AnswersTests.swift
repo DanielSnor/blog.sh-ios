@@ -184,7 +184,7 @@ import Testing
             Issue.record("a refusal was read as an answer")
         } catch EngineError.refused(let refusal) {
             #expect(refusal.error == "unknown_command")
-            #expect(refusal.message.hasPrefix("Only run"))
+            #expect(refusal.words.hasPrefix("Only run"))
         } catch {
             Issue.record("thrown as \(error)")
         }
@@ -435,5 +435,111 @@ import Testing
         // A kind that only looks like a language's is not read as one.
         #expect(PropsAnswer.OldAddress(kind: "translations..former_slugs", value: "x").language == nil)
         #expect(PropsAnswer.OldAddress(kind: "translations.en.redirects", value: "x").language == nil)
+    }
+}
+
+/// A no from the blog, and a blog that is held by another run. A mistake
+/// here is a refusal shown as the bytes it came in, or a write given up
+/// on that only had to wait its turn.
+@Suite struct RefusalTests {
+    private func busy() -> EngineError {
+        .refused(try! JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"busy"}"#.utf8)))
+    }
+
+    /// A blog held by another run can answer with its code alone: that is
+    /// a refusal, said in words, not an answer the app could not read.
+    @Test func aRefusalWithNoSentenceIsStillARefusal() throws {
+        let bare = Data(#"{"ok":false,"error":"busy"}"#.utf8)
+        do {
+            let _: ActionAnswer = try Engine.decode(bare)
+            Issue.record("read as an answer")
+        } catch EngineError.refused(let refusal) {
+            #expect(refusal.error == "busy")
+            #expect(refusal.message == nil)
+            #expect(refusal.words == Refusal.held)
+        } catch {
+            Issue.record("thrown as \(error)")
+        }
+        #expect(throws: EngineError.self) { try Engine.made(from: [bare]) }
+    }
+
+    /// The engine's sentence is what is said, where it gave one; a code
+    /// the app does not know and that came without one is said by name.
+    @Test func aRefusalIsSaidInWords() throws {
+        let said = try JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"bad_date","message":"That date cannot be read."}"#.utf8))
+        #expect(said.words == "That date cannot be read.")
+        let unknown = try JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"brand_new","message":"  "}"#.utf8))
+        #expect(unknown.words.contains("brand_new"))
+        #expect(!unknown.words.contains("{"))
+        // Held by another run: the app's own words, whatever language the blog said it in.
+        let held = try JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"busy","message":"Blog is busy."}"#.utf8))
+        #expect(held.words == Refusal.held)
+        #expect(EngineError.refused(held).errorDescription == Refusal.held)
+    }
+
+    /// The commands that write wait their turn; reading does not, and the
+    /// build is asked again by whoever owes it.
+    @Test func theCommandsThatWriteWaitTheirTurn() {
+        #expect(Engine.waitsItsTurn(["publish", "a", "--yes"]))
+        #expect(Engine.waitsItsTurn(["unpublish", "a", "--yes"]))
+        #expect(Engine.waitsItsTurn(["delete", "a", "--yes"]))
+        #expect(Engine.waitsItsTurn(["restore", "a"]))
+        #expect(Engine.waitsItsTurn(["schedule", "a", "--cancel"]))
+        #expect(Engine.waitsItsTurn(["props", "a", "--rename", "b", "--yes"]))
+        #expect(Engine.waitsItsTurn(["queue", "--up", "2026/a"]))
+        #expect(Engine.waitsItsTurn(["toot", "a"]))
+        #expect(Engine.waitsItsTurn(["bluesky", "a"]))
+        #expect(!Engine.waitsItsTurn(["rebuild"]))
+        #expect(!Engine.waitsItsTurn(["props", "a"]))
+        #expect(!Engine.waitsItsTurn(["queue"]))
+        #expect(!Engine.waitsItsTurn(["list", "--drafts"]))
+    }
+
+    /// A held blog is asked again, a little later each time, and what it
+    /// then answers is the answer.
+    @Test func aHeldBlogIsAskedAgain() async throws {
+        actor Count { var asked = 0; var waits: [Duration] = []; func ask() -> Int { asked += 1; return asked }; func wait(_ d: Duration) { waits.append(d) } }
+        let count = Count()
+        let held = busy()
+        let answer = try await Engine.patiently(true, pause: { await count.wait($0) }) {
+            if await count.ask() < 3 { throw held }
+            return "written"
+        }
+        #expect(answer == "written")
+        #expect(await count.asked == 3)
+        #expect(await count.waits == [.seconds(1), .seconds(2)])
+    }
+
+    /// Held for longer than the waiting is worth, the no is the caller's
+    /// -- as is every other no at once, and a `busy` to a command that
+    /// does not wait.
+    @Test func theWaitingHasAnEnd() async {
+        actor Count { var asked = 0; func ask() { asked += 1 } }
+        let held = busy()
+        let forever = Count()
+        await #expect(throws: EngineError.self) {
+            try await Engine.patiently(true, pause: { _ in }) { await forever.ask(); throw held }
+        }
+        #expect(await forever.asked == Engine.turns.count + 1)
+
+        let reading = Count()
+        await #expect(throws: EngineError.self) {
+            try await Engine.patiently(false, pause: { _ in }) { await reading.ask(); throw held }
+        }
+        #expect(await reading.asked == 1)
+
+        let other = Count()
+        let no = EngineError.refused(try! JSONDecoder().decode(Refusal.self, from: Data(#"{"ok":false,"error":"not_found","message":"No such post."}"#.utf8)))
+        await #expect(throws: EngineError.self) {
+            try await Engine.patiently(true, pause: { _ in }) { await other.ask(); throw no }
+        }
+        #expect(await other.asked == 1)
+    }
+
+    /// The refusals that say the list of old addresses on the screen is no longer the blog's.
+    @Test func aStaleListOfAddressesIsKnownByItsRefusal() {
+        #expect(AddressesSheet.stale.contains("kind_unknown"))
+        #expect(AddressesSheet.stale.contains("address_unknown"))
+        #expect(!AddressesSheet.stale.contains("busy"))
     }
 }

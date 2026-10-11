@@ -341,7 +341,7 @@ struct ComposeView: View {
         var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {
-            made = try Engine.made(from: await Engine.shared.deliver(files, to: blog))
+            made = try await Engine.shared.delivered(files, to: blog)
             // Forgotten here, not by the form's own noticing that it was
             // emptied: a form left while its post was going notices nothing.
             Unsent.forget(for: blog, sent: going)
