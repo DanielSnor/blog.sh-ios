@@ -173,7 +173,10 @@ struct TextEditView: View {
                 ProblemLine(text: problem)
                 if let stranded {
                     Stranded(kept: stranded) {
-                        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+                        if let blog = Blogs.shared.currentID {
+                            Unsaved.forget(for: blog, slug: slug, what: .text)
+                            UnsentShots.forget(for: blog, slug: slug)
+                        }
                         Desk.shared.changed()
                     }
                 }
@@ -194,6 +197,11 @@ struct TextEditView: View {
         // A picture just chosen, whose mark the text already has, takes its words too.
         .onChange(of: shots.count) { _, _ in
             shots = Kept.heard(shots, from: text)
+        }
+        // The pictures added here are kept as the changed text is, until
+        // the change is saved: a screen left took them along.
+        .onChange(of: shots.map { "\($0.name)\u{0}\($0.alt)" }) { _, _ in
+            if entry?.editable == true, let blog = Blogs.shared.currentID { UnsentShots.keep(shots, for: blog, slug: slug) }
         }
         .onChange(of: picked) { _, items in Task { await loadPictures(items) } }
         .fileImporter(isPresented: $choosingFiles, allowedContentTypes: [.image, .movie], allowsMultipleSelection: true) { chosen in
@@ -258,7 +266,16 @@ struct TextEditView: View {
         broughtBack = nil
         shots = []
         text = entry?.text ?? ""
-        if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+        if let blog = Blogs.shared.currentID {
+            Unsaved.forget(for: blog, slug: slug, what: .text)
+            UnsentShots.forget(for: blog, slug: slug)
+        }
+    }
+
+    /// The pictures added to this post here and not saved with it yet.
+    private func bringShotsBack() {
+        guard shots.isEmpty, entry?.editable == true, let blog = Blogs.shared.currentID else { return }
+        shots = UnsentShots.shots(for: blog, slug: slug)
     }
 
     private func load() async {
@@ -267,6 +284,7 @@ struct TextEditView: View {
             tookLoaded = true
             entry = loaded
             text = opened(loaded, with: handed)
+            bringShotsBack()
             return
         }
         tookLoaded = true
@@ -274,6 +292,7 @@ struct TextEditView: View {
             let answer: EditAnswer = try await Engine.shared.call(["edit", slug])
             entry = answer.post
             text = opened(answer.post, with: answer.post.text ?? "")
+            bringShotsBack()
             problem = answer.post.text == nil ? String(localized: "The text did not come with the answer.") : nil
         } catch {
             problem = error.isCalledOff ? problem : error.localizedDescription
@@ -348,7 +367,10 @@ struct TextEditView: View {
             saved = try await Engine.shared.delivered(files, to: blog)
             shots = []
             // Saved: what went is not left to bring back.
-            if let blog { Unsaved.forget(for: blog, slug: slug, what: .text, saved: going) }
+            if let blog {
+                Unsaved.forget(for: blog, slug: slug, what: .text, saved: going)
+                UnsentShots.forget(for: blog, slug: slug)
+            }
             broughtBack = nil
             Desk.shared.changed()
             // Saving a published post builds the site: nothing is owed after it.
@@ -370,7 +392,10 @@ struct TextEditView: View {
             broughtBack = nil
             shots = []
             text = answer.post.text ?? ""
-            if let blog = Blogs.shared.currentID { Unsaved.forget(for: blog, slug: slug, what: .text) }
+            if let blog = Blogs.shared.currentID {
+                Unsaved.forget(for: blog, slug: slug, what: .text)
+                UnsentShots.forget(for: blog, slug: slug)
+            }
             Desk.shared.changed()
             problem = answer.post.text == nil ? String(localized: "The text did not come with the answer.") : nil
             changedOnBlog = false

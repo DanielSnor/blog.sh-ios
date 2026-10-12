@@ -377,6 +377,7 @@ struct PropsView: View {
             // What was written for the post and not saved follows it to its new name.
             if let blog {
                 Unsaved.move(for: blog, from: old, to: answer.slug)
+                UnsentShots.move(for: blog, from: old, to: answer.slug)
                 Desk.shared.changed()
             }
             slug = answer.slug

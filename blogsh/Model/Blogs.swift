@@ -333,7 +333,7 @@ final class Blogs {
         Unsent.forget(for: id)
         Unsaved.forgetAll(for: id)
         WaitingRoom.removeAll(for: id)
-        UnsentShots.forget(for: id)
+        UnsentShots.forgetAll(for: id)
         Engine.hangUp()
         all.removeAll { $0.id == id }
         if currentID == id { currentID = all.first?.id }

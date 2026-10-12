@@ -16,7 +16,7 @@ import Testing
     }
 
     private func files(_ home: URL, _ blog: UUID, _ directory: String) -> [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: home.appendingPathComponent(blog.uuidString).appendingPathComponent(directory).path)) ?? []).sorted()
+        ((try? FileManager.default.contentsOfDirectory(atPath: home.appendingPathComponent(blog.uuidString).appendingPathComponent("new").appendingPathComponent(directory).path)) ?? []).sorted()
     }
 
     /// What the form held comes back as it held it: the order, the
@@ -70,7 +70,7 @@ import Testing
         UnsentShots.keep([], for: blog, in: home)
         #expect(UnsentShots.shots(for: blog, in: home).isEmpty)
         #expect(UnsentShots.kept(for: blog, in: home) == nil)
-        #expect(!FileManager.default.fileExists(atPath: home.appendingPathComponent(blog.uuidString).path))
+        #expect(!FileManager.default.fileExists(atPath: home.appendingPathComponent(blog.uuidString).appendingPathComponent("new").path))
         #expect(UnsentShots.shots(for: other, in: home).map(\.name) == ["o.jpg"])
         UnsentShots.forget(for: other, in: home)
         #expect(UnsentShots.shots(for: other, in: home).isEmpty)
@@ -91,7 +91,45 @@ import Testing
         let home = try home(); defer { try? FileManager.default.removeItem(at: home) }
         let blog = UUID()
         UnsentShots.keep([shot("a.jpg", [1]), shot("b.jpg", [2])], for: blog, in: home)
-        try FileManager.default.removeItem(at: home.appendingPathComponent(blog.uuidString).appendingPathComponent("media/a.jpg"))
+        try FileManager.default.removeItem(at: home.appendingPathComponent(blog.uuidString).appendingPathComponent("new/media/a.jpg"))
         #expect(UnsentShots.shots(for: blog, in: home).map(\.name) == ["b.jpg"])
+    }
+
+    /// Pictures added to a post being changed are kept for that post:
+    /// apart from the new post's, and from another post's.
+    @Test func aPostBeingChangedKeepsItsOwn() throws {
+        let home = try home(); defer { try? FileManager.default.removeItem(at: home) }
+        let blog = UUID()
+        UnsentShots.keep([shot("n.jpg", [1])], for: blog, in: home)
+        UnsentShots.keep([shot("a.jpg", [2])], for: blog, slug: "prvni", in: home)
+        UnsentShots.keep([shot("b.jpg", [3])], for: blog, slug: "druhy", in: home)
+        #expect(UnsentShots.shots(for: blog, in: home).map(\.name) == ["n.jpg"])
+        #expect(UnsentShots.shots(for: blog, slug: "prvni", in: home).map(\.name) == ["a.jpg"])
+        #expect(UnsentShots.shots(for: blog, slug: "druhy", in: home).map(\.name) == ["b.jpg"])
+        // Saved: that post's are forgotten, the others stay.
+        UnsentShots.forget(for: blog, slug: "prvni", in: home)
+        #expect(UnsentShots.shots(for: blog, slug: "prvni", in: home).isEmpty)
+        #expect(UnsentShots.shots(for: blog, slug: "druhy", in: home).map(\.name) == ["b.jpg"])
+        // The new post sent: its own go, a post's being changed do not.
+        UnsentShots.keep([], for: blog, in: home)
+        #expect(UnsentShots.shots(for: blog, in: home).isEmpty)
+        #expect(UnsentShots.shots(for: blog, slug: "druhy", in: home).map(\.name) == ["b.jpg"])
+        // A blog that leaves takes everything.
+        UnsentShots.forgetAll(for: blog, in: home)
+        #expect(UnsentShots.shots(for: blog, slug: "druhy", in: home).isEmpty)
+    }
+
+    /// A post renamed takes what was kept for it to its new name.
+    @Test func aRenamedPostKeepsItsPictures() throws {
+        let home = try home(); defer { try? FileManager.default.removeItem(at: home) }
+        let blog = UUID()
+        UnsentShots.keep([shot("a.jpg", [2], alt: "Popis")], for: blog, slug: "stary", in: home)
+        UnsentShots.move(for: blog, from: "stary", to: "novy", in: home)
+        #expect(UnsentShots.shots(for: blog, slug: "stary", in: home).isEmpty)
+        #expect(UnsentShots.shots(for: blog, slug: "novy", in: home).map(\.alt) == ["Popis"])
+        // A slug cannot name a place outside the blog's edits.
+        UnsentShots.keep([shot("x.jpg", [9])], for: blog, slug: "../../ven", in: home)
+        #expect(!FileManager.default.fileExists(atPath: home.appendingPathComponent("ven").path))
+        #expect(UnsentShots.shots(for: blog, slug: "../../ven", in: home).map(\.name) == ["x.jpg"])
     }
 }

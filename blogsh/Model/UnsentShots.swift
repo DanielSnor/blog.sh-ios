@@ -7,9 +7,13 @@ import os
 /// another blog, an app stopped behind another -- took them along; the
 /// words came back and the pictures had to be found again.
 ///
-/// A directory to a blog: `shots.json`, the list in the form's order, and
-/// beside it the files as they will travel. One post is written for a
-/// blog at a time, so one set is kept for it.
+/// The same holds for pictures added to a post the blog already has,
+/// while its text is being changed: kept until the change is saved.
+///
+/// A directory to a blog, and in it one to each writing -- `new` for the
+/// new post, of which a blog has one at a time, and `edits/<slug>` for a
+/// post being changed: `shots.json`, the list in the form's order, and
+/// beside it the files as they will travel.
 nonisolated enum UnsentShots {
     /// One picture or video, as the form's card has it.
     struct Piece: Codable, Equatable, Sendable {
@@ -28,8 +32,14 @@ nonisolated enum UnsentShots {
             ?? FileManager.default.temporaryDirectory).appendingPathComponent("unsent", isDirectory: true)
     }
 
-    private static func room(_ blog: UUID, in home: URL) -> URL {
-        home.appendingPathComponent(blog.uuidString, isDirectory: true)
+    /// The new post's room, or that of the post whose text is being changed.
+    private static func room(_ blog: UUID, _ slug: String?, in home: URL) -> URL {
+        let blogs = home.appendingPathComponent(blog.uuidString, isDirectory: true)
+        guard let slug else { return blogs.appendingPathComponent("new", isDirectory: true) }
+        // One name, whatever the slug holds: a directory of this blog's edits.
+        let name = slug.replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "..", with: "_")
+        return blogs.appendingPathComponent("edits", isDirectory: true)
+            .appendingPathComponent(name.isEmpty ? "_" : name, isDirectory: true)
     }
 
     /// A name as a file of the blog's own directory, and of no other.
@@ -47,8 +57,8 @@ nonisolated enum UnsentShots {
     /// Keeps what the form holds now: a file is written once, when its
     /// shot is new; one whose shot is gone from the form goes too. With
     /// nothing in the form, nothing is kept.
-    static func keep(_ shots: [Shot], for blog: UUID, in home: URL = home) {
-        let room = room(blog, in: home)
+    static func keep(_ shots: [Shot], for blog: UUID, slug: String? = nil, in home: URL = home) {
+        let room = room(blog, slug, in: home)
         let files = FileManager.default
         guard !shots.isEmpty else {
             try? files.removeItem(at: room)
@@ -92,8 +102,8 @@ nonisolated enum UnsentShots {
 
     /// What is kept for a blog, as the form holds its shots; one whose
     /// file does not read is left out.
-    static func shots(for blog: UUID, in home: URL = home) -> [Shot] {
-        let room = room(blog, in: home)
+    static func shots(for blog: UUID, slug: String? = nil, in home: URL = home) -> [Shot] {
+        let room = room(blog, slug, in: home)
         return list(at: room).compactMap { piece in
             guard let data = try? Data(contentsOf: file(piece.name, under: "media", at: room)) else { return nil }
             return Shot(name: piece.name, data: data, width: piece.width, height: piece.height, alt: piece.alt,
@@ -105,13 +115,26 @@ nonisolated enum UnsentShots {
     }
 
     /// When they were last kept; nil where nothing is.
-    static func kept(for blog: UUID, in home: URL = home) -> Date? {
-        let list = room(blog, in: home).appendingPathComponent("shots.json")
+    static func kept(for blog: UUID, slug: String? = nil, in home: URL = home) -> Date? {
+        let list = room(blog, slug, in: home).appendingPathComponent("shots.json")
         return (try? FileManager.default.attributesOfItem(atPath: list.path))?[.modificationDate] as? Date
     }
 
-    /// The post was sent, put by or thrown away -- or its blog left the app.
-    static func forget(for blog: UUID, in home: URL = home) {
-        try? FileManager.default.removeItem(at: room(blog, in: home))
+    /// The post was sent, put by or thrown away; the change was saved or given up.
+    static func forget(for blog: UUID, slug: String? = nil, in home: URL = home) {
+        try? FileManager.default.removeItem(at: room(blog, slug, in: home))
+    }
+
+    /// The post was renamed: what was kept for it follows it to its new name.
+    static func move(for blog: UUID, from old: String, to new: String, in home: URL = home) {
+        let from = room(blog, old, in: home), to = room(blog, new, in: home)
+        guard old != new, FileManager.default.fileExists(atPath: from.path) else { return }
+        try? FileManager.default.removeItem(at: to)
+        try? FileManager.default.moveItem(at: from, to: to)
+    }
+
+    /// Everything kept for a blog that leaves the app.
+    static func forgetAll(for blog: UUID, in home: URL = home) {
+        try? FileManager.default.removeItem(at: home.appendingPathComponent(blog.uuidString, isDirectory: true))
     }
 }
