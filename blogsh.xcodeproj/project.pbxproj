@@ -194,6 +194,7 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
 			);
 			name = "Stamp the build";
 			outputFileListPaths = (
@@ -203,7 +204,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# The commit and the time of this build, for the line in Settings that tells one copy of the app from another.\nstamp=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/BuildStamp.txt\"\ncommit=$(git -C \"${SRCROOT}\" rev-parse --short HEAD 2>/dev/null || true)\nif [ -n \"${commit}\" ] && [ -n \"$(git -C \"${SRCROOT}\" status --porcelain 2>/dev/null)\" ]; then commit=\"${commit}+\"; fi\nprintf '%s\\n%s\\n' \"${commit}\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" > \"${stamp}\"\n";
+			shellScript = "# The commit and the time of this build, for the line in Settings that tells one copy of the app from another.\nstamp=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/BuildStamp.txt\"\ncommit=$(git -C \"${SRCROOT}\" rev-parse --short HEAD 2>/dev/null || true)\nif [ -n \"${commit}\" ] && [ -n \"$(git -C \"${SRCROOT}\" status --porcelain 2>/dev/null)\" ]; then commit=\"${commit}+\"; fi\nprintf '%s\\n%s\\n' \"${commit}\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" > \"${stamp}\"\n# The number of this build: how many commits the app is made of. It grows by itself, and no two builds that differ share one -- which is what a store asks of it.\ncount=$(git -C \"${SRCROOT}\" rev-list --count HEAD 2>/dev/null || true)\nplist=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ -n \"${count}\" ] && [ -f \"${plist}\" ]; then /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion ${count}\" \"${plist}\"; fi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
