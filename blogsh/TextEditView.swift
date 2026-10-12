@@ -68,7 +68,7 @@ struct TextEditView: View {
                         .disabled(!entry.editable || saving)
                 }
                 .padding(.top, entry.editable ? 0 : 14)
-                Hint("The header and the text, as the editor opens them. A picture is named by its file name.")
+                Hint("The post as the blog keeps it: its header between the two --- lines, the text under it. A picture is named by its file name.")
                 Plate {
                     Command("Preview", symbol: "eye") { previewing = true }
                 }

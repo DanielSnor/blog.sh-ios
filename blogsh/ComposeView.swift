@@ -137,6 +137,11 @@ struct ComposeView: View {
             }
             .disabled(busy || importing || !Markdown.isWritten(text) || overweight)
             .gap(22)
+            // A key that cannot be pressed says why, where the form looks
+            // as if it had something to send.
+            if !Markdown.isWritten(text), !(title + tags).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Hint("The text is missing: the blog takes no post of a title alone.")
+            }
             if offline {
                 Hint("The blog's server cannot be reached. Kept on the device, the post goes to the blog as a draft, with its pictures, once the server answers.")
             }

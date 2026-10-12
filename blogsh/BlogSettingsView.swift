@@ -18,6 +18,7 @@ struct BlogSettingsView: View {
     @State private var copied = false
     @State private var pairing = false
     @State private var showingDevices = false
+    @State private var confirmingForget = false
 
     /// A code let this device in: the blog's place on the server and the
     /// key's line are the pairing's, and nothing of them is set here.
@@ -125,7 +126,7 @@ struct BlogSettingsView: View {
                     Command("Paired devices", symbol: "ipad.and.iphone", leads: true) { showingDevices = true }
                     Command("Pair again", symbol: "qrcode", leads: true) { pairing = true }
                 }
-                Hint("Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke. In what ./blog.sh pair --list shows, it is the line with this key.")
+                Hint("Where the blog lies on the server and what this device may run there was set by the pairing on the server; nothing of it is set here. In Paired devices this device is the line with this key, and can be taken off the blog there.")
             } else {
                 Hint("The line for the server's ~/.ssh/authorized_keys is made from where the blog is. A blog inside a container is reached through the command that enters it, for example sudo docker exec -i blog; one that is not in a container leaves that field empty.")
             }
@@ -215,11 +216,18 @@ struct BlogSettingsView: View {
                             .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
                     }
-                    Command("Forget the server's key", symbol: "xmark.circle", danger: true) {
-                        TrustOnFirstUse.forget(host: host, port: port)
-                        // The kept connection was opened to the key just forgotten.
-                        Engine.hangUp()
-                    }
+                    // Asked, as a new key of the app's own is: with the
+                    // server's key forgotten the next machine to answer
+                    // is believed, whichever it is.
+                    Command("Forget the server's key", symbol: "xmark.circle", danger: true) { confirmingForget = true }
+                        .confirmationDialog("Forget the key this server was known by? Do it only when the server was moved or reinstalled: the next connection takes whatever key answers, and a connection to the wrong machine would not be noticed.",
+                                            isPresented: $confirmingForget, titleVisibility: .visible) {
+                            Button("Forget the key", role: .destructive) {
+                                TrustOnFirstUse.forget(host: host, port: port)
+                                // The kept connection was opened to the key just forgotten.
+                                Engine.hangUp()
+                            }
+                        }
                 }
                 .gap(12)
             }

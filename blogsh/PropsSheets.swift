@@ -134,7 +134,7 @@ struct PropertiesForm: View {
                 }
             }
             .gap(10)
-            Hint("Properties are what the post IS, not what it says. The flags have a third state: whatever the site does.")
+            Hint("An unlisted post keeps its address and leaves the listings, the feeds, the sitemap and the search. The two under it have a third state: whatever the site does.")
             Button {
                 Task { await save() }
             } label: {

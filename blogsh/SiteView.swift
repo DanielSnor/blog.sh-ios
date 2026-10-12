@@ -12,6 +12,7 @@ struct SiteView: View {
     @State private var home = Blogs.shared.currentID
     @State private var full = false
     @State private var force = false
+    @State private var confirmingForce = false
     @State private var running = false
     @State private var result: RebuildAnswer?
     @State private var problem: String?
@@ -30,13 +31,19 @@ struct SiteView: View {
                 SwitchRow(label: "Upload the whole site unchecked", isOn: $force)
             }
             .gap(14)
-            Hint("A deploy uploads what changed, and stops by itself when the site has suddenly lost or gained a lot: that is what a broken build looks like. Turn this on only when it stopped and the change is right (many posts deleted, a large import). The whole site is then uploaded without that check.")
+            Hint("A deploy stops by itself when the site has suddenly lost or gained a lot, as after a broken build. Turn this on only when it stopped and the change is right (many posts deleted, a large import).")
             Button {
-                Task { await rebuild() }
+                // With the check off, the key is asked about: the switch
+                // and the key stand a thumb apart.
+                if force { confirmingForce = true } else { Task { await rebuild() } }
             } label: {
                 PrimaryLabel(label: running ? "Rebuilding…" : "Rebuild and deploy", busy: running)
             }
             .buttonStyle(PrimaryButtonStyle())
+            .confirmationDialog("Upload the whole site without the check that stops a broken build? What is on the web now is replaced by what was just built.",
+                                isPresented: $confirmingForce, titleVisibility: .visible) {
+                Button("Rebuild and upload unchecked", role: .destructive) { Task { await rebuild() } }
+            }
             .disabled(running)
             .gap(22)
             if let problem {

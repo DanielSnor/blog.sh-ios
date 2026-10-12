@@ -51,7 +51,7 @@ struct QueueView: View {
             if unattended, !rows.isEmpty {
                 // Said first, and as what it is: on this blog the queue is a
                 // list, not a clock.
-                Text("Nothing on this blog sends the queue out by itself: no scheduled run has ever gone through it. A post whose time has come waits until it is published by hand -- hold its row, or swipe it to a side.")
+                Text("Nothing on this blog sends the queue out by itself: no scheduled run has ever gone through it. A post whose time has come waits until it is published by hand; its row then has the key for it.")
                     .font(.ui(13, weight: .medium))
                     .foregroundStyle(Theme.danger)
                     .fixedSize(horizontal: false, vertical: true)
@@ -120,7 +120,7 @@ struct QueueView: View {
                     }
                 }
                 // What the rows can do is all behind a gesture; said once, under them.
-                Text("A row opens its post. Swiped to a side it shows its keys; held, all of them -- and a row held can be carried to another place in the queue.")
+                Text("A row opens its post. Swiped to a side it is moved, published or taken off the plan; held, it offers all of that -- and can be carried to another place in the queue.")
                     .font(.ui(13))
                     .foregroundStyle(Theme.muted)
                     .frame(maxWidth: .infinity, alignment: .leading)

@@ -34,7 +34,7 @@ struct PostPreviewView: View {
                 ProgressView().frame(maxWidth: .infinity)
             }
         }
-        .navigationTitle("Preview")
+        .navigationTitle("Look")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Done") { dismiss() }

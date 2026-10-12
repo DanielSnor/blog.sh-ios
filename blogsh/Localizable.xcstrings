@@ -95,6 +95,12 @@
             "state": "translated",
             "value": "%@: ein Bild muss auf einer eigenen Zeile stehen, mit einer Leerzeile davor und danach -- sonst lehnt das Blog den Beitrag ab"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: a picture has to stand on a line of its own, with a blank line before it and after it — the blog refuses the post otherwise"
+          }
         }
       }
     },
@@ -175,6 +181,12 @@
             "state": "translated",
             "value": "(seine Zeit ist gekommen – von Hand veröffentlichen)"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(its time has come — publish it by hand)"
+          }
         }
       }
     },
@@ -226,18 +238,18 @@
         }
       }
     },
-    "A deploy uploads what changed, and stops by itself when the site has suddenly lost or gained a lot: that is what a broken build looks like. Turn this on only when it stopped and the change is right (many posts deleted, a large import). The whole site is then uploaded without that check.": {
+    "A deploy stops by itself when the site has suddenly lost or gained a lot, as after a broken build. Turn this on only when it stopped and the change is right (many posts deleted, a large import).": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nasazení nahrává jen to, co se změnilo, a samo se zastaví, když webu naráz hodně ubude nebo přibude: tak vypadá rozbité sestavení. Zapni to, jen když se nasazení zastavilo a změna je v pořádku (hodně smazaných příspěvků, velký import). Celý web se pak nahraje bez téhle kontroly."
+            "value": "Nasazení se samo zastaví, když webu naráz hodně ubude nebo přibude, jako po rozbitém sestavení. Zapni to, jen když se zastavilo a změna je v pořádku (hodně smazaných příspěvků, velký import)."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein Deploy lädt hoch, was sich geändert hat, und hält von selbst an, wenn die Website plötzlich viel verloren oder gewonnen hat: So sieht ein kaputter Build aus. Schalte das nur ein, wenn er angehalten hat und die Änderung stimmt (viele gelöschte Beiträge, ein großer Import). Die ganze Website wird dann ohne diese Prüfung hochgeladen."
+            "value": "Ein Deploy hält von selbst an, wenn der Website plötzlich viel fehlt oder viel dazukommt, wie nach einem kaputten Build. Schalte das nur ein, wenn er angehalten hat und die Änderung stimmt (viele gelöschte Beiträge, ein großer Import)."
           }
         }
       }
@@ -354,18 +366,24 @@
         }
       }
     },
-    "A row opens its post. Swiped to a side it shows its keys; held, all of them -- and a row held can be carried to another place in the queue.": {
+    "A row opens its post. Swiped to a side it is moved, published or taken off the plan; held, it offers all of that -- and can be carried to another place in the queue.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Řádek otevře příspěvek. Tahem do strany ukáže své klávesy, podržením všechny — a podržený řádek jde přenést na jiné místo ve frontě."
+            "value": "Ťuknutím na řádek příspěvek otevřeš. Tahem do strany ho posuneš, zveřejníš nebo mu zrušíš plán; podržený nabídne všechno najednou — a jde přenést na jiné místo ve frontě."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine Zeile öffnet ihren Beitrag. Zur Seite gewischt zeigt sie ihre Tasten, gehalten alle — und eine gehaltene Zeile lässt sich an eine andere Stelle der Warteschlange tragen."
+            "value": "Ein Tipp auf die Zeile öffnet den Beitrag. Zur Seite gewischt wird er verschoben, veröffentlicht oder aus dem Plan genommen; gehalten bietet die Zeile all das an — und lässt sich an eine andere Stelle der Warteschlange tragen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A row opens its post. Swiped to a side it is moved, published or taken off the plan; held, it offers all of that — and can be carried to another place in the queue."
           }
         }
       }
@@ -391,13 +409,13 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Text ze souboru se vloží tam, kde je kurzor, a soubor zůstane, jak je. Odstavec v něm končí prázdný řádek."
+            "value": "Text ze souboru se vloží tam, kde je kurzor, a soubor zůstane, jak je. Odstavce v něm odděluje prázdný řádek."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein Text aus einer Datei kommt dorthin, wo die Einfügemarke steht, und die Datei bleibt, wie sie ist. Ein Absatz endet darin mit einer Leerzeile."
+            "value": "Ein Text aus einer Datei kommt dorthin, wo die Einfügemarke steht, und die Datei bleibt, wie sie ist. Absätze trennt darin eine Leerzeile."
           }
         }
       }
@@ -510,6 +528,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aus Dateien hinzufügen"
+          }
+        }
+      }
+    },
+    "An unlisted post keeps its address and leaves the listings, the feeds, the sitemap and the search. The two under it have a third state: whatever the site does.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek mimo výpisy zůstane na své adrese, ale zmizí z výpisů, feedů, sitemapy i hledání. Dva řádky pod ním mají třetí stav: jak to dělá web."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein ungelisteter Beitrag behält seine Adresse, verschwindet aber aus Listen, Feeds, Sitemap und Suche. Die beiden darunter haben einen dritten Zustand: wie es die Website hält."
           }
         }
       }
@@ -1730,6 +1764,38 @@
         }
       }
     },
+    "Forget the key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapomenout klíč"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel vergessen"
+          }
+        }
+      }
+    },
+    "Forget the key this server was known by? Do it only when the server was moved or reinstalled: the next connection takes whatever key answers, and a connection to the wrong machine would not be noticed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapomenout klíč, podle kterého appka tenhle server zná? Jen když se server stěhoval nebo přeinstaloval: příští spojení přijme jakýkoli klíč, který se ozve, a připojení k cizímu stroji by appka nepoznala."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den Schlüssel vergessen, an dem die App diesen Server erkennt? Nur, wenn der Server umgezogen ist oder neu aufgesetzt wurde: Die nächste Verbindung nimmt jeden Schlüssel, der antwortet, und eine Verbindung zur falschen Maschine fiele nicht auf."
+          }
+        }
+      }
+    },
     "Forget the server's key": {
       "localizations": {
         "cs": {
@@ -1799,7 +1865,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server"
+            "value": "Adresa"
           }
         },
         "de": {
@@ -2066,6 +2132,22 @@
         }
       }
     },
+    "Look": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahlédnout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hineinsehen"
+          }
+        }
+      }
+    },
     "Look at the picture": {
       "localizations": {
         "cs": {
@@ -2142,6 +2224,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Markdown. Ein Bild kommt als ![Beschreibung](foto.jpg) hinein, ein Video als !![Beschreibung](clip.mp4) -- nur der Name, kein Pfad."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) — the bare name, no path."
           }
         }
       }
@@ -2279,7 +2367,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "K tomuhle blogu zatím kód žádné zařízení nepustil."
+            "value": "K tomuhle blogu zatím není kódem připojené žádné zařízení."
           }
         },
         "de": {
@@ -2431,21 +2519,27 @@
             "state": "translated",
             "value": "Auf diesem Blog verschickt nichts die Warteschlange von selbst, der Beitrag wartet also über seine Zeit hinaus. Veröffentliche ihn dann von Hand — oder richte auf dem Server den geplanten Lauf ein; wie, sagt Web, Installation prüfen."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing on this blog sends the queue out by itself, so the post will wait past its time. Publish it by hand then — or set the scheduled run up on the server; Site, Check the installation says how."
+          }
         }
       }
     },
-    "Nothing on this blog sends the queue out by itself: no scheduled run has ever gone through it. A post whose time has come waits until it is published by hand -- hold its row, or swipe it to a side.": {
+    "Nothing on this blog sends the queue out by itself: no scheduled run has ever gone through it. A post whose time has come waits until it is published by hand; its row then has the key for it.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Na tomhle blogu frontu nic samo nerozesílá: plánované spuštění jí ještě nikdy neprošlo. Příspěvek, jehož čas nastal, čeká, dokud ho nezveřejníš ručně – podrž jeho řádek, nebo ho odsuň do strany."
+            "value": "Na tomhle blogu frontu nic samo nerozesílá: plánované spuštění jí ještě nikdy neprošlo. Příspěvek, jehož čas nastal, čeká, dokud ho nezveřejníš ručně; jeho řádek pak na to má klávesu."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auf diesem Blog schickt nichts die Warteschlange von selbst hinaus: Ein geplanter Lauf ist noch nie durch sie gegangen. Ein Beitrag, dessen Zeit gekommen ist, wartet, bis er von Hand veröffentlicht wird – halte seine Zeile oder wische sie zur Seite."
+            "value": "Auf diesem Blog schickt nichts die Warteschlange von selbst hinaus: Ein geplanter Lauf ist noch nie durch sie gegangen. Ein Beitrag, dessen Zeit gekommen ist, wartet, bis er von Hand veröffentlicht wird; seine Zeile hat dann die Taste dafür."
           }
         }
       }
@@ -2767,6 +2861,12 @@
             "state": "translated",
             "value": "Bild %@ -- auf diesem Gerät ohne Vorschau"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture %@ — no preview on this device"
+          }
         }
       }
     },
@@ -2974,22 +3074,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eigenschaften"
-          }
-        }
-      }
-    },
-    "Properties are what the post IS, not what it says. The flags have a third state: whatever the site does.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vlastnosti jsou to, čím příspěvek JE, ne co říká. Přepínače mají třetí stav: jak to dělá web."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eigenschaften sind, was der Beitrag IST, nicht was er sagt. Die Schalter haben einen dritten Zustand: wie es die Website hält."
           }
         }
       }
@@ -3214,6 +3298,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neu bauen und ausliefern"
+          }
+        }
+      }
+    },
+    "Rebuild and upload unchecked": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sestavit a nahrát bez kontroly"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bauen und ungeprüft hochladen"
           }
         }
       }
@@ -3479,7 +3579,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obnovit '%@'?"
+            "value": "Obnovit „%@“?"
           }
         },
         "de": {
@@ -4031,6 +4131,12 @@
             "state": "translated",
             "value": "Der Blog ist gerade von einem anderen Lauf belegt – einem Build, einer Veröffentlichung oder einem Speichern –, es wurde also nichts geschrieben. Versuch es gleich noch einmal."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something else holds the blog just now — a build, a publish or a save — so nothing was written. Try again in a moment."
+          }
         }
       }
     },
@@ -4551,7 +4657,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zařízení, která k tomuhle blogu pustil kód, tak jak je na serveru ukazuje ./blog.sh pair --list. Jiné zařízení se odebírá tam: ./blog.sh pair --revoke."
+            "value": "Zařízení připojená k tomuhle blogu kódem, tak jak je na serveru ukazuje ./blog.sh pair --list. Jiné zařízení se odebírá tam: ./blog.sh pair --revoke."
           }
         },
         "de": {
@@ -4638,22 +4744,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Im Formular steht ein Beitrag, an dem geschrieben wird: sende ihn oder leere das Formular, bevor ein anderer hineingeholt wird."
-          }
-        }
-      }
-    },
-    "The header and the text, as the editor opens them. A picture is named by its file name.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hlavička a text, jak je otevírá editor. Obrázek je pojmenovaný svým souborem."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kopf und Text, wie der Editor sie öffnet. Ein Bild heißt wie seine Datei."
           }
         }
       }
@@ -4750,6 +4840,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Bild konnte nicht gelesen werden: Es liegt wohl nur in iCloud und lässt sich ohne Netz nicht laden. Hinzufügen lässt sich eines, das ganz auf diesem Gerät liegt – etwa ein eben aufgenommenes."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The picture could not be read: it is most likely kept in iCloud, and without a network it cannot be fetched. One that is on this device whole — taken just now, say — can be added."
+          }
+        }
+      }
+    },
+    "The post as the blog keeps it: its header between the two --- lines, the text under it. A picture is named by its file name.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příspěvek, jak ho má blog: hlavička mezi dvěma řádky ---, pod ní text. Obrázek se jmenuje podle svého souboru."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Beitrag, wie der Blog ihn hält: der Kopf zwischen den beiden Zeilen ---, darunter der Text. Ein Bild heißt nach seiner Datei."
           }
         }
       }
@@ -4991,6 +5103,12 @@
             "state": "translated",
             "value": "Die Sätze sind die des Blogs – in der Sprache der App, wo die Engine des Blogs sie hat, sonst in seiner eigenen. Von hier aus wird nichts repariert."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sentences are the blog's own — in this app's language where the blog's engine has it, in the blog's otherwise. Nothing is repaired from here."
+          }
         }
       }
     },
@@ -5186,6 +5304,22 @@
         }
       }
     },
+    "The text is missing: the blog takes no post of a title alone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chybí text: samotný titulek blog nepřijme."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Text fehlt: einen Beitrag nur aus einem Titel nimmt der Blog nicht."
+          }
+        }
+      }
+    },
     "The time offered is the next free publishing slot.": {
       "localizations": {
         "cs": {
@@ -5271,7 +5405,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tohle zařízení pustil k blogu kód, pod jménem %@."
+            "value": "Tohle zařízení je k blogu připojené kódem, pod jménem %@."
           }
         },
         "de": {
@@ -5287,7 +5421,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tohle zařízení pustil k blogu kód."
+            "value": "Tohle zařízení je k blogu připojené kódem."
           }
         },
         "de": {
@@ -5762,6 +5896,22 @@
         }
       }
     },
+    "Upload the whole site without the check that stops a broken build? What is on the web now is replaced by what was just built.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahrát celý web bez kontroly, která zastaví rozbité sestavení? Co je teď na webu, nahradí to, co se právě sestavilo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die ganze Website ohne die Prüfung hochladen, die einen kaputten Build aufhält? Was jetzt im Netz steht, wird durch das eben Gebaute ersetzt."
+          }
+        }
+      }
+    },
     "Used in the text": {
       "localizations": {
         "cs": {
@@ -5890,18 +6040,18 @@
         }
       }
     },
-    "Where the blog lies on the server and what this device may run there is in the line ./blog.sh pair wrote on the server; nothing of it is set here. The device is taken off there with ./blog.sh pair --revoke. In what ./blog.sh pair --list shows, it is the line with this key.": {
+    "Where the blog lies on the server and what this device may run there was set by the pairing on the server; nothing of it is set here. In Paired devices this device is the line with this key, and can be taken off the blog there.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kde blog na serveru leží a co tohle zařízení smí spustit, je v řádku, který na serveru zapsal ./blog.sh pair; tady se z toho nic nenastavuje. Zařízení tam odebereš příkazem ./blog.sh pair --revoke. Ve výpisu ./blog.sh pair --list je to řádek s tímhle klíčem."
+            "value": "Kde blog na serveru leží a co tohle zařízení smí spustit, určilo párování na serveru; tady se z toho nic nenastavuje. Ve Spárovaných zařízeních je tohle zařízení řádek s tímhle klíčem a dá se tam z blogu odebrat."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wo der Blog auf dem Server liegt und was dieses Gerät dort ausführen darf, steht in der Zeile, die ./blog.sh pair auf dem Server geschrieben hat; hier wird davon nichts eingestellt. Das Gerät entfernst du dort mit ./blog.sh pair --revoke. In der Liste von ./blog.sh pair --list ist es die Zeile mit diesem Schlüssel."
+            "value": "Wo der Blog auf dem Server liegt und was dieses Gerät dort ausführen darf, hat die Kopplung auf dem Server festgelegt; hier wird davon nichts eingestellt. Unter Gekoppelte Geräte ist dieses Gerät die Zeile mit diesem Schlüssel und lässt sich dort vom Blog entfernen."
           }
         }
       }
@@ -6351,6 +6501,12 @@
             "state": "translated",
             "value": "Entwurf -- nicht auf der Website, nur Vorschau"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "draft — not on the site, preview only"
+          }
         }
       }
     },
@@ -6663,13 +6819,19 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "neodejde — nezalistovaný příspěvek se neoznamuje"
+            "value": "neodejde — příspěvek mimo výpisy se neoznamuje"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "nie -- ein ungelisteter Beitrag wird nicht angekündigt"
+            "value": "nie — ein ungelisteter Beitrag wird nicht angekündigt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "never — an unlisted post is not announced"
           }
         }
       }
@@ -6687,6 +6849,12 @@
             "state": "translated",
             "value": "nie -- diese Website kündigt nirgends an"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "never — this site announces nowhere"
+          }
         }
       }
     },
@@ -6702,6 +6870,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "derzeit nie -- das Token des Netzwerks ist leer, also kündigt das Veröffentlichen nichts an"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "never, as things stand — the network's token is empty"
           }
         }
       }
@@ -6750,6 +6924,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "noch nicht -- geht mit der Veröffentlichung raus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not yet — goes out when the post publishes"
           }
         }
       }
@@ -7351,7 +7531,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "nezalistován"
+            "value": "mimo výpisy"
           }
         },
         "de": {
@@ -7439,6 +7619,12 @@
             "state": "translated",
             "value": "ja -- bleibt oben auf der Startseite"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yes — held at the top of the front page"
+          }
         }
       }
     },
@@ -7454,6 +7640,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "ja -- über die eigene Adresse erreichbar, in keiner Liste, keinem Feed, keiner Sitemap und keiner Suche"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yes — reachable by its address, in no listing, feed, sitemap or search"
           }
         }
       }

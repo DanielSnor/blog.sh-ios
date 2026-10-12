@@ -127,10 +127,10 @@ struct ArchiveView: View {
                 .navigationLinkIndicatorVisibility(.hidden)
                 .paperRow()
                 .swipeActions(edge: .leading) {
-                    Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                    Button { previewing = post } label: { Label("Look", systemImage: "doc.text.magnifyingglass") }
                 }
                 .contextMenu {
-                    Button { previewing = post } label: { Label("Preview", systemImage: "doc.text.magnifyingglass") }
+                    Button { previewing = post } label: { Label("Look", systemImage: "doc.text.magnifyingglass") }
                     Button { Task { await share(post) } } label: { Label("Share the link", systemImage: "square.and.arrow.up") }
                 }
             }
