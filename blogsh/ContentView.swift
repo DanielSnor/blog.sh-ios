@@ -643,7 +643,22 @@ struct HomeView: View {
     @State private var trying = false
 
     private var k: CGFloat { roomy ? 1.35 : 1 }
-    private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 8 * k), count: 3) }
+    /// How much the type has grown, in hundredths: the gaps grow with it.
+    @ScaledMetric(relativeTo: .body) private var grown: CGFloat = 100
+
+    /// The two gaps of this screen, and no third: between things of one
+    /// group -- card and card, tile and tile, key and key -- and between
+    /// the groups. They grow with the type, as the gaps of every other
+    /// screen do; a gap that tells two groups apart at the usual size is
+    /// lost between tiles twice as tall.
+    private var u: CGFloat { k * (TypeScale.ownHand ? TypeScale.shared.factor : grown / 100) }
+    private var within: CGFloat { (8 * u).rounded() }
+    private var between: CGFloat { (14 * u).rounded() }
+    /// The tiles, three to a row.
+    private var rows: [[MenuEntry]] {
+        let all = MenuEntry.allCases
+        return stride(from: 0, to: all.count, by: 3).map { Array(all[$0..<min($0 + 3, all.count)]) }
+    }
 
     var body: some View {
         ScrollView {
@@ -740,7 +755,7 @@ struct HomeView: View {
                 // opening the form it waits in -- and last the queue, which
                 // goes out by itself.
                 if glance != nil || !begun.isEmpty || !waiting.isEmpty || !arrived.isEmpty {
-                    VStack(spacing: 8 * k) {
+                    VStack(spacing: within) {
                         if let glance {
                             Button { open(.browse, .draft, false) } label: { draftsCard(glance) }
                                 .outOfReach(offline)
@@ -770,16 +785,24 @@ struct HomeView: View {
                     .padding(.top, 18 * k)
                 }
 
-                LazyVGrid(columns: columns, spacing: 8 * k) {
-                    ForEach(MenuEntry.allCases) { entry in
-                        Button { open(entry, nil, false) } label: {
-                            Tile(entry: entry, highlighted: current == entry)
+                // Laid out whole, not lazily: six tiles are all on the
+                // screen, and a lazy grid rounds its height by itself,
+                // which showed as a gap under it that was not the gap
+                // above it.
+                Grid(horizontalSpacing: within, verticalSpacing: within) {
+                    ForEach(rows, id: \.first) { row in
+                        GridRow {
+                            ForEach(row) { entry in
+                                Button { open(entry, nil, false) } label: {
+                                    Tile(entry: entry, highlighted: current == entry)
+                                }
+                                .outOfReach((offline && entry != .add) || addBlog != nil)
+                            }
                         }
-                        .outOfReach((offline && entry != .add) || addBlog != nil)
                     }
                 }
                 .buttonStyle(PressStyle())
-                .padding(.top, (glance == nil && begun.isEmpty && waiting.isEmpty && arrived.isEmpty ? 22 : 10) * k)
+                .padding(.top, glance == nil && begun.isEmpty && waiting.isEmpty && arrived.isEmpty ? 22 * k : between)
 
                 Button { open(.browse, nil, true) } label: {
                     Card(capsule: true) {
@@ -794,7 +817,7 @@ struct HomeView: View {
                 }
                 .buttonStyle(PressStyle())
                 .outOfReach(offline || addBlog != nil)
-                .padding(.top, 14 * k)
+                .padding(.top, between)
 
                 // The blog itself, as a reader has it.
                 if let site = URL(string: url), ["http", "https"].contains(site.scheme?.lowercased() ?? ""), site.host != nil {
@@ -808,7 +831,7 @@ struct HomeView: View {
                         }
                     }
                     .buttonStyle(PressStyle())
-                    .padding(.top, 8 * k)
+                    .padding(.top, within)
                 }
 
                 if let facts { factLines(facts).padding(.top, 26 * k) }
