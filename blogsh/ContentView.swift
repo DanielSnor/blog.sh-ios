@@ -349,7 +349,8 @@ struct ContentView: View {
                  url: identity?.site.url ?? blogs.current?.url ?? "",
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: offline ? offlineWords : identityProblem, glance: glance,
-                 offline: offline, addBlog: blogs.all.isEmpty ? { incoming = Incoming(text: "") } : nil, retry: load,
+                 offline: offline, addBlog: blogs.all.isEmpty ? { incoming = Incoming(text: "") } : nil,
+                 tryPractice: { blogs.openPractice() }, retry: load,
                  waiting: waiting, sending: waiting.contains { $0.id == Outbox.shared.sending },
                  openWaiting: { showingWaiting = true },
                  arrived: arrived, seeArrived: seeArrived,
@@ -616,6 +617,8 @@ struct HomeView: View {
     /// The way to a first blog, while the app has none: nothing else on
     /// this screen has anything to act on until then.
     var addBlog: (() -> Void)?
+    /// Opens the practice blog: a look around for whoever has no blog yet.
+    var tryPractice: () -> Void = {}
     /// Asks the server again.
     var retry: () async -> Void = {}
     /// The posts kept on this device until the server answers, and
@@ -743,6 +746,17 @@ struct HomeView: View {
                             Button(action: addBlog) { PrimaryLabel(label: "Add a blog", busy: false) }
                                 .buttonStyle(PrimaryButtonStyle())
                                 .padding(.top, 14 * k)
+                            // Without a server of one's own there is
+                            // still something to look at.
+                            Plate {
+                                Command("Try the practice blog", symbol: "book", leads: true, action: tryPractice)
+                            }
+                            .padding(.top, 12 * k)
+                            Text("The practice blog lives in the app: a few posts to look around in. Nothing is sent anywhere.")
+                                .font(.ui(13 * k))
+                                .foregroundStyle(Theme.muted)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, 8 * k)
                         }
                     } else {
                         ProgressView().padding(.top, 14)

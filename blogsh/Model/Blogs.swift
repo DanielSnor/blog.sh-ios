@@ -85,6 +85,10 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
     var maxMb = 24
     /// What it counted last: `stats`, the trash, the versions.
     var facts: Facts?
+    /// The practice blog: it lives in the app and has no server (`Practice`).
+    var practice: Bool?
+
+    var isPractice: Bool { practice == true }
 
     init(keyAccount: String? = nil) {
         let id = UUID()
@@ -114,6 +118,7 @@ nonisolated struct Blog: Codable, Identifiable, Equatable, Sendable {
         tonesDark = try c.decodeIfPresent(Tones.self, forKey: .tonesDark)
         maxMb = try c.decodeIfPresent(Int.self, forKey: .maxMb) ?? 24
         facts = try c.decodeIfPresent(Facts.self, forKey: .facts)
+        practice = try c.decodeIfPresent(Bool.self, forKey: .practice)
     }
 
     /// The blog is where a new code says it is: paired again, it is the
@@ -316,6 +321,19 @@ final class Blogs {
         all.append(blog)
         currentID = blog.id
         save()
+    }
+
+    /// The practice blog, open: the one the app has, or a new one. It
+    /// has no server to set and no key to make.
+    func openPractice() {
+        if let has = all.first(where: \.isPractice) {
+            select(has.id)
+            return
+        }
+        var blog = Blog()
+        blog.practice = true
+        blog.name = String(localized: "Practice blog")
+        adopt(blog)
     }
 
     /// A blog the app already has, let in again by a new code: the same

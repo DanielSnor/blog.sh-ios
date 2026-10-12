@@ -238,6 +238,22 @@
         }
       }
     },
+    "A blog of your own is connected by a code: on its server, run ./blog.sh pair, and add the blog here with what it shows.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastní blog připojíš kódem: na jeho serveru spusť ./blog.sh pair a blog tady přidej tím, co ukáže."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen eigenen Blog verbindest du per Code: Führe auf seinem Server ./blog.sh pair aus und füge den Blog hier mit dem hinzu, was es zeigt."
+          }
+        }
+      }
+    },
     "A deploy stops by itself when the site has suddenly lost or gained a lot, as after a broken build. Turn this on only when it stopped and the change is right (many posts deleted, a large import).": {
       "localizations": {
         "cs": {
@@ -3014,6 +3030,22 @@
         }
       }
     },
+    "Practice blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cvičný blog"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übungsblog"
+          }
+        }
+      }
+    },
     "Preview": {
       "localizations": {
         "cs": {
@@ -5026,6 +5058,38 @@
         }
       }
     },
+    "The practice blog lives in the app. It has a few posts to look around in; nothing is written to it and nothing is sent anywhere.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cvičný blog žije v appce. Má pár příspěvků, na kterých si všechno prohlédneš; nic se do něj nezapisuje a nic se nikam neposílá."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Übungsblog lebt in der App. Er hat ein paar Beiträge zum Umsehen; nichts wird in ihn geschrieben und nichts irgendwohin gesendet."
+          }
+        }
+      }
+    },
+    "The practice blog lives in the app: a few posts to look around in. Nothing is sent anywhere.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cvičný blog žije v appce: pár příspěvků, na kterých si všechno prohlédneš. Nic se nikam neposílá."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Übungsblog lebt in der App: ein paar Beiträge zum Umsehen. Nichts wird irgendwohin gesendet."
+          }
+        }
+      }
+    },
     "The queue is empty": {
       "localizations": {
         "cs": {
@@ -5512,6 +5576,22 @@
         }
       }
     },
+    "This is the practice blog: it lives in the app, and nothing is written to it or sent anywhere. Add a blog of your own to do this.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tohle je cvičný blog: žije v appce, nic se do něj nezapisuje a nic se nikam neposílá. Na tohle si přidej vlastní blog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist der Übungsblog: Er lebt in der App, nichts wird in ihn geschrieben oder irgendwohin gesendet. Füge dafür einen eigenen Blog hinzu."
+          }
+        }
+      }
+    },
     "This post cannot be edited here.": {
       "localizations": {
         "cs": {
@@ -5716,6 +5796,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Erneut versuchen"
+          }
+        }
+      }
+    },
+    "Try the practice blog": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyzkoušet cvičný blog"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den Übungsblog ausprobieren"
           }
         }
       }
@@ -6084,6 +6180,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mit einem eingerichteten Netzwerk wird auch angekündigt — und eine Ankündigung lässt sich nicht zurücknehmen."
+          }
+        }
+      }
+    },
+    "Without a server": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez serveru"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Server"
           }
         }
       }
@@ -6714,6 +6826,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "ja"
+          }
+        }
+      }
+    },
+    "in the app -- nothing is sent anywhere": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v appce — nic se nikam neposílá"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in der App — nichts wird irgendwohin gesendet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in the app — nothing is sent anywhere"
           }
         }
       }

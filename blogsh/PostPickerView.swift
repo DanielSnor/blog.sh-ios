@@ -175,14 +175,17 @@ struct PostCrossroadsView: View {
             // Not a key of the prompt: at the desk the browser is one window
             // away, on a phone the page is only this far. A published post
             // opens at its address, a draft at the hidden page the build keeps.
-            Plate {
-                Command(post.state == .published ? "Show on the web" : "Show the preview on the web",
-                        symbol: "safari", busy: looking) {
-                    Task { await show() }
+            // The practice blog is on no web: no key for a page it has not.
+            if Blogs.shared.current?.isPractice != true {
+                Plate {
+                    Command(post.state == .published ? "Show on the web" : "Show the preview on the web",
+                            symbol: "safari", busy: looking) {
+                        Task { await show() }
+                    }
+                    .disabled(looking)
                 }
-                .disabled(looking)
+                .gap(10)
             }
-            .gap(10)
             if let problem {
                 ProblemLine(text: problem)
             }

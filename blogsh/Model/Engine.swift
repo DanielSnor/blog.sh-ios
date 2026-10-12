@@ -154,7 +154,9 @@ actor Engine {
     /// the fourth one away. A command that fails ends the batch; what was
     /// answered before it is lost with it.
     @concurrent nonisolated func batch(_ commands: [[String]]) async throws -> [Data] {
-        try await Self.onTheLine { wire, wary in
+        // The practice blog answers for itself: it has no server.
+        if BlogShelf.current()?.isPractice == true { return commands.map(Practice.answer) }
+        return try await Self.onTheLine { wire, wary in
             var answers: [Data] = []
             for args in commands {
                 // Only the first can find the connection dead without
@@ -176,7 +178,12 @@ actor Engine {
     /// the open blog's own form. With another blog open by the time it
     /// goes, it does not go.
     @concurrent nonisolated func deliver(_ files: [DeliveryFile], to blog: UUID? = nil) async throws -> [Data] {
-        try await Self.onTheLine(only: blog) { wire, wary in
+        if let open = BlogShelf.current(), open.isPractice {
+            // Another blog's delivery does not go to this one either.
+            if let blog, blog != open.id { throw CancellationError() }
+            return Practice.delivered
+        }
+        return try await Self.onTheLine(only: blog) { wire, wary in
             try await Self.send(files, on: wire, wary: wary)
         }
         .told(true)

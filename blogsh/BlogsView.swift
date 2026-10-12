@@ -88,7 +88,11 @@ struct BlogsView: View {
             AddBlogView(close: { dismiss() })
         }
         .navigationDestination(isPresented: $settingUp) {
-            BlogSettingsView(close: { dismiss() })
+            if blogs.current?.isPractice == true {
+                PracticeBlogView(close: { dismiss() })
+            } else {
+                BlogSettingsView(close: { dismiss() })
+            }
         }
     }
 }
@@ -119,7 +123,9 @@ struct BlogRow: View {
                 } else {
                     Text(verbatim: blog.label).font(.ui(15, weight: .bold)).foregroundStyle(Theme.ink).lineLimit(1)
                 }
-                if !blog.place.isEmpty {
+                if blog.isPractice {
+                    Text("in the app -- nothing is sent anywhere").font(.ui(12)).foregroundStyle(Theme.muted).lineLimit(1)
+                } else if !blog.place.isEmpty {
                     Text(verbatim: blog.place).font(.mono(12, bold: false)).foregroundStyle(Theme.muted).lineLimit(1)
                 }
             }
@@ -138,4 +144,45 @@ struct BlogRow: View {
 
 #Preview {
     NavigationStack { BlogsView() }
+}
+
+/// What there is to say of the practice blog where another blog has its
+/// settings: what it is, and the way out of the app for it.
+struct PracticeBlogView: View {
+    let close: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    private var blogs = Blogs.shared
+    @State private var confirmingRemoval = false
+
+    init(close: @escaping () -> Void) { self.close = close }
+
+    var body: some View {
+        PaperScreen(name: String(localized: "Practice blog")) {
+            Plate {
+                Text("The practice blog lives in the app. It has a few posts to look around in; nothing is written to it and nothing is sent anywhere.")
+                    .font(.ui(15))
+                    .foregroundStyle(Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .gap(14)
+            Hint("A blog of your own is connected by a code: on its server, run ./blog.sh pair, and add the blog here with what it shows.")
+            if let blog = blogs.current, blog.isPractice {
+                Plate {
+                    Command("Remove this blog", symbol: "minus.circle", danger: true) { confirmingRemoval = true }
+                        .confirmationDialog(Text(verbatim: BlogSettingsView.leaving(blog)),
+                                            isPresented: $confirmingRemoval, titleVisibility: .visible) {
+                            Button("Remove", role: .destructive) {
+                                blogs.remove(blog.id)
+                                dismiss()
+                            }
+                        }
+                }
+                .gap(28)
+            }
+        }
+        .navigationTitle("Practice blog")
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) { Button("Done") { close() } }
+        }
+    }
 }

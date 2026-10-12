@@ -170,6 +170,18 @@ struct AddBlogView: View {
                     .disabled(connecting)
                 }
                 Hint("For a blog that lives in a container, or to write the line into authorized_keys yourself.")
+                // No server at hand: the blog that lives in the app.
+                if !blogs.all.contains(where: \.isPractice) {
+                    SectionLabel("Without a server")
+                    Plate {
+                        Command("Try the practice blog", symbol: "book", leads: true) {
+                            blogs.openPractice()
+                            close()
+                        }
+                        .disabled(connecting)
+                    }
+                    Hint("The practice blog lives in the app: a few posts to look around in. Nothing is sent anywhere.")
+                }
             }
         }
         .navigationTitle(Text(verbatim: name))
