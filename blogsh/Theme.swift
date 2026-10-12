@@ -1706,10 +1706,27 @@ struct PaperEditor: View {
     @State private var whole = false
     @State private var inner: TextSelection?
 
-    init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, minHeight: CGFloat = 220) {
+    /// The text as the blog has it, where the post came from there:
+    /// what is put right in the text is put right in what was written
+    /// here, and not in what was only opened.
+    var original: String?
+
+    init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, minHeight: CGFloat = 220, original: String? = nil) {
         _text = text
         outer = selection
         self.minHeight = minHeight
+        self.original = original
+    }
+
+    /// The writing has stopped: code gets code's quotes. `written` is
+    /// the text as the field itself holds it at that moment.
+    private func settle(_ written: String?) {
+        // Only where the field and the form hold the same text: where
+        // they do not, the keyboard has not let go of it yet, and what
+        // goes to the blog is put right on its way all the same.
+        if let written, written != text { return }
+        let fixed = CodeQuotes.settled(text, over: original)
+        if fixed != text { text = fixed }
     }
 
     private var selection: Binding<TextSelection?> { outer ?? $inner }
@@ -1742,23 +1759,55 @@ struct PaperEditor: View {
             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY.rounded() } action: { top = $0 }
             .padding(.horizontal, -5)
             .padding(.vertical, -4)
-            .background(AsTyped())
-            .fullScreenCover(isPresented: $whole) { WritingScreen(text: $text) }
+            .background(AsTyped(ended: settle))
+            .fullScreenCover(isPresented: $whole, onDismiss: { settle(nil) }) { WritingScreen(text: $text) }
     }
 }
 
 /// The text is markdown, and two hyphens in it are two hyphens: the
 /// system's own tidying of them into a dash turned a rule or a header's
 /// fence (---) into a dash and a hyphen, and a command's --flag into
-/// something no shell takes. Quotes are left to the system: they are
-/// prose, and the blog reads a caption in either kind.
+/// something no shell takes. Quotes are left to the system while the
+/// text is written; those of code are put right once the writing stops
+/// (`CodeQuotes`), and this is where the editor says that it has.
 ///
-/// SwiftUI's editor has no word for this; the text view under it has.
+/// SwiftUI's editor has no word for either; the text view under it has.
 private struct AsTyped: UIViewRepresentable {
+    /// The editor was left: the keyboard is no longer in the text. With
+    /// the text as the field holds it.
+    var ended: ((String?) -> Void)?
+
     func makeUIView(context: Context) -> Finder { Finder() }
-    func updateUIView(_ finder: Finder, context: Context) { finder.look() }
+
+    func updateUIView(_ finder: Finder, context: Context) {
+        finder.ended = ended
+        finder.look()
+    }
 
     final class Finder: UIView {
+        var ended: ((String?) -> Void)?
+        private weak var watched: UITextView?
+
+        private func listen(to field: UITextView) {
+            guard watched !== field else { return }
+            if let watched {
+                NotificationCenter.default.removeObserver(self, name: UITextView.textDidEndEditingNotification, object: watched)
+            }
+            watched = field
+            NotificationCenter.default.addObserver(self, selector: #selector(left), name: UITextView.textDidEndEditingNotification, object: field)
+        }
+
+        /// Told a moment later, and only if the editor is still left:
+        /// the keyboard may settle the last word it offered after the
+        /// field says it is done, and the text is not written over
+        /// while the keyboard may still be in it.
+        @objc private func left() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self, let field = self.watched, !field.isFirstResponder else { return }
+                self.ended?(field.text)
+            }
+        }
+
         override func didMoveToWindow() {
             super.didMoveToWindow()
             look()
@@ -1774,6 +1823,7 @@ private struct AsTyped: UIViewRepresentable {
                 guard let here = above else { return }
                 if let field = Self.textView(in: here) {
                     if field.smartDashesType != .no { field.smartDashesType = .no }
+                    listen(to: field)
                     return
                 }
                 above = here.superview
@@ -1879,7 +1929,11 @@ struct EditorKeys: View {
         let whole = (text as NSString).length
         let range = selection?.range(in: text) ?? NSRange(location: whole, length: 0)
         let words = Marks.Words(text: String(localized: "mark.link.text", defaultValue: "text"), url: "https://")
-        let out = Marks.apply(text, selection: range, kind: kind, words: words)
+        var out = Marks.apply(text, selection: range, kind: kind, words: words)
+        // What was just made code has code's quotes.
+        if kind == .code || kind == .fence {
+            out.value = CodeQuotes.straightened(out.value, touched: out.selection)
+        }
         text = out.value
         if let picked = Range(out.selection, in: out.value) {
             selection = picked.isEmpty ? TextSelection(insertionPoint: picked.lowerBound) : TextSelection(range: picked)

@@ -62,7 +62,7 @@ struct TranslateView: View {
                 SectionLabel("In \(languageName)")
                 Plate {
                     // Left alone while a save is on its way.
-                    PaperEditor(text: $text, minHeight: 280)
+                    PaperEditor(text: $text, minHeight: 280, original: entry.text)
                         .disabled(saving)
                 }
                 Plate {
@@ -203,7 +203,8 @@ struct TranslateView: View {
         defer { saving = false }
         problem = nil
         changedOnBlog = false
-        let file = DeliveryFile(name: "\(slug)-\(lang).md", data: Data(fileText(body).utf8))
+        // What goes has code's quotes in its code.
+        let file = DeliveryFile(name: "\(slug)-\(lang).md", data: Data(fileText(CodeQuotes.settled(body, over: entry?.text)).utf8))
         // Whose post it is and what the editor held, said before anything is waited for.
         let blog = Blogs.shared.currentID
         let going = text

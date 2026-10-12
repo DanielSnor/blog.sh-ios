@@ -369,7 +369,8 @@ struct ComposeView: View {
         problem = nil
         made = nil
         do {
-            try WaitingRoom.put(Waiting(title: title, tags: tags, text: text, at: .now, receipt: receipt), shots: sent, for: blog)
+            // What is put by has code's quotes in its code, as what is sent has.
+            try WaitingRoom.put(Waiting(title: title, tags: tags, text: CodeQuotes.settled(text), at: .now, receipt: receipt), shots: sent, for: blog)
             startEmpty()
             putBy = true
             Desk.shared.changed()
@@ -397,7 +398,10 @@ struct ComposeView: View {
         let held = from
         // The text is what goes: a description typed on a card is in it
         // already, one typed into the text itself was never the card's.
-        let markdown = Markdown.file(title: title, tags: tags, body: text, receipt: receipt)
+        // What goes has code's quotes in its code, whether or not the
+        // editor was left before the key was pressed. The form's own
+        // text is not written over for it: the keyboard may still be in it.
+        let markdown = Markdown.file(title: title, tags: tags, body: CodeQuotes.settled(text), receipt: receipt)
         var files = sent.map { DeliveryFile(name: $0.name, data: $0.data) }
         files.append(DeliveryFile(name: Markdown.fileName(title: title, body: text), data: Data(markdown.utf8)))
         do {

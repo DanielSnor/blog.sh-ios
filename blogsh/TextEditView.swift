@@ -64,7 +64,7 @@ struct TextEditView: View {
                 Plate {
                     // Left alone while a save is on its way: what is typed
                     // then would be neither in what was saved nor kept.
-                    PaperEditor(text: $text, selection: $caret, minHeight: 320)
+                    PaperEditor(text: $text, selection: $caret, minHeight: 320, original: entry.text)
                         .disabled(!entry.editable || saving)
                 }
                 .padding(.top, entry.editable ? 0 : 14)
@@ -323,7 +323,10 @@ struct TextEditView: View {
         guard let entry else { return text }
         // The text is what goes: a description typed on a card is in it
         // already, one typed into the text itself was never the card's.
-        let marked = text
+        // ...with code's quotes in the code written here, whether or not
+        // the editor was left before the key was pressed. The form's own
+        // text is not written over for it: the keyboard may still be in it.
+        let marked = CodeQuotes.settled(text, over: entry.text)
         let lines = "edits: \(entry.slug)\nbase: \(entry.base)\n"
         if marked.hasPrefix("---\n") {
             return "---\n" + lines + marked.dropFirst(4)
