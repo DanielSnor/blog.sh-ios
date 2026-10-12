@@ -204,6 +204,11 @@ struct ComposeView: View {
         .onChange(of: shots.count) { _, _ in
             shots = Kept.heard(shots, from: text)
         }
+        // Kept as the words are, when one comes, goes or is described:
+        // there is no moment at which a form is told it is being left.
+        .onChange(of: shots.map { "\($0.name)\u{0}\($0.alt)" }) { _, _ in
+            if let keeping { UnsentShots.keep(shots, for: keeping) }
+        }
         .fileImporter(isPresented: $choosingFiles, allowedContentTypes: [.image, .movie], allowsMultipleSelection: true) { chosen in
             if case .success(let files) = chosen { Task { await load(files: files) } }
         }
@@ -232,6 +237,8 @@ struct ComposeView: View {
         // app, it would take the post's pictures along.
         if let handed = Desk.shared.takeHanded() {
             shots = WaitingRoom.shots(of: handed, for: blog)
+            // The form's own keeping is this post's now, whatever it held.
+            UnsentShots.keep(shots, for: blog)
             receipt = handed.receipt.flatMap { Receipt.isOne($0) ? $0 : nil } ?? Receipt.mint()
             from = handed.id
             WaitingRoom.hold(handed.id, for: blog)
@@ -242,9 +249,14 @@ struct ComposeView: View {
             Desk.shared.changed()
             return
         }
-        guard title.isEmpty, tags.isEmpty, text.isEmpty, let kept = Unsent.kept(for: blog) else {
+        guard title.isEmpty, tags.isEmpty, text.isEmpty else { return }
+        // The pictures chosen for the post are kept as its words are: a
+        // post of pictures alone, with no word written yet, is a post
+        // begun too.
+        let pictures = UnsentShots.shots(for: blog)
+        guard let kept = Unsent.kept(for: blog) ?? (pictures.isEmpty ? nil : Unsent(at: UnsentShots.kept(for: blog) ?? .now)) else {
             // Nothing is being written: no post is the form's to hold.
-            if title.isEmpty, tags.isEmpty, text.isEmpty { WaitingRoom.release(for: blog) }
+            WaitingRoom.release(for: blog)
             return
         }
         if let its = kept.receipt, Receipt.isOne(its) { receipt = its }
@@ -253,6 +265,9 @@ struct ComposeView: View {
             from = its
             shots = WaitingRoom.shots(of: held, for: blog)
         }
+        // What the form itself kept is the later word on them: a picture
+        // added since, or taken out, is in it.
+        if !pictures.isEmpty { shots = pictures }
         WaitingRoom.release(for: blog, except: from)
         title = kept.title
         tags = kept.tags
@@ -276,6 +291,9 @@ struct ComposeView: View {
         }
         from = nil
         title = ""; tags = ""; text = ""; shots = []
+        // Said here and not left to the form's own noticing: a form that
+        // was left while its post was going notices nothing.
+        if let blog = keeping ?? Blogs.shared.currentID { UnsentShots.forget(for: blog) }
         broughtBack = nil
         receipt = Receipt.mint()
     }
