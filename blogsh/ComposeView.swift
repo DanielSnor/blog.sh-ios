@@ -22,6 +22,9 @@ struct ComposeView: View {
     @State private var picked: [PhotosPickerItem] = []
     @State private var importing = false
     @State private var choosingFiles = false
+    @State private var choosingText = false
+    /// Why the file last chosen for its text is not in the form.
+    @State private var untaken: String?
     /// Why the last picture chosen is not among the shots.
     @State private var unread: String?
     @State private var sending = false
@@ -77,8 +80,17 @@ struct ComposeView: View {
             Hint(verbatim: String(localized: "Markdown. A picture goes in as ![description](photo.jpg), a video as !![description](clip.mp4) -- the bare name, no path."))
             Plate {
                 Command("Preview", symbol: "eye") { previewing = true }
+                // A text finished elsewhere comes in whole, where the caret is.
+                Command("Add a text from a file", symbol: "doc.text") { choosingText = true }
+                    .disabled(busy)
+                    // On the key, not on the form: a form takes one picker.
+                    .fileImporter(isPresented: $choosingText, allowedContentTypes: TextFile.kinds) { chosen in
+                        if case .success(let file) = chosen { Task { await take(file) } }
+                    }
             }
             .gap(10)
+            if let untaken { ProblemLine(text: untaken) }
+            Hint("A text from a file goes in where the caret is, and the file stays as it is. In it, an empty line ends a paragraph.")
 
             SectionLabel("Pictures and video")
             Plate {
@@ -277,6 +289,25 @@ struct ComposeView: View {
             } catch {
                 unread = error.words
             }
+        }
+    }
+
+    /// A text from a file: all of it into the text, where the caret is
+    /// and as paragraphs of its own -- what is written already stays. A
+    /// header the file opens with fills the title and the tags where the
+    /// form has none; a field that is written in is left as it is.
+    private func take(_ file: URL) async {
+        untaken = nil
+        do {
+            let read = try await TextFile.read(at: file)
+            title = read.filling(title, with: \.title)
+            tags = read.filling(tags, with: \.tags)
+            guard !read.body.isEmpty else { return }
+            let put = Kept.placed(read.body, in: text, at: caret?.range(in: text)?.location)
+            text = put.text
+            caret = TextSelection(caret: put.caret, in: put.text)
+        } catch {
+            untaken = error.words
         }
     }
 

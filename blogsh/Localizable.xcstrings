@@ -370,6 +370,22 @@
         }
       }
     },
+    "A text from a file goes in where the caret is, and the file stays as it is. In it, an empty line ends a paragraph.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text ze souboru se vloží tam, kde je kurzor, a soubor zůstane, jak je. Odstavec v něm končí prázdný řádek."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Text aus einer Datei kommt dorthin, wo die Einfügemarke steht, und die Datei bleibt, wie sie ist. Ein Absatz endet darin mit einer Leerzeile."
+          }
+        }
+      }
+    },
     "Accent": {
       "localizations": {
         "cs": {
@@ -430,6 +446,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bild oder Video hinzufügen"
+          }
+        }
+      }
+    },
+    "Add a text from a file": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat text ze souboru"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text aus einer Datei hinzufügen"
           }
         }
       }
@@ -4434,6 +4466,38 @@
         }
       }
     },
+    "The file could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor se nepodařilo načíst."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "The file is too large to be the text of a post.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor je moc velký na to, aby to byl text příspěvku."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei ist zu groß, um der Text eines Beitrags zu sein."
+          }
+        }
+      }
+    },
     "The first is the size the system has; the others are steps above it. It holds on this device, for every blog.": {
       "localizations": {
         "cs": {
@@ -5026,6 +5090,22 @@
         }
       }
     },
+    "There is no text in the file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V souboru žádný text není."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Datei steht kein Text."
+          }
+        }
+      }
+    },
     "This blog does not show its devices to the app yet; a newer ./blog.sh will. On the server, ./blog.sh pair --list shows them.": {
       "localizations": {
         "cs": {
@@ -5150,6 +5230,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Schlüssel dieses Geräts"
+          }
+        }
+      }
+    },
+    "This file is not plain text. A document of a word processor (.docx, .rtf) has to be saved as plain text or Markdown first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenhle soubor není prostý text. Dokument z textového editoru (.docx, .rtf) je potřeba nejdřív uložit jako prostý text nebo Markdown."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Datei ist kein reiner Text. Ein Dokument aus einer Textverarbeitung (.docx, .rtf) muss zuerst als reiner Text oder Markdown gespeichert werden."
           }
         }
       }
