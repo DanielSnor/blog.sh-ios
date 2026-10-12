@@ -286,12 +286,13 @@ struct PostRowView: View {
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 5) {
                 if let day = post.day {
-                    // A date is in the accent, as on the blog's own pages;
-                    // one still to come is told by its weight, and by
-                    // saying a day and an hour.
+                    // A date that has been is a fact, said in the grey
+                    // facts are said in; one still to come is in the
+                    // accent, and says a day and an hour. Both bold: the
+                    // light face of this size is a hairline.
                     Text(verbatim: post.scheduled ? RowDate.soon(day) : RowDate.short(day))
-                        .font(.mono(11, bold: post.scheduled))
-                        .foregroundStyle(.tint)
+                        .font(.mono(11))
+                        .foregroundStyle(post.scheduled ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.muted))
                 } else {
                     StateBadge(post: post)
                 }

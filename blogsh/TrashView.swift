@@ -212,8 +212,8 @@ struct TrashRowView: View {
             Spacer(minLength: 8)
             if let when = ISO8601DateFormatter.engine.date(from: row.date ?? "") {
                 Text(verbatim: RowDate.short(when))
-                    .font(.mono(11, bold: false))
-                    .foregroundStyle(.tint)
+                    .font(.mono(11))
+                    .foregroundStyle(Theme.muted)
                     .padding(.top, 3)
             }
             // What a tap on the row does, as a version's row says it: a
