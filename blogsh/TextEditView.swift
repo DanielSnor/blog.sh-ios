@@ -49,7 +49,7 @@ struct TextEditView: View {
     @State private var broughtBack: Unsaved?
 
     var body: some View {
-        PaperScreen(title: entry?.title, answered: answered) {
+        PaperScreen(name: String(localized: "the text"), title: entry?.title, answered: answered) {
             if let entry {
                 if let broughtBack {
                     BroughtBack(words: Unsaved.words(broughtBack, over: entry.base, media: entry.media),

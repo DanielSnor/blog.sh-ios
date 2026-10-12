@@ -12,6 +12,10 @@ struct BlogsView: View {
     @State private var settingUp = false
     @State private var adding = false
 
+    /// The blog that became the open one through the key to its
+    /// settings, until whoever closes the list has said so.
+    @MainActor static var openedBySettings: String?
+
     var body: some View {
         List {
             ForEach(blogs.all) { blog in
@@ -25,6 +29,12 @@ struct BlogsView: View {
                     .buttonStyle(PressStyle())
                     // The settings are the open blog's: the key opens the blog with them.
                     Button {
+                        // Another blog than the open one: said, since
+                        // the key reads as a look at its settings and
+                        // not as a change of the blog that is open.
+                        if blog.id != blogs.currentID, blogs.currentID != nil {
+                            BlogsView.openedBySettings = blog.label
+                        }
                         blogs.select(blog.id)
                         settingUp = true
                     } label: {

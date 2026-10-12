@@ -63,7 +63,10 @@ struct QueueView: View {
                     ForEach(rows) { row in
                         // A row opens its post, as in the archive: its text, its
                         // properties, and so its slug -- which the queue has no key for.
-                        NavigationLink(value: PostRow(row)) { QueueRowView(row: row, unattended: unattended) }
+                        NavigationLink(value: PostRow(row)) {
+                            QueueRowView(row: row, unattended: unattended,
+                                         publish: unattended && row.overdue ? { leaving = Leaving(row: row, publish: true) } : nil)
+                        }
                             .navigationLinkIndicatorVisibility(.hidden)
                             // Asked over the row it is asked about.
                             .confirmationDialog(leavingTitle, isPresented: asking(row), titleVisibility: .visible) {
@@ -293,6 +296,9 @@ struct QueueRowView: View {
     let row: QueueRow
     /// Nothing on the blog sends the queue out by itself.
     var unattended = false
+    /// Publishes the post now -- a key in sight on the row that waits
+    /// for a hand, where a gesture would have to be known of.
+    var publish: (() -> Void)?
 
     var body: some View {
         let when = ISO8601DateFormatter.engine.date(from: row.date)
@@ -316,6 +322,17 @@ struct QueueRowView: View {
                     // Waiting helps only where something comes for the post.
                     if unattended {
                         Text("(its time has come -- publish it by hand)").font(.ui(13, weight: .medium)).foregroundStyle(Theme.danger)
+                        if let publish {
+                            Button(action: publish) {
+                                Label("Publish now", systemImage: "paperplane")
+                                    .font(.ui(14, weight: .semibold))
+                                    .frame(minHeight: 40)
+                                    .contentShape(Rectangle())
+                            }
+                            // Its own key inside a row that is a key too.
+                            .buttonStyle(.borderless)
+                            .tint(Theme.accent)
+                        }
                     } else {
                         Text("(waiting for the cron)").font(.ui(13)).foregroundStyle(Theme.muted)
                     }

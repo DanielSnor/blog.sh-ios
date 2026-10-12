@@ -63,7 +63,7 @@ struct DiagnosisView: View {
 
     @ViewBuilder private func row(_ finding: DiagnosisAnswer.Finding) -> some View {
         if let slug = finding.slug, !slug.isEmpty {
-            NavigationLink { PropsView(slug: slug) } label: { line(finding, leads: true) }
+            NavigationLink { PropsView(slug: slug, withText: true) } label: { line(finding, leads: true) }
                 .buttonStyle(PressStyle())
         } else if finding.kind == "trash", finding.level != .fine {
             NavigationLink { TrashView() } label: { line(finding, leads: true) }

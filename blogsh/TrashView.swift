@@ -57,6 +57,14 @@ struct TrashView: View {
                         .tint(.accentColor)
                 }
             }
+            if !rows.isEmpty {
+                Text("A row restores its post: tap it, and it asks first.")
+                    .font(.ui(13))
+                    .foregroundStyle(Theme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 14)
+                    .paperRow(rule: false)
+            }
             if (held?.count ?? 0) > 0 || (older?.count ?? 0) > 0 {
                 VStack(alignment: .leading, spacing: 0) {
                     SectionLabel("Clearing out")
@@ -79,7 +87,12 @@ struct TrashView: View {
                                 }
                         }
                     }
-                    Hint("What is cleared out is gone for good. Older versions are what a post said before its recent saves; each post keeps its newest.")
+                    // The versions are explained where their key is.
+                    if let older, older.count > 0 {
+                        Hint("What is cleared out is gone for good. Older versions are what a post said before its recent saves; each post keeps its newest.")
+                    } else {
+                        Hint("What is cleared out is gone for good.")
+                    }
                 }
                 .padding(.bottom, 18)
                 .paperRow(rule: false)
@@ -202,6 +215,15 @@ struct TrashRowView: View {
                     .font(.mono(11, bold: false))
                     .foregroundStyle(.tint)
                     .padding(.top, 3)
+            }
+            // What a tap on the row does, as a version's row says it: a
+            // row in the archive looks the same and opens its post.
+            if !row.mediaOnly {
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .padding(.top, 2)
+                    .accessibilityHidden(true)
             }
         }
         .padding(.vertical, 11)

@@ -572,11 +572,8 @@ extension View {
     /// app's says its name, in the display face, and how many it holds; a
     /// screen about one post says the post's title.
     func namedByItsHeader(name: String? = nil, count: String? = nil, title: String? = nil, symbol: String? = nil) -> some View {
-        // The way back first, the menu's key after it: a bar takes its
-        // keys from the outermost in.
         modifier(NamedInBar(name: name, count: count, title: title, symbol: symbol))
-            .modifier(MenuKeyInBar())
-            .modifier(BackKeyInBar())
+            .modifier(BarKeys())
     }
 
     /// A list on paper: no cards of the system's, no ground but ours.
@@ -721,11 +718,23 @@ struct BarName: View {
     var body: some View {
         Group {
             if let title, !title.isEmpty {
-                Text(verbatim: title)
-                    .font(.ui(18, weight: .bold))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .foregroundStyle(Theme.ink)
+                // A post has three screens under one title -- the post,
+                // its text, its properties: which of them this is stands
+                // under the title, in the engine's voice.
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(verbatim: title)
+                        .font(.ui(name == nil ? 18 : 16, weight: .bold))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .foregroundStyle(Theme.ink)
+                    if let name, !name.isEmpty {
+                        Text(verbatim: name)
+                            .font(.mono(11))
+                            .textCase(Theme.voiceCase)
+                            .foregroundStyle(Theme.muted)
+                            .lineLimit(1)
+                    }
+                }
             } else if let name, !name.isEmpty {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     if let symbol {
@@ -969,6 +978,9 @@ extension EnvironmentValues {
     /// Brings the menu back beside the open screen, where it was put out
     /// of the way and there is room for both; nil everywhere else.
     @Entry var showMenu: (@MainActor () -> Void)? = nil
+    /// Closes the screen open beside the menu, on a screen wide enough
+    /// for both; nil on a phone, where back is the stack's own.
+    @Entry var closeScreen: (@MainActor () -> Void)? = nil
 }
 
 /// The key that shows and hides the menu's column on a wide screen, in
@@ -989,8 +1001,15 @@ struct MenuKey: View {
 /// from the app's tint, not from the window's, not from the bar's -- so
 /// it is taken out and the app's own key put in its place, wherever
 /// there is something to go back to.
-private struct BackKeyInBar: ViewModifier {
+/// The keys at the bar's leading end, in one order on every screen: the
+/// key that brings the menu back, where it was put away, and after it
+/// the way back. The menu's key stands where the key that put the menu
+/// away stood -- the same place takes it away and brings it back; with
+/// the way back there instead, a second tap on that place left the screen.
+private struct BarKeys: ViewModifier {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.showMenu) private var showMenu
+    @Environment(\.closeScreen) private var closeScreen
     @State private var deeper = false
     @State private var way = StackPlace.Way()
 
@@ -999,6 +1018,9 @@ private struct BackKeyInBar: ViewModifier {
             .navigationBarBackButtonHidden(true)
             .background(StackPlace(deeper: $deeper, way: way))
             .toolbar {
+                if let showMenu {
+                    ToolbarItem(placement: .topBarLeading) { MenuKey(action: showMenu) }
+                }
                 if deeper {
                     ToolbarItem(placement: .topBarLeading) {
                         // Back is asked of the stack itself, as the swipe
@@ -1007,6 +1029,14 @@ private struct BackKeyInBar: ViewModifier {
                         // another was pushed onto it and left again: the
                         // key stood in the bar and did nothing.
                         Button { if !way.back() { dismiss() } } label: { Image(systemName: "chevron.backward") }
+                            .tint(Theme.accent)
+                            .accessibilityLabel(Text("Back"))
+                    }
+                } else if let closeScreen {
+                    // The first screen beside the menu: back is to the
+                    // menu alone, and whoever holds the two closes it.
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(action: closeScreen) { Image(systemName: "chevron.backward") }
                             .tint(Theme.accent)
                             .accessibilityLabel(Text("Back"))
                     }
@@ -1092,18 +1122,6 @@ private final class SwipeBack: NSObject, UIGestureRecognizerDelegate {
     }
 }
 
-/// On a screen whose menu was put out of the way, the key that brings it back.
-private struct MenuKeyInBar: ViewModifier {
-    @Environment(\.showMenu) private var showMenu
-
-    func body(content: Content) -> some View {
-        content.toolbar {
-            if let showMenu {
-                ToolbarItem(placement: .topBarLeading) { MenuKey(action: showMenu) }
-            }
-        }
-    }
-}
 
 /// Said at the head of a form that opened with something in it nobody
 /// typed just now: writing that was kept from the last time, brought

@@ -370,6 +370,22 @@
         }
       }
     },
+    "A row restores its post: tap it, and it asks first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ťuknutím na řádek příspěvek obnovíš; appka se nejdřív zeptá."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Tipp auf die Zeile stellt den Beitrag wieder her; die App fragt vorher."
+          }
+        }
+      }
+    },
     "A text from a file goes in where the caret is, and the file stays as it is. In it, an empty line ends a paragraph.": {
       "localizations": {
         "cs": {
@@ -1618,6 +1634,22 @@
         }
       }
     },
+    "Edit its text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit jeho text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seinen Text bearbeiten"
+          }
+        }
+      }
+    },
     "Edit what?": {
       "localizations": {
         "cs": {
@@ -2658,6 +2690,22 @@
         }
       }
     },
+    "Open now: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teď je otevřený blog %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt geöffnet: %@"
+          }
+        }
+      }
+    },
     "Open the blog in the browser": {
       "localizations": {
         "cs": {
@@ -2670,22 +2718,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Blog im Browser öffnen"
-          }
-        }
-      }
-    },
-    "Open the preview": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otevřít náhled"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vorschau öffnen"
           }
         }
       }
@@ -5806,6 +5838,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was möchtest du tun?"
+          }
+        }
+      }
+    },
+    "What is cleared out is gone for good.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co se uklidí, je pryč nadobro."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was aufgeräumt wird, ist endgültig weg."
           }
         }
       }

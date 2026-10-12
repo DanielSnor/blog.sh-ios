@@ -161,9 +161,14 @@ struct ComposeView: View {
                         ForEach(warnings, id: \.self) { Text(verbatim: $0).font(.ui(13)).foregroundStyle(Theme.muted) }
                     }
                     if let url = made.url, !url.isEmpty, let link = URL(string: url) {
-                        Link(destination: link) { CommandRow("Open the preview", symbol: "safari") }
+                        Link(destination: link) { CommandRow("Show the preview on the web", symbol: "safari") }
                             .buttonStyle(PressStyle())
                     }
+                    // What the preview shows wrong is put right in the text.
+                    NavigationLink { TextEditView(slug: made.slug) } label: {
+                        CommandRow("Edit its text", symbol: "text.alignleft", leads: true)
+                    }
+                    .buttonStyle(PressStyle())
                     // Deleted from there, the post is not this form's to point at any more.
                     NavigationLink { PropsView(slug: made.slug, gone: { self.made = nil }) } label: {
                         CommandRow("Its properties and the actions on it", symbol: "slider.horizontal.3", leads: true)

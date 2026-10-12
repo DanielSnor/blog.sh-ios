@@ -14,6 +14,10 @@ struct PropsView: View {
     /// Said to the screen this one was opened from, once the post is
     /// deleted: that screen is about the same post, and leaves with it.
     var gone: (() -> Void)?
+    /// Opened from somewhere that is not the post's own screen -- a
+    /// finding of the check, say: the way to its text is offered here,
+    /// or there would be none short of finding the post again.
+    var withText = false
     /// Told what the post is now, when it was renamed here: the screen
     /// under this one was opened with the name it had before.
     var renamed: ((PropsAnswer) -> Void)?
@@ -36,7 +40,7 @@ struct PropsView: View {
     @State private var said: Said?
 
     var body: some View {
-        PaperScreen(title: props?.title ?? slug) {
+        PaperScreen(name: String(localized: "properties and actions"), title: props?.title ?? slug) {
             if let problem {
                 ProblemLine(text: problem)
             }
@@ -49,6 +53,15 @@ struct PropsView: View {
                     Plate {
                         Link(destination: url) {
                             CommandRow(props.state == .draft ? "Show the preview on the web" : "Show on the web", symbol: "safari")
+                        }
+                        .buttonStyle(PressStyle())
+                    }
+                    .gap(10)
+                }
+                if withText {
+                    Plate {
+                        NavigationLink { TextEditView(slug: slug) } label: {
+                            CommandRow("the text", symbol: "text.alignleft", leads: true)
                         }
                         .buttonStyle(PressStyle())
                     }

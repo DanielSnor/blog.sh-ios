@@ -142,19 +142,12 @@ struct ContentView: View {
                         }
                     } }
                 }
-                // ...and from an open screen the way back to it is here,
-                // where a phone has it. Beside the menu too, on a screen
-                // wide enough for both: the way back there closes the open
-                // screen and leaves the menu with nothing beside it.
-                .toolbar {
-                    if sizeClass == .regular && (selection != nil || resumed != nil) {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button(action: close) { Image(systemName: "chevron.backward") }
-                                .tint(Theme.accent)
-                                .accessibilityLabel(Text(verbatim: "./blog.sh"))
-                        }
-                    }
-                }
+                // ...and from an open screen the way back to it is in
+                // the screen's own bar, where a phone has it. Beside the
+                // menu too, on a screen wide enough for both: the way
+                // back there closes the open screen and leaves the menu
+                // with nothing beside it.
+                .environment(\.closeScreen, closeOpen)
             }
             .id(visit)
             .toolbar(removing: .sidebarToggle)
@@ -172,7 +165,14 @@ struct ContentView: View {
         }
         // A blog's settings are behind its row there: what was changed in
         // them is asked of the server again when the list closes.
-        .sheet(isPresented: $showingBlogs, onDismiss: { Task { await load() } }) {
+        .sheet(isPresented: $showingBlogs, onDismiss: {
+            // Said once the list is gone and the note can be seen.
+            if let label = BlogsView.openedBySettings, label == blogs.current?.label {
+                Herald.shared.say(String(localized: "Open now: \(label)"))
+            }
+            BlogsView.openedBySettings = nil
+            Task { await load() }
+        }) {
             NavigationStack { BlogsView() }
         }
         // The posts kept on the device for a silent server: a list of
@@ -319,6 +319,13 @@ struct ContentView: View {
 
     private func putMenuAway() {
         withAnimation { columns = .detailOnly }
+    }
+
+    /// The way back from the first screen of the open one, where the
+    /// stack under it has nothing to go back to: a wide screen.
+    private var closeOpen: (@MainActor () -> Void)? {
+        guard sizeClass == .regular, selection != nil || resumed != nil else { return nil }
+        return { close() }
     }
 
     /// The way back to the menu, for the screens beside which it was put away.
