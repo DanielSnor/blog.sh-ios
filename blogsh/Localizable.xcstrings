@@ -2581,7 +2581,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "V tomto zařízení nic nečeká."
+            "value": "V tomhle zařízení nic nečeká."
           }
         },
         "de": {
@@ -2853,7 +2853,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obrázek %@ -- v tomto zařízení bez náhledu"
+            "value": "Obrázek %@ -- v tomhle zařízení bez náhledu"
           }
         },
         "de": {
@@ -3467,7 +3467,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Odebrat tento blog"
+            "value": "Odebrat tenhle blog"
           }
         },
         "de": {
@@ -4241,7 +4241,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Odebrat toto zařízení z blogu"
+            "value": "Odebrat tohle zařízení z blogu"
           }
         },
         "de": {
@@ -4305,7 +4305,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ťuknutím na políčko barvu změníš. Platí na tomto zařízení a pro všechny blogy."
+            "value": "Ťuknutím na políčko barvu změníš. Platí na tomhle zařízení a pro všechny blogy."
           }
         },
         "de": {
@@ -4481,7 +4481,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blog zatím nepozná, které z těchto zařízení se ptá, takže tohle odsud odebrat nejde. Starší párování na serveru doplní ./blog.sh pair --list."
+            "value": "Blog zatím nepozná, které z těchhle zařízení se ptá, takže tohle odsud odebrat nejde. Starší párování na serveru doplní ./blog.sh pair --list."
           }
         },
         "de": {
@@ -4721,7 +4721,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "První je velikost, jakou má systém; další jsou stupně nad ní. Platí na tomto zařízení a pro všechny blogy."
+            "value": "První je velikost, jakou má systém; další jsou stupně nad ní. Platí na tomhle zařízení a pro všechny blogy."
           }
         },
         "de": {
@@ -5149,7 +5149,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server klíč tohoto blogu nezná. Blog byl připojen kódem; v jeho nastavení ho spáruj znovu."
+            "value": "Server klíč tohohle blogu nezná. Blog byl připojen kódem; v jeho nastavení ho spáruj znovu."
           }
         },
         "de": {
@@ -5165,7 +5165,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server klíč tohoto blogu nezná. Řádek pod klíčem v nastavení blogu patří na serveru do ~/.ssh/authorized_keys."
+            "value": "Server klíč tohohle blogu nezná. Řádek pod klíčem v nastavení blogu patří na serveru do ~/.ssh/authorized_keys."
           }
         },
         "de": {
@@ -5469,7 +5469,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klíč tohoto zařízení"
+            "value": "Klíč tohohle zařízení"
           }
         },
         "de": {
@@ -5629,7 +5629,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zahodit tyto úpravy? Nebyly nikdy uloženy a nic z nich nezůstane."
+            "value": "Zahodit tyhle úpravy? Nebyly nikdy uloženy a nic z nich nezůstane."
           }
         },
         "de": {
@@ -7355,7 +7355,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "toto zařízení"
+            "value": "tohle zařízení"
           }
         },
         "de": {
