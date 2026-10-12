@@ -110,8 +110,10 @@ struct PropertiesForm: View {
     var body: some View {
         PaperScreen(name: String(localized: "Properties")) {
             Plate {
-                FieldRow(label: "series", text: $series, labelWidth: 84)
-                FieldRow(label: "part of series", text: $seriesPart, labelWidth: 84).keyboardType(.numberPad)
+                // An empty field says it is one: without a word in it
+                // the row read as a fact with nothing to say.
+                FieldRow(label: "series", text: $series, prompt: "—", labelWidth: 84)
+                FieldRow(label: "part of series", text: $seriesPart, prompt: "—", labelWidth: 84).keyboardType(.numberPad)
                 FieldRow(label: "tags", text: $tags, labelWidth: 84)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)

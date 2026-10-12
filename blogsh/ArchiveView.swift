@@ -89,7 +89,8 @@ struct ArchiveView: View {
             }
             .buttonStyle(PressStyle())
             .padding(.horizontal, Theme.gutter)
-            .padding(.vertical, 10)
+            // The pills bring their own room above and below.
+            .padding(.vertical, 1)
         }
         // The bar lays its edge effect over the scroll view next under it,
         // which is this row: nothing here runs under the bar to be faded.

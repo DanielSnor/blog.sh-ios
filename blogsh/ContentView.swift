@@ -1107,7 +1107,17 @@ struct FactLine: View {
                 .foregroundStyle(Theme.muted)
             Group {
                 if let action {
-                    Button(action: action) { words(tappable: true) }.buttonStyle(PressStyle())
+                    // The line is small type; what takes the finger is
+                    // not: it reaches over the gaps above and below.
+                    Button(action: action) {
+                        words(tappable: true)
+                            .padding(.vertical, 14)
+                            .padding(.trailing, 24)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PressStyle())
+                    .padding(.vertical, -14)
+                    .padding(.trailing, -24)
                 } else {
                     words(tappable: false)
                 }

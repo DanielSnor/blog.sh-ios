@@ -514,8 +514,13 @@ struct FilterPill: View {
             .padding(.vertical, 5)
             .background { if selected { Capsule().fill(.tint) } }
             .overlay { if selected { Capsule().strokeBorder(.tint, lineWidth: 1) } else { KeyOutline(shape: Capsule()) } }
-            .contentShape(Capsule())
+            // Drawn as small as it was; what takes the finger is taller.
+            .padding(.vertical, 9)
+            .contentShape(Rectangle())
             .underPointer()
+            // Which one holds is in the fill alone, and a reader of the
+            // screen does not see a fill.
+            .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -1018,7 +1023,10 @@ private struct BarKeys: ViewModifier {
             .navigationBarBackButtonHidden(true)
             .background(StackPlace(deeper: $deeper, way: way))
             .toolbar {
-                if let showMenu {
+                // A sheet is said what the screen under it is said, and
+                // none of it is the sheet's: it has no menu beside it and
+                // no screen of the app's to close.
+                if let showMenu, !way.modal {
                     ToolbarItem(placement: .topBarLeading) { MenuKey(action: showMenu) }
                 }
                 if deeper {
@@ -1032,7 +1040,7 @@ private struct BarKeys: ViewModifier {
                             .tint(Theme.accent)
                             .accessibilityLabel(Text("Back"))
                     }
-                } else if let closeScreen {
+                } else if let closeScreen, !way.modal {
                     // The first screen beside the menu: back is to the
                     // menu alone, and whoever holds the two closes it.
                     ToolbarItem(placement: .topBarLeading) {
@@ -1054,8 +1062,10 @@ private struct StackPlace: UIViewControllerRepresentable {
     /// The way back off the screen the probe stands in: its stack takes
     /// its top screen off. False where there is no stack, or nothing
     /// under the screen.
-    @MainActor final class Way {
-        weak var probe: Probe?
+    @MainActor @Observable final class Way {
+        @ObservationIgnored weak var probe: Probe?
+        /// The stack stands in a sheet, not in the app's own window.
+        var modal = false
 
         func back() -> Bool {
             guard let stack = probe?.navigationController, stack.viewControllers.count > 1 else { return false }
@@ -1071,12 +1081,15 @@ private struct StackPlace: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ probe: Probe, context: Context) {
-        probe.report = { now in if deeper != now { deeper = now } }
+        probe.report = { now, modal in
+            if deeper != now { deeper = now }
+            if way.modal != modal { way.modal = modal }
+        }
         probe.look()
     }
 
     final class Probe: UIViewController {
-        var report: ((Bool) -> Void)?
+        var report: ((Bool, Bool) -> Void)?
 
         override func didMove(toParent parent: UIViewController?) {
             super.didMove(toParent: parent)
@@ -1102,7 +1115,8 @@ private struct StackPlace: UIViewControllerRepresentable {
                 one.interactivePopGestureRecognizer?.delegate = SwipeBack.shared
                 one.interactivePopGestureRecognizer?.isEnabled = true
             }
-            DispatchQueue.main.async { [weak self] in self?.report?(deeper) }
+            let modal = stack.presentingViewController != nil
+            DispatchQueue.main.async { [weak self] in self?.report?(deeper, modal) }
         }
     }
 }
@@ -1644,8 +1658,12 @@ struct ChoiceRow<Selection: Hashable, Options: View>: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.tint)
             }
+            // The words are a line high; the key is as tall as its row.
+            .padding(.vertical, 12)
+            .padding(.leading, 24)
             .contentShape(Rectangle())
         }
+        .padding(.vertical, -12)
     }
 }
 
@@ -1845,7 +1863,7 @@ struct EditorKeys: View {
                 Image(systemName: symbol)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.tint)
-                    .frame(width: 34, height: 30)
+                    .modifier(KeyFace())
                     .overlay(shape.strokeBorder(Theme.line, lineWidth: 1))
                     .contentShape(shape)
             }
@@ -1871,6 +1889,18 @@ struct EditorKeys: View {
 
 /// The marks as a row of keys over the text: the ones the /write/ page
 /// has, in its order.
+/// The face of a key over the text: as large as a finger needs among
+/// its neighbours, and larger with the type -- the marks on the keys
+/// grow, and a key that did not cut its own mark short.
+struct KeyFace: ViewModifier {
+    @ScaledMetric(relativeTo: .body) private var grown: CGFloat = 100
+
+    func body(content: Content) -> some View {
+        let k = TypeScale.ownHand ? TypeScale.shared.factor : grown / 100
+        content.frame(width: (40 * k).rounded(), height: (38 * k).rounded())
+    }
+}
+
 struct MarkBar: View {
     let apply: (Marks.Kind) -> Void
 
@@ -1895,18 +1925,18 @@ struct MarkBar: View {
             case .bold: Text(verbatim: "B").font(.ui(14, weight: .bold))
             case .italic: Text(verbatim: "I").font(.system(size: 15, design: .serif)).italic()
             case .strike: Text(verbatim: "S").font(.ui(14)).strikethrough()
-            case .code: Text(verbatim: "</>").font(.mono(11))
+            case .code: Text(verbatim: "</>").font(.mono(11)).fixedSize()
             case .link: Image(systemName: "link").font(.system(size: 12, weight: .semibold))
             case .h2: Text(verbatim: "H").font(.ui(14, weight: .bold))
             case .quote: Text(verbatim: "❝").font(.ui(14))
             case .ul: Text(verbatim: "•").font(.ui(16, weight: .bold))
             case .ol: Text(verbatim: "1.").font(.mono(12))
-            case .fence: Text(verbatim: "```").font(.mono(11))
+            case .fence: Text(verbatim: "```").font(.mono(11)).fixedSize()
             }
         }
         // Keys, so in the accent like every other key.
         .foregroundStyle(.tint)
-        .frame(width: 34, height: 30)
+        .modifier(KeyFace())
         .overlay(KeyOutline(shape: shape))
         .contentShape(shape)
         .underPointer()
@@ -1934,6 +1964,9 @@ struct DeliveryNote: View {
     let shots: [Shot]
     let textBytes: Int
     let maxMb: Int
+    /// The form holds a picture or a video: what becomes of one on the
+    /// way is said then, and not under a post of words alone.
+    var media = true
 
     var body: some View {
         let over = Delivery.over(shots: shots, textBytes: textBytes, maxMb: maxMb)
@@ -1946,7 +1979,9 @@ struct DeliveryNote: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .gap(8)
         }
-        Hint("A picture is shrunk to \(String(Pictures.maxEdge)) px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under \(maxMb) MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about \(Int(Double(maxMb) * 0.73)) MB.")
+        if media {
+            Hint("A picture is shrunk to \(String(Pictures.maxEdge)) px on its long edge before it goes, a video is converted to H.264 at 720p. Together they have to fit into about \(Int(Double(maxMb) * 0.73)) MB.")
+        }
     }
 }
 

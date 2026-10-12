@@ -118,7 +118,7 @@ struct ComposeView: View {
                     .disabled(importing || busy)
             }
             if let unread { ProblemLine(text: unread) }
-            DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb)
+            DeliveryNote(shots: sent, textBytes: text.utf8.count, maxMb: maxMb, media: !shots.isEmpty)
 
             // With the server silent the same key keeps the post on the
             // device instead, whole, to go when the server answers.

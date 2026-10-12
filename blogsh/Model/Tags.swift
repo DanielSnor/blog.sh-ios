@@ -101,7 +101,7 @@ struct TagSuggestions: View {
         let parts = TagStore.parts(text)
         let offered = store.suggest(typed: parts.typing, taken: parts.done)
         if !offered.isEmpty {
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: 8) {
                 ForEach(offered, id: \.name) { tag in
                     Button {
                         text = (parts.done + [tag.name]).joined(separator: ", ") + ", "
@@ -115,7 +115,9 @@ struct TagSuggestions: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
-                        .contentShape(Capsule())
+                        // Drawn as it was; taller for the finger.
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(PressStyle())
                                 }

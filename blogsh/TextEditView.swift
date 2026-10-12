@@ -115,7 +115,8 @@ struct TextEditView: View {
                         .disabled(importing || !entry.editable)
                 }
                 if let unread { ProblemLine(text: unread) }
-                DeliveryNote(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb)
+                DeliveryNote(shots: Kept.sent(shots, text: text), textBytes: text.utf8.count, maxMb: maxMb,
+                             media: !shots.isEmpty || !entry.media.isEmpty)
 
                 Button {
                     // Asked whenever the save would delete a picture -- one

@@ -17,16 +17,9 @@ struct PreviewSheet: View {
         let site = Blogs.shared.current?.url ?? ""
         let lang = lang ?? Locale.current.language.languageCode?.identifier ?? "en"
         let page = Preview.document(title: title, body: Preview.render(markdown, shots: shown, words: Preview.spoken), lang: lang)
+        NavigationStack {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
-                ScreenHeader(title: String(localized: "Preview"))
-                Spacer()
-                Button { dismiss() } label: { Text("Done").font(.ui(16, weight: .semibold)).foregroundStyle(.tint) }
-                    .buttonStyle(PressStyle())
-            }
-            .padding(.horizontal, Theme.gutter)
-            .padding(.top, 18)
-            Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 10)
+            Rectangle().fill(Theme.line).frame(height: 1)
             WebPage(html: page, base: URL(string: site), zoom: TypeScale.shared.zoom)
             Rectangle().fill(Theme.line).frame(height: 1)
             Hint("Near enough, not exact: the blog itself renders the post, and the draft's preview after sending is the real thing.")
@@ -34,6 +27,13 @@ struct PreviewSheet: View {
                 .padding(.bottom, 10)
         }
         .background(Theme.paper.ignoresSafeArea())
+        // The bar the other sheets wear: the name where theirs is, and
+        // the way out a key of the same make.
+        .namedByItsHeader(name: String(localized: "Preview"))
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+        }
+        }
     }
 }
 

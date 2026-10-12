@@ -306,18 +306,18 @@
         }
       }
     },
-    "A picture is shrunk to %@ px on its long edge before it goes; a video is converted to H.264 at 720p. The whole post -- text, pictures, video -- has to stay under %lld MB, the server's limit, and the limit is measured on the encoded transfer, a third larger than the files: the files themselves get about %lld MB.": {
+    "A picture is shrunk to %@ px on its long edge before it goes, a video is converted to H.264 at 720p. Together they have to fit into about %lld MB.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obrázek se před odesláním zmenší na %1$@ px po delší straně; video se převede na H.264 v 720p. Celý příspěvek — text, obrázky, video — se musí vejít do %2$lld MB, to je limit serveru; měří se zakódovaný přenos, který je o třetinu větší než soubory, takže na soubory zbývá zhruba %3$lld MB."
+            "value": "Obrázek se před odesláním zmenší na %1$@ px po delší straně, video se převede na H.264 v 720p. Dohromady se musí vejít zhruba do %2$lld MB."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein Bild wird vor dem Senden auf %1$@ px an der langen Kante verkleinert; ein Video wird in H.264 mit 720p umgewandelt. Der ganze Beitrag -- Text, Bilder, Video -- muss unter %2$lld MB bleiben, dem Limit des Servers; gemessen wird die kodierte Übertragung, ein Drittel größer als die Dateien: für die Dateien selbst bleiben etwa %3$lld MB."
+            "value": "Ein Bild wird vor dem Senden auf %1$@ px an der langen Kante verkleinert, ein Video in H.264 mit 720p umgewandelt. Zusammen müssen sie in etwa %2$lld MB passen."
           }
         }
       }
