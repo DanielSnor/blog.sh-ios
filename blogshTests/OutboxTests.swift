@@ -404,3 +404,32 @@ import Testing
         }
     }
 }
+
+/// What a sending would leave behind, and what the first screen knows of
+/// a blog whose queue nobody sends out.
+@Suite struct LeftBehindTests {
+    private func shot(_ name: String) -> Shot {
+        Shot(name: name, data: Data([1]), width: 1, height: 1)
+    }
+
+    /// A picture chosen and not put into the text is named before the
+    /// post goes; one the text names is not.
+    @Test func picturesTheTextDoesNotNameAreSaidBeforeSending() {
+        let shots = [shot("a.jpg"), shot("b.jpg")]
+        #expect(Kept.left(shots, text: "Úvod\n\n![popis](a.jpg)\n") == ["b.jpg"])
+        #expect(Kept.left(shots, text: "![](a.jpg)\n\n![](b.jpg)") == [])
+        #expect(Kept.left(shots, text: "") == ["a.jpg", "b.jpg"])
+        #expect(Kept.left([], text: "text") == [])
+    }
+
+    /// A blog with no scheduled run says so in its queue's answer; one
+    /// that ran, and an older engine that says nothing, do not.
+    @Test func aQueueNobodySendsOutIsKnown() throws {
+        let never: QueueAnswer = try Engine.decode(Data(#"{"ok":true,"queue":[],"scheduler":{"last_run":null}}"#.utf8))
+        let ran: QueueAnswer = try Engine.decode(Data(#"{"ok":true,"queue":[],"scheduler":{"last_run":"2026-10-12T08:00:00+02:00"}}"#.utf8))
+        let older: QueueAnswer = try Engine.decode(Data(#"{"ok":true,"queue":[]}"#.utf8))
+        #expect(never.unattended)
+        #expect(!ran.unattended)
+        #expect(!older.unattended)
+    }
+}

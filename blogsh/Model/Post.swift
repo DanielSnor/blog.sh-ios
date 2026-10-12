@@ -321,6 +321,11 @@ nonisolated enum Kept {
         shots.filter { named($0.name, in: text) }
     }
 
+    /// The shots that stay behind: chosen, and not named by the text.
+    static func left(_ shots: [Shot], text: String) -> [String] {
+        shots.filter { !named($0.name, in: text) }.map(\.name)
+    }
+
     /// The post's own media the text has stopped naming.
     static func dropped(media: [String], text: String) -> [String] {
         media.filter { !named($0, in: text) }

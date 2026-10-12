@@ -1826,6 +1826,22 @@
         }
       }
     },
+    "It will not go out by itself here: publish it by hand.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tady sám nevyjde: zveřejni ho ručně."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier geht er nicht von selbst raus: veröffentliche ihn von Hand."
+          }
+        }
+      }
+    },
     "Italic": {
       "localizations": {
         "cs": {
@@ -2338,6 +2354,22 @@
         }
       }
     },
+    "Not in the text, so they stay behind and are gone from the form: %@. Send without them?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejsou v textu, takže se neodešlou a z formuláře zmizí: %@. Odeslat bez nich?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht im Text, sie bleiben also zurück und verschwinden aus dem Formular: %@. Ohne sie senden?"
+          }
+        }
+      }
+    },
     "Nothing matches": {
       "localizations": {
         "cs": {
@@ -2350,6 +2382,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nichts passt"
+          }
+        }
+      }
+    },
+    "Nothing on this blog sends the queue out by itself, so the post will wait past its time. Publish it by hand then -- or set the scheduled run up on the server; Site, Check the installation says how.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomhle blogu frontu nic samo nerozesílá, takže příspěvek bude čekat i po svém čase. Zveřejni ho pak ručně — nebo na serveru nastav plánované spouštění; jak, říká Web, Zkontrolovat instalaci."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Blog verschickt nichts die Warteschlange von selbst, der Beitrag wartet also über seine Zeit hinaus. Veröffentliche ihn dann von Hand — oder richte auf dem Server den geplanten Lauf ein; wie, sagt Web, Installation prüfen."
           }
         }
       }
@@ -3650,6 +3698,22 @@
         }
       }
     },
+    "Scheduled for %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naplánováno: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geplant: %@"
+          }
+        }
+      }
+    },
     "Scheduled: goes out %@.": {
       "localizations": {
         "cs": {
@@ -3710,6 +3774,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Als Entwurf ans Blog senden"
+          }
+        }
+      }
+    },
+    "Send without them": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odeslat bez nich"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne sie senden"
           }
         }
       }

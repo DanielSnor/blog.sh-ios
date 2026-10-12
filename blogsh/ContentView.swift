@@ -50,6 +50,8 @@ enum MenuEntry: String, CaseIterable, Identifiable {
 struct Glance: Equatable {
     var queue: [QueueRow]
     var drafts: Int
+    /// Nothing on the blog sends its queue out by itself.
+    var unattended = false
 }
 
 struct ContentView: View {
@@ -340,7 +342,7 @@ struct ContentView: View {
                  url: identity?.site.url ?? blogs.current?.url ?? "",
                  switchBlog: { showingBlogs = true },
                  identity: identity, problem: offline ? offlineWords : identityProblem, glance: glance,
-                 offline: offline, retry: load,
+                 offline: offline, addBlog: blogs.all.isEmpty ? { incoming = Incoming(text: "") } : nil, retry: load,
                  waiting: waiting, sending: waiting.contains { $0.id == Outbox.shared.sending },
                  openWaiting: { showingWaiting = true },
                  arrived: arrived, seeArrived: seeArrived,
@@ -568,7 +570,8 @@ struct ContentView: View {
     private static func glance(queue: Data, drafts: Data) -> Glance? {
         guard let waiting: QueueAnswer = try? Engine.decode(queue),
               let unpublished: ListAnswer = try? Engine.decode(drafts) else { return nil }
-        return Glance(queue: waiting.queue, drafts: unpublished.posts.filter { !$0.scheduled }.count)
+        return Glance(queue: waiting.queue, drafts: unpublished.posts.filter { !$0.scheduled }.count,
+                      unattended: waiting.unattended)
     }
 }
 
@@ -603,6 +606,9 @@ struct HomeView: View {
     /// The blog's server is silent: what needs it is shown out of reach,
     /// and writing a new post -- which does not -- stays as it is.
     var offline = false
+    /// The way to a first blog, while the app has none: nothing else on
+    /// this screen has anything to act on until then.
+    var addBlog: (() -> Void)?
     /// Asks the server again.
     var retry: () async -> Void = {}
     /// The posts kept on this device until the server answers, and
@@ -709,7 +715,13 @@ struct HomeView: View {
                         Text(verbatim: problem)
                             .font(.ui(14 * k))
                             .foregroundStyle(Theme.muted)
+                            .fixedSize(horizontal: false, vertical: true)
                             .padding(.top, 14 * k)
+                        if let addBlog {
+                            Button(action: addBlog) { PrimaryLabel(label: "Add a blog", busy: false) }
+                                .buttonStyle(PrimaryButtonStyle())
+                                .padding(.top, 14 * k)
+                        }
                     } else {
                         ProgressView().padding(.top, 14)
                     }
@@ -756,7 +768,7 @@ struct HomeView: View {
                         Button { open(entry, nil, false) } label: {
                             Tile(entry: entry, highlighted: current == entry)
                         }
-                        .outOfReach(offline && entry != .add)
+                        .outOfReach((offline && entry != .add) || addBlog != nil)
                     }
                 }
                 .buttonStyle(PressStyle())
@@ -774,7 +786,7 @@ struct HomeView: View {
                     }
                 }
                 .buttonStyle(PressStyle())
-                .outOfReach(offline)
+                .outOfReach(offline || addBlog != nil)
                 .padding(.top, 14 * k)
 
                 // The blog itself, as a reader has it.
@@ -862,10 +874,28 @@ struct HomeView: View {
             Image(systemName: "clock").font(.system(size: 17 * k)).foregroundStyle(.tint)
             if let next = glance.queue.first {
                 let when = ISO8601DateFormatter.engine.date(from: next.date).map(RowDate.soon) ?? ""
-                Text(verbatim: "\(next.title.isEmpty ? next.slug : next.title) · \(when)")
+                VStack(alignment: .leading, spacing: 3 * k) {
+                    // The title gives way, the time does not: when it goes
+                    // out is what the card is for.
+                    HStack(spacing: 0) {
+                        Text(verbatim: next.title.isEmpty ? next.slug : next.title)
+                            .lineLimit(1)
+                        Text(verbatim: when.isEmpty ? "" : " · \(when)")
+                            .lineLimit(1)
+                            .fixedSize()
+                            .layoutPriority(1)
+                    }
                     .font(.ui(15 * k, weight: .medium))
                     .tone(Theme.ink)
-                    .lineLimit(1)
+                    // Said where the time is read: here the time is a
+                    // note, and nothing acts on it.
+                    if glance.unattended {
+                        Text("It will not go out by itself here: publish it by hand.")
+                            .font(.ui(12 * k, weight: .medium))
+                            .tone(Theme.danger)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
                 Spacer(minLength: 6)
                 CountBadge(count: glance.queue.count)
             } else {

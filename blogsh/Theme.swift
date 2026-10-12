@@ -1706,7 +1706,51 @@ struct PaperEditor: View {
             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY.rounded() } action: { top = $0 }
             .padding(.horizontal, -5)
             .padding(.vertical, -4)
+            .background(AsTyped())
             .fullScreenCover(isPresented: $whole) { WritingScreen(text: $text) }
+    }
+}
+
+/// The text is markdown, and two hyphens in it are two hyphens: the
+/// system's own tidying of them into a dash turned a rule or a header's
+/// fence (---) into a dash and a hyphen, and a command's --flag into
+/// something no shell takes. Quotes are left to the system: they are
+/// prose, and the blog reads a caption in either kind.
+///
+/// SwiftUI's editor has no word for this; the text view under it has.
+private struct AsTyped: UIViewRepresentable {
+    func makeUIView(context: Context) -> Finder { Finder() }
+    func updateUIView(_ finder: Finder, context: Context) { finder.look() }
+
+    final class Finder: UIView {
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            look()
+            // The editor's own view may arrive a turn after this one.
+            DispatchQueue.main.async { [weak self] in self?.look() }
+        }
+
+        /// The nearest text view: this view lies behind the editor, so
+        /// the first one found on the way up is the editor's.
+        func look() {
+            var above = superview
+            for _ in 0..<4 {
+                guard let here = above else { return }
+                if let field = Self.textView(in: here) {
+                    if field.smartDashesType != .no { field.smartDashesType = .no }
+                    return
+                }
+                above = here.superview
+            }
+        }
+
+        private static func textView(in view: UIView) -> UITextView? {
+            if let field = view as? UITextView { return field }
+            for one in view.subviews {
+                if let found = textView(in: one) { return found }
+            }
+            return nil
+        }
     }
 }
 
@@ -1756,6 +1800,7 @@ struct WritingScreen: View {
                 .foregroundStyle(Theme.ink)
                 .scrollContentBackground(.hidden)
                 .focused($typing)
+                .background(AsTyped())
                 .padding(.horizontal, Theme.gutter - 5)
                 .padding(.top, 8)
         }

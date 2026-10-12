@@ -41,7 +41,11 @@ struct TrashView: View {
                 .buttonStyle(PressStyle())
                 // Asked over the row it is asked about, not at the head of the screen.
                 .confirmationDialog("Restore '\(row.slug)'?", isPresented: asking(row), titleVisibility: .visible) {
-                    Button("Restore") { Task { await restore(row) } }
+                    // Media alone are the terminal's to restore, and the
+                    // sentence under the question says so: no key for it.
+                    if !row.mediaOnly {
+                        Button("Restore") { Task { await restore(row) } }
+                    }
                 } message: {
                     Text(row.mediaOnly
                          ? "Only media are in the trash for this post; the terminal restores those."

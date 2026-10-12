@@ -23,6 +23,8 @@ struct ComposeView: View {
     @State private var importing = false
     @State private var choosingFiles = false
     @State private var choosingText = false
+    /// Asked before a sending that would leave pictures behind.
+    @State private var confirmingLeft = false
     /// Why the file last chosen for its text is not in the form.
     @State private var untaken: String?
     /// Why the last picture chosen is not among the shots.
@@ -121,11 +123,18 @@ struct ComposeView: View {
             // With the server silent the same key keeps the post on the
             // device instead, whole, to go when the server answers.
             Button {
-                if offline { keepOnDevice() } else { Task { await send() } }
+                // A picture chosen and not put into the text stays
+                // behind, and the form is emptied once the post has gone:
+                // asked here, where it can still be put in.
+                if !left.isEmpty { confirmingLeft = true } else { go() }
             } label: {
                 PrimaryLabel(label: busy ? "Sending…" : (offline ? "Keep on the device" : "Send to the blog as a draft"), busy: busy)
             }
             .buttonStyle(PrimaryButtonStyle())
+            .confirmationDialog("Not in the text, so they stay behind and are gone from the form: \(left.joined(separator: ", ")). Send without them?",
+                                isPresented: $confirmingLeft, titleVisibility: .visible) {
+                Button("Send without them") { go() }
+            }
             .disabled(busy || importing || !Markdown.isWritten(text) || overweight)
             .gap(22)
             if offline {
@@ -328,6 +337,13 @@ struct ComposeView: View {
     /// The shots the text names: only those go.
     private var sent: [Shot] { Kept.sent(shots, text: text) }
 
+    /// The shots the text does not name, by their names.
+    private var left: [String] { Kept.left(shots, text: text) }
+
+    private func go() {
+        if offline { keepOnDevice() } else { Task { await send() } }
+    }
+
     // MARK: - Sending
 
     /// The open blog's server did not answer the last time it was asked.
@@ -364,6 +380,9 @@ struct ComposeView: View {
         }
         problem = nil
         putBy = false
+        // What the last sending answered is not this one's answer: left
+        // standing under a sending that failed, it read as a success.
+        made = nil
         let going = Unsent(title: title, tags: tags, text: text)
         let held = from
         // The text is what goes: a description typed on a card is in it

@@ -320,7 +320,15 @@ struct PropsView: View {
     private func scheduled() async {
         await load()
         guard let props, props.scheduled, let date = props.date.flatMap({ ISO8601DateFormatter.engine.date(from: $0) }) else { return }
-        Herald.shared.say(String(localized: "Scheduled: goes out \(date.spoken)."))
+        // "Goes out" is true only of a blog that something sends its
+        // queue out on: asked, because the plan's own answer does not say.
+        let queue: QueueAnswer? = try? await Engine.shared.call(["queue"])
+        if queue?.unattended == true {
+            said = Said(title: String(localized: "Scheduled for \(date.spoken)"),
+                        text: String(localized: "Nothing on this blog sends the queue out by itself, so the post will wait past its time. Publish it by hand then -- or set the scheduled run up on the server; Site, Check the installation says how."))
+        } else {
+            Herald.shared.say(String(localized: "Scheduled: goes out \(date.spoken)."))
+        }
     }
 
     private func announce(force: Bool) async {
