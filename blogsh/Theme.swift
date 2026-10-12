@@ -992,15 +992,21 @@ struct MenuKey: View {
 private struct BackKeyInBar: ViewModifier {
     @Environment(\.dismiss) private var dismiss
     @State private var deeper = false
+    @State private var way = StackPlace.Way()
 
     func body(content: Content) -> some View {
         content
             .navigationBarBackButtonHidden(true)
-            .background(StackPlace(deeper: $deeper))
+            .background(StackPlace(deeper: $deeper, way: way))
             .toolbar {
                 if deeper {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button { dismiss() } label: { Image(systemName: "chevron.backward") }
+                        // Back is asked of the stack itself, as the swipe
+                        // from the edge asks it. The screen's own leaving
+                        // stops answering on a phone's first screen once
+                        // another was pushed onto it and left again: the
+                        // key stood in the bar and did nothing.
+                        Button { if !way.back() { dismiss() } } label: { Image(systemName: "chevron.backward") }
                             .tint(Theme.accent)
                             .accessibilityLabel(Text("Back"))
                     }
@@ -1013,8 +1019,26 @@ private struct BackKeyInBar: ViewModifier {
 /// SwiftUI does not say; the stack under it does.
 private struct StackPlace: UIViewControllerRepresentable {
     @Binding var deeper: Bool
+    let way: Way
 
-    func makeUIViewController(context: Context) -> Probe { Probe() }
+    /// The way back off the screen the probe stands in: its stack takes
+    /// its top screen off. False where there is no stack, or nothing
+    /// under the screen.
+    @MainActor final class Way {
+        weak var probe: Probe?
+
+        func back() -> Bool {
+            guard let stack = probe?.navigationController, stack.viewControllers.count > 1 else { return false }
+            stack.popViewController(animated: true)
+            return true
+        }
+    }
+
+    func makeUIViewController(context: Context) -> Probe {
+        let probe = Probe()
+        way.probe = probe
+        return probe
+    }
 
     func updateUIViewController(_ probe: Probe, context: Context) {
         probe.report = { now in if deeper != now { deeper = now } }
