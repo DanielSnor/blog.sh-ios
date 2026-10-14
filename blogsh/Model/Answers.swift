@@ -396,6 +396,32 @@ nonisolated struct TranslationEntry: Decodable, Sendable {
     let media: [String]
     let preview: String
     let base: String
+    /// The language can be written here. False where the editor could
+    /// not give back all that it holds -- a second link card, a player
+    /// from an unknown source -- and a save would lose it.
+    let editable: Bool
+    /// Why it cannot, in the blog's words.
+    let problem: String?
+
+    enum CodingKeys: String, CodingKey {
+        case slug, lang, title, written, text, original, media, preview, base, editable, problem
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        slug = try c.decode(String.self, forKey: .slug)
+        lang = try c.decode(String.self, forKey: .lang)
+        title = try c.decode(String.self, forKey: .title)
+        written = try c.decode(Bool.self, forKey: .written)
+        text = try c.decode(String.self, forKey: .text)
+        original = try c.decode(String.self, forKey: .original)
+        media = try c.decode([String].self, forKey: .media)
+        preview = try c.decode(String.self, forKey: .preview)
+        base = try c.decode(String.self, forKey: .base)
+        // An older engine says nothing of it: what it opened could be written.
+        editable = try c.decodeIfPresent(Bool.self, forKey: .editable) ?? true
+        problem = try c.decodeIfPresent(String.self, forKey: .problem)
+    }
 }
 
 /// `restore --json`: what the trash holds.

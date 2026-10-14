@@ -543,3 +543,27 @@ import Testing
         #expect(!AddressesSheet.stale.contains("busy"))
     }
 }
+
+/// A translation says whether it can be written here, as a post's text does.
+@Suite struct TranslationEntryTests {
+    private func entry(_ extra: String) throws -> TranslationEntry {
+        let json = #"{"ok":true,"post":{"slug":"a","lang":"en","title":"T","written":true,"text":"---\ntitle: T\n---\n\nx","original":"y","media":[],"preview":"","base":"1"\#(extra)}}"#
+        let answer: TranslationAnswer = try Engine.decode(Data(json.utf8))
+        return answer.post
+    }
+
+    @Test func aTranslationThatCannotBeWrittenSaysWhy() throws {
+        let locked = try entry(#","editable":false,"problem":"a second link card""#)
+        #expect(!locked.editable)
+        #expect(locked.problem == "a second link card")
+        let open = try entry(#","editable":true,"problem":null"#)
+        #expect(open.editable && open.problem == nil)
+    }
+
+    /// An older engine says nothing of it: what it opened could be written.
+    @Test func anOlderEngineLeavesItWritable() throws {
+        let older = try entry("")
+        #expect(older.editable)
+        #expect(older.problem == nil)
+    }
+}

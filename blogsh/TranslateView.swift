@@ -60,10 +60,16 @@ struct TranslateView: View {
                 Hint("Only the words are translated. The date, the tags, the series and the state belong to the post itself and hold in every language.")
 
                 SectionLabel("In \(languageName)")
+                // Said before anything is written, not at the save that
+                // would turn it away -- with what was written in it.
+                if !entry.editable {
+                    Hint(verbatim: entry.problem.map { String(localized: "This post cannot be edited here: \($0). At the desk, edit asks before losing it; here nobody could answer.") }
+                         ?? String(localized: "This post cannot be edited here."))
+                }
                 Plate {
                     // Left alone while a save is on its way.
                     PaperEditor(text: $text, minHeight: 280, original: entry.text)
-                        .disabled(saving)
+                        .disabled(saving || !entry.editable)
                 }
                 Plate {
                     Command("Preview", symbol: "eye") { previewing = true }
@@ -76,7 +82,7 @@ struct TranslateView: View {
                     PrimaryLabel(label: saving ? "Saving…" : "Save the \(languageName) text", busy: saving)
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .disabled(saving || text == entry.text)
+                .disabled(saving || !entry.editable || text == entry.text)
                 .gap(22)
                 if let problem {
                     ProblemLine(text: problem)
@@ -143,8 +149,9 @@ struct TranslateView: View {
         do {
             let answer: TranslationAnswer = try await Engine.shared.call(["translate", slug, "--lang", lang])
             entry = answer.post
-            // The blog's words, or the ones written here and never saved.
-            if let blog = Blogs.shared.currentID,
+            // The blog's words, or the ones written here and never saved --
+            // over a language that can be written here at all.
+            if answer.post.editable, let blog = Blogs.shared.currentID,
                let kept = Unsaved.kept(for: blog, slug: slug, what: .language(lang)), kept.text != answer.post.text {
                 broughtBack = kept
                 text = kept.text
