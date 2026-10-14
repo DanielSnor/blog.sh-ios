@@ -57,25 +57,20 @@ struct DevicesView: View {
                     Hint("No device was let in to this blog by a code.")
                         .gap(10)
                 } else {
+                    // Each row says what is done about it: this device can take
+                    // itself off, here, in its own row; another is taken off at
+                    // the server, and its row says by what. A key for it set
+                    // apart under the list left it to be guessed which row it was.
                     Plate {
-                        ForEach(Array(answer.devices.enumerated()), id: \.offset) { _, device in
-                            row(device, this: answer.isThis(device, key: key))
+                        ForEach(Array(answer.devices.enumerated()), id: \.offset) { index, device in
+                            let this = answer.isThis(device, key: key)
+                            row(index + 1, device, this: this, mayLeave: this && answer.mayLeave)
                         }
                     }
                     .gap(14)
                     Hint("The devices a code let in to this blog, as ./blog.sh pair --list shows them on the server. Another device is taken off there: ./blog.sh pair --revoke.")
                 }
-                if answer.mayLeave {
-                    // What cannot be taken back, set apart and last.
-                    Plate {
-                        Command("Take this device off the blog", symbol: "minus.circle", danger: true, busy: leaving) { confirming = true }
-                            .confirmationDialog("Take this device off the blog '\(blogs.current?.label ?? "")'? The server will not let it in any more; to connect again, it needs a new code from ./blog.sh pair. The blog stays in the app, with what is written for it on this device.",
-                                                isPresented: $confirming, titleVisibility: .visible) {
-                                Button("Remove", role: .destructive) { Task { await leave() } }
-                            }
-                    }
-                    .gap(28)
-                } else if answer.holdsThis(key: key) {
+                if !answer.mayLeave && answer.holdsThis(key: key) {
                     Hint("The blog cannot tell yet which of these devices is asking, so this one cannot be taken off from here. On the server, ./blog.sh pair --list brings an older pairing up to date.")
                 }
             }
@@ -88,25 +83,55 @@ struct DevicesView: View {
         }
     }
 
-    private func row(_ device: PairedDevices.Device, this: Bool) -> some View {
+    /// One device: its number as `./blog.sh pair --list` counts it, its
+    /// name, the mark on this one, the key the server knows it by -- and
+    /// what is done about it: this one is taken off by the key under it,
+    /// another on the server, by the command under it.
+    private func row(_ number: Int, _ device: PairedDevices.Device, this: Bool, mayLeave: Bool) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(verbatim: device.name.isEmpty ? "—" : device.name)
-                    .font(.ui(15, weight: .medium))
-                    .foregroundStyle(Theme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                if this {
-                    Text("this device").engineLabel().foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: number.formatted())
+                        .font(.mono(13))
+                        .foregroundStyle(Theme.muted)
+                    Text(verbatim: device.name.isEmpty ? "—" : device.name)
+                        .font(.ui(15, weight: .medium))
+                        .foregroundStyle(Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if this {
+                        Text("this device").engineLabel().foregroundStyle(.tint)
+                    }
+                }
+                if !device.fingerprint.isEmpty {
+                    Text(verbatim: device.fingerprint)
+                        .font(.mono(12, bold: false))
+                        .foregroundStyle(Theme.muted)
+                        .textSelection(.enabled)
                 }
             }
-            if !device.fingerprint.isEmpty {
-                Text(verbatim: device.fingerprint)
-                    .font(.mono(12, bold: false))
-                    .foregroundStyle(Theme.muted)
-                    .textSelection(.enabled)
+            .accessibilityElement(children: .combine)
+            if mayLeave {
+                Command("Take this device off the blog", symbol: "minus.circle", danger: true, busy: leaving) { confirming = true }
+                    .padding(.top, 6)
+                    .confirmationDialog("Take this device off the blog '\(blogs.current?.label ?? "")'? The server will not let it in any more; to connect again, it needs a new code from ./blog.sh pair. The blog stays in the app, with what is written for it on this device.",
+                                        isPresented: $confirming, titleVisibility: .visible) {
+                        Button("Remove", role: .destructive) { Task { await leave() } }
+                    }
+            } else if !this && !device.fingerprint.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Taken off on the server with:")
+                        .font(.ui(12))
+                        .foregroundStyle(Theme.muted)
+                    Text(verbatim: "./blog.sh pair --revoke \(device.fingerprint)")
+                        .font(.mono(12, bold: false))
+                        .foregroundStyle(Theme.ink)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, 4)
+                .accessibilityElement(children: .combine)
             }
         }
-        .accessibilityElement(children: .combine)
     }
 
     private func load() async {

@@ -279,8 +279,8 @@ struct ColourPicker: UIViewControllerRepresentable {
 }
 
 /// Which build this is, at the foot of the settings: the engine's mark,
-/// when the app was built and from which commit. Nothing to set -- what
-/// is read out when one copy has to be told from another.
+/// the app's version, when it was built and from which commit. Nothing
+/// to set -- what is read out when one copy has to be told from another.
 struct BuildMark: View {
     var stamp = BuildStamp.own
 
@@ -291,6 +291,13 @@ struct BuildMark: View {
                 .frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .accessibilityHidden(true)
+            // The version first: it is what a person asks about. The time
+            // and the commit under it tell one copy from another.
+            if let version = stamp.version {
+                Text(verbatim: version)
+                    .font(.mono(13))
+                    .foregroundStyle(Theme.ink)
+            }
             if let built = stamp.built {
                 Text(verbatim: built.formatted(date: .numeric, time: .shortened))
                     .font(.mono(12))

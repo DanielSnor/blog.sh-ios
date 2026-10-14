@@ -1,14 +1,17 @@
 import Foundation
 
-/// Which build this is: the commit it was made from and when it was made.
-/// Written into the bundle by the build itself (the project's "Stamp the
-/// build" phase: a line with the commit, a line with the time), so one
-/// copy of the app can be told from another -- on a tablet, on a desk --
-/// without asking the machine that built it.
+/// Which build this is: its version, the commit it was made from and when
+/// it was made. The commit and the time are written into the bundle by
+/// the build itself (the project's "Stamp the build" phase: a line with
+/// the commit, a line with the time), so one copy of the app can be told
+/// from another -- on a tablet, on a desk -- without asking the machine
+/// that built it; the version is the one a person asks about.
 nonisolated struct BuildStamp: Equatable, Sendable {
     /// The short commit; a plus after it for a tree that had changes not committed.
     let commit: String?
     let built: Date?
+    /// The version, as the app is named by it: 0.1.
+    var version: String? = nil
 
     /// The two lines of the stamp file. Anything else is no stamp.
     init(text: String) {
@@ -21,20 +24,26 @@ nonisolated struct BuildStamp: Equatable, Sendable {
         built = lines.count > 1 ? formatter.date(from: lines[1]) : nil
     }
 
-    init(commit: String?, built: Date?) {
+    init(commit: String?, built: Date?, version: String? = nil) {
         self.commit = commit
         self.built = built
+        self.version = version
     }
 
     /// This app's own: the stamp in its bundle, or -- a build nobody
-    /// stamped -- at least when its code was written to disk.
+    /// stamped -- at least when its code was written to disk; with the
+    /// version the bundle is named by.
     static let own: BuildStamp = {
+        let version = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String).flatMap { $0.isEmpty ? nil : $0 }
         if let url = Bundle.main.url(forResource: "BuildStamp", withExtension: "txt"),
            let text = try? String(contentsOf: url, encoding: .utf8) {
-            let stamp = BuildStamp(text: text)
-            if stamp.commit != nil || stamp.built != nil { return stamp }
+            var stamp = BuildStamp(text: text)
+            if stamp.commit != nil || stamp.built != nil {
+                stamp.version = version
+                return stamp
+            }
         }
         let made = Bundle.main.executableURL.flatMap { try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate }
-        return BuildStamp(commit: nil, built: made)
+        return BuildStamp(commit: nil, built: made, version: version)
     }()
 }

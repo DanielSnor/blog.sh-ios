@@ -25,4 +25,13 @@ import Testing
         #expect(bare.commit == nil)
         #expect(bare.built != nil)
     }
+
+    /// The version is what a person asks about: the app's own stamp names
+    /// it, as the bundle is named; the stamp file does not hold it.
+    @Test func theAppsOwnStampNamesItsVersion() {
+        #expect(BuildStamp(text: "e838f47\n2026-10-07T15:10:00Z").version == nil)
+        let named = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        #expect(named?.isEmpty == false)
+        #expect(BuildStamp.own.version == named)
+    }
 }

@@ -4332,6 +4332,22 @@
         }
       }
     },
+    "Taken off on the server with:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na serveru se odebere příkazem:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem Server wird es so entfernt:"
+          }
+        }
+      }
+    },
     "Tap a colour to change it. It holds on this device, for every blog.": {
       "localizations": {
         "cs": {
